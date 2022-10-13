@@ -15,6 +15,7 @@ ___
 
 ## Moje poznámky:
 ### (1)
+
 - vektorově obrazek (SVG)
 - [ ] zamyslet se, jak vykrestlit tu tunu dat (co tam je) tak, aby to k necemu bylo
 - [ ] prozkoumat zasobnikove ramce
@@ -24,6 +25,7 @@ ___
 - [x] udelat si git repo, kde budu hazet veskere veci, ktere budu mit rozmakane (at uz text bakalarky, nebo ruzne casti projektu - vykreslovani / vscode) a tak.
 
 ### (2)
+
 - [ ] [Zasobnikove ramce](https://dspace.vsb.cz/bitstream/handle/10084/116048/BER0134_FEI_B2647_2612R025_2016.pdf?sequence=1&isAllowed=y) - sekce 2.5 (pročíst - idealne cele)
 - [ ] dodelat extension, aby sel spustit a vytvoril okno
 - [ ] zkusit pres debug API vytahnout nejake data (treba zjistit jake jsou lokalni promenne ve funkci) -> lze zjistit z implementace toho debug-visualizeru (GitHub)
