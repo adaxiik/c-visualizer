@@ -14,19 +14,18 @@
 ___
 
 ## Moje poznámky:
-### (1)
-
-- vektorově obrazek (SVG)
-- [ ] zamyslet se, jak vykrestlit tu tunu dat (co tam je) tak, aby to k necemu bylo
+### 1. hovor
+- [ ] zamyslet se, jak vykrestlit tu tunu dat (co tam je) tak, aby to k něčemu bylo
 - [ ] prozkoumat zasobnikove ramce
-- [ ] typescript - checknout tam nastroj, ktery by to byl schopen vykresit (diagramy, sipky, atd.) - napr. Fabric.js
+- [ ] typescript - checknout tam nástroj, který by to byl schopen vykresit (diagramy, šipky, atd.) - např. Fabric.js
 - [x] prvni checknout, jestli nebude lepsi kutit rovnou extension ve VSCode - jestli tam jde vykreslovat a tak
-- [ ] algebraicke datove typy (checknout)
+- [ ] algebraické datové typy (checknout)
 - [x] udelat si git repo, kde budu hazet veskere veci, ktere budu mit rozmakane (at uz text bakalarky, nebo ruzne casti projektu - vykreslovani / vscode) a tak.
+- obrázky generovat vektorově (např. SVG)
 
-### (2)
+### 2. hovor
 
 - [ ] [Zasobnikove ramce](https://dspace.vsb.cz/bitstream/handle/10084/116048/BER0134_FEI_B2647_2612R025_2016.pdf?sequence=1&isAllowed=y) - sekce 2.5 (pročíst - idealne cele)
-- [ ] dodelat extension, aby sel spustit a vytvoril okno
-- [ ] zkusit pres debug API vytahnout nejake data (treba zjistit jake jsou lokalni promenne ve funkci) -> lze zjistit z implementace toho debug-visualizeru (GitHub)
+- [ ] dodělat extension, aby šel spustit a vytvořil okno
+- [ ] zkusit přes debug API vytáhnout nějaké data (třeba zjistit jaké jsou lokální proměnné ve funkci) -> lze zjistit z implementace toho debug-visualizeru (GitHub)
 - [x] udělat GitHub repo, kam to všechno hodit (a poslat invite)
