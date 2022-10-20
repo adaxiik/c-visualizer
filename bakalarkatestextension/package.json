@@ -10,14 +10,21 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:bakalarkatestextension.helloWorld"
+    "onCommand:bakalarkatestextension.helloWorld",
+    "onCommand:bakalarkatestextension.showPreview"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "bakalarkatestextension.helloWorld",
-        "title": "Hello World"
+        "title": "Hello World",
+        "category": "BakalarkaTestExtension"
+      },
+      {
+        "command": "bakalarkatestextension.showPreview",
+        "title": "Show preview",
+        "category": "BakalarkaTestExtension"
       }
     ]
   },

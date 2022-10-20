@@ -2,6 +2,9 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
+//Importing my htmlFile
+import htmlIndex from "./testHtmlFile";
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -19,8 +22,26 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Hello World from BakalarkaTestExtension!');
 	});
 
+	//src: https://code.visualstudio.com/api/extension-guides/webview
+	let testPreviewCommand = vscode.commands.registerCommand('bakalarkatestextension.showPreview', () => {
+		// Create and show a new webview
+		const panel = vscode.window.createWebviewPanel(
+			'bakalarkaTestExtension', // Identifies the type of the webview. Used internally
+			'Bakalarka Test Extension - dog preview', // Title of the panel displayed to the user
+			vscode.ViewColumn.Beside, // Editor column to show the new webview panel in.
+			{} // Webview options. More on these later.
+		);
+		panel.webview.html = getWebviewContent();
+	});
+
 	context.subscriptions.push(disposable);
+	context.subscriptions.push(testPreviewCommand);
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
+
+function getWebviewContent()
+{
+	return htmlIndex;
+}

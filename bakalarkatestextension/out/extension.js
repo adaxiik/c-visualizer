@@ -4,6 +4,8 @@ exports.deactivate = exports.activate = void 0;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require("vscode");
+//Importing my htmlFile
+const testHtmlFile_1 = require("./testHtmlFile");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -18,10 +20,24 @@ function activate(context) {
         // Display a message box to the user
         vscode.window.showInformationMessage('Hello World from BakalarkaTestExtension!');
     });
+    //src: https://code.visualstudio.com/api/extension-guides/webview
+    let testPreviewCommand = vscode.commands.registerCommand('bakalarkatestextension.showPreview', () => {
+        // Create and show a new webview
+        const panel = vscode.window.createWebviewPanel('bakalarkaTestExtension', // Identifies the type of the webview. Used internally
+        'Bakalarka Test Extension - dog preview', // Title of the panel displayed to the user
+        vscode.ViewColumn.Beside, // Editor column to show the new webview panel in.
+        {} // Webview options. More on these later.
+        );
+        panel.webview.html = getWebviewContent();
+    });
     context.subscriptions.push(disposable);
+    context.subscriptions.push(testPreviewCommand);
 }
 exports.activate = activate;
 // This method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;
+function getWebviewContent() {
+    return testHtmlFile_1.default;
+}
 //# sourceMappingURL=extension.js.map
