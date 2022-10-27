@@ -25,6 +25,11 @@
         "command": "bakalarkatestextension.showPreview",
         "title": "Show preview",
         "category": "BakalarkaTestExtension"
+      },
+      {
+        "command": "bakalarkatestextension.resetTextcommand",
+        "title": "Reset text",
+        "category": "BakalarkaTestExtension"
       }
     ]
   },
