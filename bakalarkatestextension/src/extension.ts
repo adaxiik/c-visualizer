@@ -29,9 +29,18 @@ export function activate(context: vscode.ExtensionContext) {
 			'bakalarkaTestExtension', // Identifies the type of the webview. Used internally
 			'Bakalarka Test Extension - dog preview', // Title of the panel displayed to the user
 			vscode.ViewColumn.Beside, // Editor column to show the new webview panel in.
-			{} // Webview options. More on these later.
+			{
+				enableScripts: true
+			} // Webview options
 		);
 		panel.webview.html = getWebviewContent();
+
+		//delay(3000);	//Wait for 3 seconds - not working
+		var messageString = "oogabooga";
+		setInterval(() => {
+			panel.webview.postMessage({ messageData: messageString });
+			messageString = messageString + "o";
+        }, 1000);
 	});
 
 	context.subscriptions.push(disposable);
@@ -45,3 +54,9 @@ function getWebviewContent()
 {
 	return htmlIndex;
 }
+
+/*
+function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+}
+*/
