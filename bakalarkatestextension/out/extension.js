@@ -29,21 +29,10 @@ function activate(context) {
         'Bakalarka Test Extension - dog preview', // Title of the panel displayed to the user
         vscode.ViewColumn.Beside, // Editor column to show the new webview panel in.
         {
-            enableScripts: true
+            enableScripts: true,
+            localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'src')] //Allowing including only files from the "src" folder*/
         } // Webview options
         );
-        /*,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'src'))] //Allowing including only files from the "src" folder*/
-        //Testing including the HTML from a HTML file
-        /*
-        const onDiskPath = vscode.Uri.file(
-            path.join(context.extensionPath, 'src', 'testHtmlFile2.html')
-          );
-
-        const htmlSrc = panel.webview.asWebviewUri(onDiskPath);
-
-        panel.webview.html = getWebviewContent(htmlSrc);
-        */
         currentPanel.webview.html = getWebviewContent(currentPanel.webview, context);
         var messageString = "oogabooga";
         setInterval(() => {
