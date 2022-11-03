@@ -2,9 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 //import * as path from 'path';
-
-//Importing my htmlFile
-import htmlIndex from "./testHtmlFile";
+import * as fs from 'fs';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -50,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
 		panel.webview.html = getWebviewContent(htmlSrc);
 		*/
 
-		currentPanel.webview.html = getWebviewContent();
+		currentPanel.webview.html = getWebviewContent(currentPanel.webview, context);
 			
 
 		var messageString = "oogabooga";
@@ -80,7 +78,20 @@ export function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated
 export function deactivate() {}
 
-function getWebviewContent()
+function getWebviewContent(webview: vscode.Webview, context: any)
 {
-	return htmlIndex;
+	let retHtml: string = ``;
+  
+	//Preparing the paths
+  	const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFileScript.js'));   // <--- 'src' is the folder where the .js file is stored
+  	const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFile.html'));
+
+	//Loading the resources
+	retHtml = fs.readFileSync(rawHtml.fsPath, 'utf8');
+
+	//Replacing the key sequences
+	let scriptPathString: string = myScript.toString(true);
+	retHtml = retHtml.replace("${myScript}", scriptPathString);
+
+	return retHtml;
 }
