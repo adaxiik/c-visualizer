@@ -21,6 +21,7 @@ ___
 - [x] prvni checknout, jestli nebude lepsi kutit rovnou extension ve VSCode - jestli tam jde vykreslovat a tak
 - [x] algebraické datové typy (checknout)
 - [x] udelat si git repo, kde budu hazet veskere veci, ktere budu mit rozmakane (at uz text bakalarky, nebo ruzne casti projektu - vykreslovani / vscode) a tak.
+
 - obrázky generovat vektorově (např. SVG)
 
 ### 2. hovor
@@ -33,6 +34,7 @@ ___
 ### 3. hovor
 
 - [x] dostat extension do stavu, kdy je schopen reagovat na jiné věci - např. schopen volat funkci skriptu (JS) v HTML stránce (toho WebView) pro vykreslení nějakého objektu do Canvasu
+
 - vyhnout se generování (a opětovnému načtení) HTML stránky, která se znovuzobrazí ve WebView
 - do začátku listopadu by se mělo přejít z testování možností na implementaci (kdyby to furt bylo v nejistém stavu, tak na práci na datový model, atd.)
 
@@ -44,6 +46,7 @@ ___
 
 - [ ] udělat nový projekt, který se bude soustředit na vykreslování datového modelu (třeba zase přes ten Fabric.js)
 - tahání dat z debugerru alespoň z počátku asi bude řešené přes parsování stringu vraceného VS Codem (ale časem je možno prozkoumat jiné řešení - struktury od [GDB](https://github.com/Kobzol/debug-visualizer/blob/master/debugger/gdbc/type.py) / [DWARF](https://dwarfstd.org/) - debugging data v binárce)
+
 - v budoucnu je možno předělat tvorbu zobrazovaného HTML přes nějaký templatovací designer - např. [Jinja](https://jinja.palletsprojects.com/en/3.1.x/templates/)
 - celkově se tím pádem teď zase více zaměřit na tu vykreslovací část a datový model
 - v budoucnu (až v závěrečných fázích, kdy to bude mít smysl) bude možno při přidání nějakých větších featur to dělat tak, že si založím novou větev (s novou featurou), která se potom přes pull reguest / merge spojí s tou hlavní - protože v ten moment přichází upozornění na mail, generuje se diff mezi verzemi (s možností psaní komentářů), atd.
