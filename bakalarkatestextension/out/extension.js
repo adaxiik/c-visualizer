@@ -72,12 +72,13 @@ function getWebviewContent(webview, context) {
     let retHtml = ``;
     //Preparing the paths
     const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFileScript.js')); // <--- 'src' is the folder where the .js file is stored
+    const fabricLibraryScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'fabric.min.js'));
     const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFile.html'));
     //Loading the resources
     retHtml = fs.readFileSync(rawHtml.fsPath, 'utf8');
     //Replacing the key sequences
-    let scriptPathString = myScript.toString(true);
-    retHtml = retHtml.replace("${myScript}", scriptPathString);
+    retHtml = retHtml.replace("${myScript}", myScript.toString(true));
+    retHtml = retHtml.replace("${fabricLibraryScript}", fabricLibraryScript.toString(true));
     return retHtml;
 }
 //# sourceMappingURL=extension.js.map
