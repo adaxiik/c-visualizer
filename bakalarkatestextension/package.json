@@ -11,7 +11,9 @@
   ],
   "activationEvents": [
     "onCommand:bakalarkatestextension.helloWorld",
-    "onCommand:bakalarkatestextension.showPreview"
+    "onCommand:bakalarkatestextension.showPreview",
+    "onCommand:bakalarkatestextension.resetTextCommand",
+    "onCommand:bakalarkatestextension.drawCircleCommand"
   ],
   "main": "./out/extension.js",
   "contributes": {

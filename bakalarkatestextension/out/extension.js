@@ -33,7 +33,18 @@ function activate(context) {
             localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'src')] //Allowing including only files from the "src" folder*/
         } // Webview options
         );
+        //Getting the WebView HTML
         currentPanel.webview.html = getWebviewContent(currentPanel.webview, context);
+        //Registering the debug adapter
+        vscode.debug.registerDebugAdapterTrackerFactory('*', {
+            createDebugAdapterTracker(session) {
+                return {
+                    onWillReceiveMessage: m => console.log(`bakalarkaTestExtension> ${JSON.stringify(m, undefined, 2)}`),
+                    onDidSendMessage: m => console.log(`bakalarkaTestExtension< ${JSON.stringify(m, undefined, 2)}`)
+                };
+            }
+        });
+        //Periodically sending "o" message to the WebView
         var messageString = "oogabooga";
         setInterval(() => {
             currentPanel.webview.postMessage({ messageData: messageString });
