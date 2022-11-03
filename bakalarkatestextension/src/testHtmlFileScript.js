@@ -1,4 +1,12 @@
 const dataElement = document.getElementById('dataOutput');
+        //Testing the canvas
+        var fabricCanvas = new fabric.Canvas('myCanvas');
+        fabricCanvas.add(new fabric.Circle({ radius: 30, fill: '#33ccff', top: 100, left: 100 }));
+
+        fabricCanvas.selectionColor = 'rgba(51, 204, 255, 0.3)';
+        fabricCanvas.selectionBorderColor = 'blue';
+        fabricCanvas.selectionLineWidth = 1;
+
         //Getting a test message from the external TypeScript
         // Handle the message inside the webview
         window.addEventListener('message', event => {
@@ -12,6 +20,9 @@ const dataElement = document.getElementById('dataOutput');
                 case 'resetText':
                   dataElement.textContent = "";
                   break;
+                case 'drawCircle':
+                    fabricCanvas.add(new fabric.Circle({ radius: 15, fill: '#33ccff', top: Math.random()*100, left: Math.random()*100 })); //Adding the circles randomly within the bounds of the canvas
+                    break;
                 default:
                   break;
               }
@@ -21,11 +32,3 @@ const dataElement = document.getElementById('dataOutput');
               dataElement.textContent = dataElement.textContent + message.messageData;
             }
         });
-
-        //Testing the canvas
-        var canvas = new fabric.Canvas('myCanvas');
-        canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 }));
-
-        canvas.selectionColor = 'rgba(0,255,0,0.3)';
-        canvas.selectionBorderColor = 'red';
-        canvas.selectionLineWidth = 5;

@@ -47,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	//Second function (to reset the text - testing calling other functions that affect the panel)
-	let resetTextcommand = vscode.commands.registerCommand('bakalarkatestextension.resetTextcommand', () => {
+	let resetTextCommand = vscode.commands.registerCommand('bakalarkatestextension.resetTextCommand', () => {
 		if (!currentPanel) {
 		  return;
 		}
@@ -57,9 +57,21 @@ export function activate(context: vscode.ExtensionContext) {
 		currentPanel.webview.postMessage({ command: 'resetText' });
 	  });
 
+	//Third function (to add a circle to the canvas - testing calling drawing from the outside script)
+	let drawCircleCommand = vscode.commands.registerCommand('bakalarkatestextension.drawCircleCommand', () => {
+		if (!currentPanel) {
+		  return;
+		}
+  
+		// Send a message to our webview.
+		// You can send any JSON serializable data.
+		currentPanel.webview.postMessage({ command: 'drawCircle' });
+	  });  
+
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(testPreviewCommand);
-	context.subscriptions.push(resetTextcommand);
+	context.subscriptions.push(resetTextCommand);
+	context.subscriptions.push(drawCircleCommand);
 }
 
 

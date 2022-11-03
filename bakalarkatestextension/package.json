@@ -27,8 +27,13 @@
         "category": "BakalarkaTestExtension"
       },
       {
-        "command": "bakalarkatestextension.resetTextcommand",
+        "command": "bakalarkatestextension.resetTextCommand",
         "title": "Reset text",
+        "category": "BakalarkaTestExtension"
+      },
+      {
+        "command": "bakalarkatestextension.drawCircleCommand",
+        "title": "Draw a circle (at a random position)",
         "category": "BakalarkaTestExtension"
       }
     ]
