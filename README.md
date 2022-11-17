@@ -53,8 +53,8 @@ ___
 
 ### 6. hovor
 
-- [ ] Zvážit, jakou buildovací technologii zvolit (např. [ParcelJS](https://parceljs.org/))
-- [ ] Vytvořit nějaký projekt, který se bude buildovat do výsledného souboru (nejspíše do jednoho, který se bude inkludovat v HTML)
+- [x] Zvážit, jakou buildovací technologii zvolit (např. [ParcelJS](https://parceljs.org/))
+- [x] Vytvořit nějaký projekt, který se bude buildovat do výsledného souboru (nejspíše do jednoho, který se bude inkludovat v HTML)
 - Během toho oddělovat jednotlivé komponenty tak, aby nespoléhaly na mojí implementaci (mít to abstraktnější tak, aby nějaká moje metoda třeba nespoléhala na to, že v HTML souboru existuje canvas s nějakým jménem, atd.) 
 - Ty komponenty by měly být rozdělené třeba jako jedna, která bude jen datový model (vesměs TS soubor, který bude obsahovat jen samé interfacy), druhá která bude includovat Fabric a řešit vykreslování a pak až nějakou finální, co to bude předávat do HTML (nebo tak nějak to prostě rozdělit)
 - [ ] Prozkoumat, co dělá Node.js (a jakou hraje roli u buildování)
@@ -65,3 +65,19 @@ Odkazy s materiály:
 - [Návod k Webpacku](https://blog.sessionstack.com/how-javascript-works-a-guide-to-build-tools-exploring-webpack-parcel-rollup-es-build-and-2089bcf0ddb4)
 - [seznam technologií a témat k prozkoumání při vývoji webu](
 https://github.com/bmorelli25/Become-A-Full-Stack-Web-Developer)
+
+### 7. hovor
+
+- [ ] Zpracovat datový model do formy, kdy bude schopen popsat stav momentálně zastaveného programu (stav, zásobníkové rámce, proměnné, atd.). Což znamená - předělat ten můj kreslený datový model do kódu + něco navíc
+
+- Poznámky k datovému modelu: 
+  - Nejspíše to zatím dělat pres třídy (to se pak případně časem může změnit na interfacy)
+  - Třídy podobné něčemu jako třeba *Int* by neměly vůbec nic vědět o vykreslování
+
+
+- Poznámky k vykreslování: 
+  - Bude se řešit až časem (prvotní je předělat datový model, na kterém se to vykreslování pak bude stavět)
+  - Vykreslování se bude řešit tak, ze něco přebere objekt nějakého konkrétního typu (nebo obecný objekt obsahující string s jeho typem) a podle toho ho adekvátně vykreslí
+  - Ve vykreslování budu mít nějaké *widgety*, které budou představovat nějakou vykreslovanou část / nějaký vykreslovaný objekt (ty budou dal rekurzivně obsahovat jiné *podwidgety*) 
+
+**Bonus** - Další nápad na featuru do budoucna: [vizualizace paddingu/alignmentu u struktur](https://mrlvsb.github.io/upr-skripta/c/struktury/pametova_reprezentace.html)
