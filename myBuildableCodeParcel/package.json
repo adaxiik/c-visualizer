@@ -2,9 +2,6 @@
   "devDependencies": {
     "buffer": "^5.7.1"
   },
-  "alias": {
-    "@types/fabric": "fabric"
-  },
   "dependencies": {
     "@types/fabric": "^4.5.12",
     "fabric": "^5.2.4"
