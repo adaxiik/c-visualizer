@@ -1,11 +1,12 @@
-//For now moved into the "tsTextIndex.ts" file
-/*import { fabric } from "fabric";
+import { fabric } from "fabric";
 
-class MyInt {
+export class MyInt {
     value: number;
 
     //Values for later drawing in Fabric
+    fabricGroup: fabric.Group;
     fabricObject: fabric.Circle;
+    fabricText: fabric.Text;
     color: string;
     radius: number;
     posTop: number;
@@ -21,10 +22,21 @@ class MyInt {
         this.posTop = setPosTop;
         this.posLeft = setPosLeft;
         
-        this.fabricObject = new fabric.Circle({ radius: this.radius, fill: this.color, top: this.posTop, left: this.posLeft })
+        this.fabricObject = new fabric.Circle({
+            radius: this.radius,
+            fill: this.color,
+            top: this.posTop,
+            left: this.posLeft
+        })
+        this.fabricText = new fabric.Text(this.value.toString(), { 
+            left: this.fabricObject.left,
+            top: this.fabricObject.top,
+            fill: 'black'
+        });
+        this.fabricGroup = new fabric.Group([this.fabricObject, this.fabricText]);
     }
 
-    getObject() {
-        return this.fabricObject;
+    drawObject(drawIntoCanvas: fabric.Canvas) {
+        drawIntoCanvas.add(this.fabricGroup);
     }
-}*/
+}
