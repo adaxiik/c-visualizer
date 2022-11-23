@@ -68,7 +68,7 @@ https://github.com/bmorelli25/Become-A-Full-Stack-Web-Developer)
 
 ### 7. hovor
 
-- [ ] Zpracovat datový model do formy, kdy bude schopen popsat stav momentálně zastaveného programu (stav, zásobníkové rámce, proměnné, atd.). Což znamená - předělat ten můj kreslený datový model do kódu + něco navíc
+- [x] Zpracovat datový model do formy, kdy bude schopen popsat stav momentálně zastaveného programu (stav, zásobníkové rámce, proměnné, atd.). Což znamená - předělat ten můj kreslený datový model do kódu + něco navíc
 
 - Poznámky k datovému modelu: 
   - Nejspíše to zatím dělat pres třídy (to se pak případně časem může změnit na interfacy)
