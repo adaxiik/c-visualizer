@@ -1,5 +1,5 @@
 import { fabric } from "fabric";
-import { MyInt } from "./myDataStructures";
+import { MyInt } from "./dataStructuresTest";
 
 
 console.log("[DEBUG] Initialzing Fabric");
