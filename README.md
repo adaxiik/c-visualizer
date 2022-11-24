@@ -16,7 +16,7 @@ ___
 ## Moje poznámky:
 ### 1. hovor
 - [ ] zamyslet se, jak vykrestlit tu tunu dat (co tam je) tak, aby to k něčemu bylo
-- [ ] prozkoumat zasobnikove ramce
+- [x] prozkoumat zasobnikove ramce
 - [x] typescript - checknout tam nástroj, který by to byl schopen vykresit (diagramy, šipky, atd.) - např. Fabric.js
 - [x] prvni checknout, jestli nebude lepsi kutit rovnou extension ve VSCode - jestli tam jde vykreslovat a tak
 - [x] algebraické datové typy (checknout)
@@ -81,3 +81,15 @@ https://github.com/bmorelli25/Become-A-Full-Stack-Web-Developer)
   - Ve vykreslování budu mít nějaké *widgety*, které budou představovat nějakou vykreslovanou část / nějaký vykreslovaný objekt (ty budou dal rekurzivně obsahovat jiné *podwidgety*) 
 
 **Bonus** - Další nápad na featuru do budoucna: [vizualizace paddingu/alignmentu u struktur](https://mrlvsb.github.io/upr-skripta/c/struktury/pametova_reprezentace.html)
+
+### 8. hovor
+
+- [ ] Dostat to do stavu, kdy budu moct vykreslit nějaký základní zásobníkový rámec (třeba ve kterém budou dvě hodnoty s *Inty* + třeba *Bool*)
+- [ ] Dostat repo do stavu, kdy jej bude možno stáhnout a spustit (včetně doinstalování všech potřebných závislostí) na jakémkoliv jiném kompu
+
+Poznámky do budoucna: 
+- U datového modelu se nejspíše proměnné budou řešit tak, že jejich samotná hodnota (ne ve formě stringu) bude uložena tím, že se daná třída rozšíří (např. tvorbou nové třídy *myInt*, která bude obsahovat i proměnnou *value* - ta bude rozšiřovat rodičovskou, spíše virtuální třídu *myVariable*)
+- Nebylo by na škodu kouknout, jak některé debuggery reprezentují datové typy a hodnoty objektů (/proměnných)
+- Zamknout možnost přesouvání jednotlivých objektů (ve Fabricu) - objekty budou vykreslovány fixně a pohybovat se po Canvasu bude pomocí zoomování a panningu (ty už by i měly být součástí Fabricu)
+- Objekty by se ve Fabricu měly nejspíše vykreslovat podle jejich adresy v paměti (tím, že časem asi bude i alternativní pohled na paměť) = neměly by se vykreslovat abecedně (nebo nějak podobně)
+- Možná by bylo možno udělat vlastní testy pro aplikaci přes něco jako [Cypress](https://www.cypress.io/), pokud by se to řešilo end to end testy (případně by bylo možno to řešit i přes snapshot testy, které kontrolují přímo vzhled výstupu - třeba při vykreslení přímo do PNG / SVG)
