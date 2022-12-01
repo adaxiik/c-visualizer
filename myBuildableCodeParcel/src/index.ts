@@ -1,5 +1,5 @@
-import { MyFabricDrawingModule } from "./fabricDrawingModule";
+import { myFabricDrawingModule } from "./fabricDrawingModule";
 import "./dataModelStructures";
 
 console.log("[DEBUG] Initialzing Fabric");
-var myFabricDrawingModule = new MyFabricDrawingModule('myCanvas');
+var myDrawingModule = new myFabricDrawingModule('myCanvas');
