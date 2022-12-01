@@ -1,5 +1,4 @@
 import { fabric } from "fabric";
-import { Group } from "fabric/fabric-impl";
 import * as myDataModelStructures from "./dataModelStructures";
 
 export class myFabricDrawingModule {
@@ -45,7 +44,7 @@ export class myFabricDrawingModule {
                 top: currentPositionY,
                 width: stackSlotWidth,
                 height: stackSlotHeight,
-                fill:slotBackgroundColor,
+                fill: slotBackgroundColor,
 
                 //TODO: Change (Testing values)
                 padding: 8,
@@ -53,6 +52,7 @@ export class myFabricDrawingModule {
                 strokeWidth: 2
             });
             //Drawing the slot's text
+            //TODO: Calculate the positioning correctly
             let fabricSlotText = new fabric.Text(mySlotText, { 
                 left: currentPositionX + 4,
                 top: currentPositionY + stackSlotHeight/8,
@@ -74,12 +74,16 @@ export class myFabricDrawingModule {
         //Creating the slots
         //TODO: Refactor and improve
         let retAllSlots = new Array<Array<fabric.Group>>;
+        //Function name
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
+        //Function variables
         stackFrameToDraw.functionVariables.forEach(functionVariable => {
             let variableText = functionVariable.variableName + ": " + functionVariable.dataTypeString + " (" + functionVariable.valueString + ")";
             retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey)); 
         });
+        //Function return address
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.returnAddress, backgroundColorRed));
+        //Function parameters
         stackFrameToDraw.functionParameters.forEach(functionParameter => {
             let variableText = functionParameter.variableName + ": " + functionParameter.dataTypeString + " (" + functionParameter.valueString + ")";
             retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen)); 
@@ -97,6 +101,8 @@ export class myFabricDrawingModule {
 }
 
 //Old testing class (left just for inspiration and not exported outside of file)
+//TODO: Delete
+/*
 class myInt {
     value: number;
 
@@ -137,3 +143,4 @@ class myInt {
         drawIntoCanvas.add(this.fabricGroup);
     }
 }
+*/
