@@ -84,7 +84,7 @@ https://github.com/bmorelli25/Become-A-Full-Stack-Web-Developer)
 
 ### 8. hovor
 
-- [ ] Dostat to do stavu, kdy budu moct vykreslit nějaký základní zásobníkový rámec (třeba ve kterém budou dvě hodnoty s *Inty* + třeba *Bool*)
+- [x] Dostat to do stavu, kdy budu moct vykreslit nějaký základní zásobníkový rámec (třeba ve kterém budou dvě hodnoty s *Inty* + třeba *Bool*)
 - [ ] Dostat repo do stavu, kdy jej bude možno stáhnout a spustit (včetně doinstalování všech potřebných závislostí) na jakémkoliv jiném kompu
 
 Poznámky do budoucna: 
@@ -93,3 +93,19 @@ Poznámky do budoucna:
 - Zamknout možnost přesouvání jednotlivých objektů (ve Fabricu) - objekty budou vykreslovány fixně a pohybovat se po Canvasu bude pomocí zoomování a panningu (ty už by i měly být součástí Fabricu)
 - Objekty by se ve Fabricu měly nejspíše vykreslovat podle jejich adresy v paměti (tím, že časem asi bude i alternativní pohled na paměť) = neměly by se vykreslovat abecedně (nebo nějak podobně)
 - Možná by bylo možno udělat vlastní testy pro aplikaci přes něco jako [Cypress](https://www.cypress.io/), pokud by se to řešilo end to end testy (případně by bylo možno to řešit i přes snapshot testy, které kontrolují přímo vzhled výstupu - třeba při vykreslení přímo do PNG / SVG)
+
+### 9. hovor
+
+- [ ] Udělat Dockerfile, který dostane alespoň vykreslovací část s ParcelJS do spustitelného stavu
+- [ ] Přidat zoom a panning (ve Fabricu)
+- [ ] Odstranit návratovou adresu (ze sledovaných dat u zásobníkových rámců)
+
+- Vykreslování velkých dat
+  - [ ] Vypracovat vykreslování stringů (zkoušet si i nějaké edge cases - např. string o 1000 znacích)
+  - [ ] Hierarchické/rozklikávací zobrazení s odsazením (jako je např. u tříd ve Visual Studiu) 
+  - [ ] "Portál" - pohled na nějakou jinou část skrze nějaké speciální okno (třeba které bude zvýrazňovat nějaké prvky, atd. - obdoba toho, co např. vzniká u automatické tvorby funkcí ve Visual Studiu)
+  - [ ] Vykreslování v nové stránce (+ tlačítko na vracení zpět, + breadcrumbs - cesta popisující to, "v čem je člověk zanořený a jak")
+
+- Poznámky do budoucna: 
+  - Kouknout se na to, co vrací debugger VS Code, když se jedná o string (jestli celý string / první písmeno / ...)
+  - Je možno si vytvořit nějaké pipeliny / runnery na zkoušení Dockeru na GitHubu (možná by tam měly bý i větší kvóty, kdybych si aktivoval studentský účet) 
