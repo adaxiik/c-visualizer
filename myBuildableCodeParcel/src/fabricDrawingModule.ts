@@ -6,12 +6,19 @@ export class myFabricDrawingModule {
 
     constructor(canvasName: string) {
         this.canvas = new fabric.Canvas(canvasName);
+        //To have it a bit larger (not yet exact sizing)
+        //TODO: Think the sizing throught and adjust accordingly
+        this.canvas.setWidth(screen.width);
+        this.canvas.setHeight(screen.height/2);
     }
 
     //TODO: Move to a separate class (something like myFabricStackFrame) with it's own drawing method
     drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame) {
         //Default values
-        let backgroundColor = '#33ccff';
+        let backgroundColorBlue = '#33ccff';
+        let backgroundColorGrey = '#8f8f8f';
+        let backgroundColorRed = '#ff0000';
+        let backgroundColorGreen = '#00ff04';
         let textFill = "black";
         let stackSlotHeight = 30;   //Height of a single "slot" in the drawn stackframe
         let stackSlotWidth = 200;   //Width of a single "slot" in the drawn stackframe
@@ -19,7 +26,7 @@ export class myFabricDrawingModule {
         let currentPositionY = 10;  //The position where we're drawing
 
         //TODO: After moving to a separate class (add a method for drawing a single "slot" in the stackframe)
-        let myCreateSlotFunction = function(myVariableName: string): Array<fabric.Group> {
+        let myCreateSlotFunction = function(myVariableName: string, slotBackgroundColor: string): Array<fabric.Group> {
             let resultFabricStackFrameArray = new Array<fabric.Group>;    //Result group of stackframe "slots"
             //Drawing the slot's background
             let fabricSlotBackground = new fabric.Rect({
@@ -27,7 +34,7 @@ export class myFabricDrawingModule {
                 top: currentPositionY,
                 width: stackSlotWidth,
                 height: stackSlotHeight,
-                fill:backgroundColor,
+                fill:slotBackgroundColor,
 
                 //TODO: Change (Testing values)
                 padding: 8,
@@ -35,8 +42,7 @@ export class myFabricDrawingModule {
                 strokeWidth: 2
             });
             //Drawing the slot's text
-            let variableName = myVariableName;
-            let fabricSlotText = new fabric.Text(variableName, { 
+            let fabricSlotText = new fabric.Text(myVariableName, { 
                 left: currentPositionX + 4,
                 top: currentPositionY + stackSlotHeight/8,
                 fill: textFill,
@@ -56,22 +62,20 @@ export class myFabricDrawingModule {
         
         //Creating the slots
         //TODO: Refactor and improve
-        let tempRet = myCreateSlotFunction("testFunctionName");
-        let tempRet2 = myCreateSlotFunction("testVariableName");
-        let tempRet3 = myCreateSlotFunction("testReturnAddressName");
-        let tempRet4 = myCreateSlotFunction("testParameterName");
+        let retAllSlots = new Array<Array<fabric.Group>>;
+        retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
+        stackFrameToDraw.functionVariables.forEach(functionVariable => {
+            retAllSlots.push(myCreateSlotFunction(functionVariable.variableName, backgroundColorGrey)); 
+        });
+        retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.returnAddress, backgroundColorRed));
+        stackFrameToDraw.functionParameters.forEach(functionParameter => {
+            retAllSlots.push(myCreateSlotFunction(functionParameter.variableName, backgroundColorGreen)); 
+        });
         //Adding the result group to the canvas
-        tempRet.forEach(stackFrameSlot => {
+        retAllSlots.forEach(stackGroup => {
+           stackGroup.forEach(stackFrameSlot => {
             this.canvas.add(stackFrameSlot);
-        });
-        tempRet2.forEach(stackFrameSlot => {
-            this.canvas.add(stackFrameSlot);
-        });
-        tempRet3.forEach(stackFrameSlot => {
-            this.canvas.add(stackFrameSlot);
-        });
-        tempRet4.forEach(stackFrameSlot => {
-            this.canvas.add(stackFrameSlot);
+           }); 
         });
     }
 }
