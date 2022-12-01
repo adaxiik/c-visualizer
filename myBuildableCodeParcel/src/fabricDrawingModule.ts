@@ -1,6 +1,20 @@
 import { fabric } from "fabric";
+import * as myDataModelStructures from "./dataModelStructures";
 
-export class MyInt {
+export class myFabricDrawingModule {
+    canvas: fabric.Canvas;
+
+    constructor(canvasName: string) {
+        this.canvas = new fabric.Canvas(canvasName);
+    }
+
+    drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame) {
+
+    }
+}
+
+//Old testing class (left just for inspiration and not exported outside of file)
+class MyInt {
     value: number;
 
     //Values for later drawing in Fabric

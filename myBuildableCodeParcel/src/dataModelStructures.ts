@@ -23,9 +23,9 @@ export class myProgramStack {
 //StackFrame
 export class myStackFrame {
     functionName: string;
-    functionParameters: myVariable[];
-    returnAddress: string;
     functionVariables: myVariable[];
+    returnAddress: string;
+    functionParameters: myVariable[];
 }
 
 //myArray
