@@ -45,6 +45,7 @@ export class myVariable {
     dataTypeEnum: myDataType;
     dataTypeString: string;
     value: any;                         //TODO: Consider changing to a different type (I'm not yet sure, if there'll be a better type)
+    valueString: string;
 }
 
 //myDataType

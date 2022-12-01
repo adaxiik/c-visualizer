@@ -32,7 +32,7 @@ export class myFabricDrawingModule {
         let backgroundColorGreen = '#00ff04';
         let textFill = "black";
         let stackSlotHeight = 30;   //Height of a single "slot" in the drawn stackframe
-        let stackSlotWidth = 200;   //Width of a single "slot" in the drawn stackframe
+        let stackSlotWidth = 300;   //Width of a single "slot" in the drawn stackframe
         let currentPositionX = 10;  //The position where we're drawing
         let currentPositionY = 10;  //The position where we're drawing
 
@@ -76,11 +76,13 @@ export class myFabricDrawingModule {
         let retAllSlots = new Array<Array<fabric.Group>>;
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
         stackFrameToDraw.functionVariables.forEach(functionVariable => {
-            retAllSlots.push(myCreateSlotFunction(functionVariable.variableName + ": " + functionVariable.dataTypeString, backgroundColorGrey)); 
+            let variableText = functionVariable.variableName + ": " + functionVariable.dataTypeString + " (" + functionVariable.valueString + ")";
+            retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey)); 
         });
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.returnAddress, backgroundColorRed));
         stackFrameToDraw.functionParameters.forEach(functionParameter => {
-            retAllSlots.push(myCreateSlotFunction(functionParameter.variableName + ": " + functionParameter.dataTypeString, backgroundColorGreen)); 
+            let variableText = functionParameter.variableName + ": " + functionParameter.dataTypeString + " (" + functionParameter.valueString + ")";
+            retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen)); 
         });
         //Adding the result group to the canvas
         retAllSlots.forEach(stackGroup => {
