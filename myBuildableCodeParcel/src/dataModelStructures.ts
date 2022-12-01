@@ -30,7 +30,8 @@ export class myStackFrame {
 
 //myArray
 export class myArray {
-    dataType: myDataType;
+    dataTypeEnum: myDataType;
+    dataTypeString: string;
     dimensionCount: number;
     isAllocated: boolean;
     arrayPointerAddress: string;
@@ -41,13 +42,15 @@ export class myArray {
 //myVariable
 export class myVariable {
     variableName: string;
-    dataType: myDataType;
+    dataTypeEnum: myDataType;
+    dataTypeString: string;
     value: any;                         //TODO: Consider changing to a different type (I'm not yet sure, if there'll be a better type)
 }
 
 //myDataType
 export class myDataType {
-    dataType: myDataTypeEnum;
+    dataTypeEnum: myDataTypeEnum;
+    dataTypeString: string;
     isPointer: boolean;
 }
 

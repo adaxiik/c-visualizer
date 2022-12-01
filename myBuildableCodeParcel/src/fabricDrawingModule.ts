@@ -37,7 +37,7 @@ export class myFabricDrawingModule {
         let currentPositionY = 10;  //The position where we're drawing
 
         //TODO: After moving to a separate class (add a method for drawing a single "slot" in the stackframe)
-        let myCreateSlotFunction = function(myVariableName: string, slotBackgroundColor: string): Array<fabric.Group> {
+        let myCreateSlotFunction = function(mySlotText: string, slotBackgroundColor: string): Array<fabric.Group> {
             let resultFabricStackFrameArray = new Array<fabric.Group>;    //Result group of stackframe "slots"
             //Drawing the slot's background
             let fabricSlotBackground = new fabric.Rect({
@@ -53,7 +53,7 @@ export class myFabricDrawingModule {
                 strokeWidth: 2
             });
             //Drawing the slot's text
-            let fabricSlotText = new fabric.Text(myVariableName, { 
+            let fabricSlotText = new fabric.Text(mySlotText, { 
                 left: currentPositionX + 4,
                 top: currentPositionY + stackSlotHeight/8,
                 fill: textFill,
@@ -76,11 +76,11 @@ export class myFabricDrawingModule {
         let retAllSlots = new Array<Array<fabric.Group>>;
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
         stackFrameToDraw.functionVariables.forEach(functionVariable => {
-            retAllSlots.push(myCreateSlotFunction(functionVariable.variableName, backgroundColorGrey)); 
+            retAllSlots.push(myCreateSlotFunction(functionVariable.variableName + ": " + functionVariable.dataTypeString, backgroundColorGrey)); 
         });
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.returnAddress, backgroundColorRed));
         stackFrameToDraw.functionParameters.forEach(functionParameter => {
-            retAllSlots.push(myCreateSlotFunction(functionParameter.variableName, backgroundColorGreen)); 
+            retAllSlots.push(myCreateSlotFunction(functionParameter.variableName + ": " + functionParameter.dataTypeString, backgroundColorGreen)); 
         });
         //Adding the result group to the canvas
         retAllSlots.forEach(stackGroup => {
