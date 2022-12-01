@@ -1,4 +1,5 @@
 import { fabric } from "fabric";
+import { Group } from "fabric/fabric-impl";
 import * as myDataModelStructures from "./dataModelStructures";
 
 export class myFabricDrawingModule {
@@ -10,6 +11,16 @@ export class myFabricDrawingModule {
         //TODO: Think the sizing throught and adjust accordingly
         this.canvas.setWidth(screen.width);
         this.canvas.setHeight(screen.height/2);
+    }
+
+    lockAllItems() {
+        let allFabricItems = this.canvas.getObjects();
+
+        allFabricItems.forEach(fabricObject => {
+            fabricObject.selectable = false;
+            fabricObject.hoverCursor = "default";
+            fabricObject.evented = false;
+        });
     }
 
     //TODO: Move to a separate class (something like myFabricStackFrame) with it's own drawing method
@@ -77,6 +88,9 @@ export class myFabricDrawingModule {
             this.canvas.add(stackFrameSlot);
            }); 
         });
+
+        //Locking the movement of the items
+        this.lockAllItems();
     }
 }
 

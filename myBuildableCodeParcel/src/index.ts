@@ -30,4 +30,5 @@ testStackFrame.functionParameters = new Array<myDataModelStructures.myVariable>(
 testStackFrame.functionParameters.push(testParam1);
 testStackFrame.functionParameters.push(testParam2);
 
+console.log("[DEBUG] Drawing the testing stackframe");
 myDrawingModule.drawStackFrame(testStackFrame);
