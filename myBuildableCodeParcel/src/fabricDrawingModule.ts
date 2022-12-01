@@ -8,13 +8,76 @@ export class myFabricDrawingModule {
         this.canvas = new fabric.Canvas(canvasName);
     }
 
+    //TODO: Move to a separate class (something like myFabricStackFrame) with it's own drawing method
     drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame) {
+        //Default values
+        let backgroundColor = '#33ccff';
+        let textFill = "black";
+        let stackSlotHeight = 30;   //Height of a single "slot" in the drawn stackframe
+        let stackSlotWidth = 200;   //Width of a single "slot" in the drawn stackframe
+        let currentPositionX = 10;  //The position where we're drawing
+        let currentPositionY = 10;  //The position where we're drawing
 
+        //TODO: After moving to a separate class (add a method for drawing a single "slot" in the stackframe)
+        let myCreateSlotFunction = function(myVariableName: string): Array<fabric.Group> {
+            let resultFabricStackFrameArray = new Array<fabric.Group>;    //Result group of stackframe "slots"
+            //Drawing the slot's background
+            let fabricSlotBackground = new fabric.Rect({
+                left: currentPositionX,
+                top: currentPositionY,
+                width: stackSlotWidth,
+                height: stackSlotHeight,
+                fill:backgroundColor,
+
+                //TODO: Change (Testing values)
+                padding: 8,
+                stroke: "#000000",
+                strokeWidth: 2
+            });
+            //Drawing the slot's text
+            let variableName = myVariableName;
+            let fabricSlotText = new fabric.Text(variableName, { 
+                left: currentPositionX + 4,
+                top: currentPositionY + stackSlotHeight/8,
+                fill: textFill,
+                fontSize: 20
+            });
+
+            //Creating the result
+            let resultFabricGroup = new fabric.Group([fabricSlotBackground, fabricSlotText]);
+            //Adding the "slot's" group to the result group
+            resultFabricStackFrameArray.push(resultFabricGroup);
+
+            //Moving the position, where we're drawing
+            currentPositionY += stackSlotHeight;
+
+            return resultFabricStackFrameArray;
+        };
+        
+        //Creating the slots
+        //TODO: Refactor and improve
+        let tempRet = myCreateSlotFunction("testFunctionName");
+        let tempRet2 = myCreateSlotFunction("testVariableName");
+        let tempRet3 = myCreateSlotFunction("testReturnAddressName");
+        let tempRet4 = myCreateSlotFunction("testParameterName");
+        //Adding the result group to the canvas
+        tempRet.forEach(stackFrameSlot => {
+            this.canvas.add(stackFrameSlot);
+        });
+        tempRet2.forEach(stackFrameSlot => {
+            this.canvas.add(stackFrameSlot);
+        });
+        tempRet3.forEach(stackFrameSlot => {
+            this.canvas.add(stackFrameSlot);
+        });
+        tempRet4.forEach(stackFrameSlot => {
+            this.canvas.add(stackFrameSlot);
+        });
     }
 }
 
 //Old testing class (left just for inspiration and not exported outside of file)
-class MyInt {
+class myInt {
     value: number;
 
     //Values for later drawing in Fabric
