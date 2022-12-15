@@ -25,8 +25,6 @@ testStackFrame.functionVariables = new Array<myDataModelStructures.myVariable>()
 testStackFrame.functionVariables.push(testVar1);
 testStackFrame.functionVariables.push(testVar2);
 testStackFrame.functionVariables.push(testVar3);
-//Function return address
-testStackFrame.returnAddress = "testReturnAddress";
 //Function parameters
 let testParam1 = new myDataModelStructures.myVariable();
 testParam1.variableName = "testParam1";
