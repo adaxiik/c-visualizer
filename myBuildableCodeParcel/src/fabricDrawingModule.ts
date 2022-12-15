@@ -10,6 +10,54 @@ export class myFabricDrawingModule {
         //TODO: Think the sizing throught and adjust accordingly
         this.canvas.setWidth(screen.width);
         this.canvas.setHeight(screen.height/2);
+        
+        this.initPanning();
+        this.initZooming();
+    }
+
+    initPanning() {
+        //TODO: Citation? (correctly)
+        //src: http://fabricjs.com/fabric-intro-part-5
+        this.canvas.on('mouse:down', function(opt) {
+            var evt = opt.e;
+
+            this.isDragging = true;
+            this.selection = false;
+            this.lastPosX = evt.clientX;
+            this.lastPosY = evt.clientY;
+        });
+        this.canvas.on('mouse:move', function(opt) {
+            if (this.isDragging) {
+                var e = opt.e;
+                var vpt = this.viewportTransform;
+                vpt[4] += e.clientX - this.lastPosX;
+                vpt[5] += e.clientY - this.lastPosY;
+                this.requestRenderAll();
+                this.lastPosX = e.clientX;
+                this.lastPosY = e.clientY;
+            }
+        });
+        this.canvas.on('mouse:up', function(opt) {
+            // on mouse up we want to recalculate new interaction
+            // for all objects, so we call setViewportTransform
+            this.setViewportTransform(this.viewportTransform);
+            this.isDragging = false;
+        });
+    }
+
+    initZooming() {
+        //TODO: Citation? (correctly) 
+        //src: http://fabricjs.com/fabric-intro-part-5
+        this.canvas.on('mouse:wheel', function(opt) {
+            var delta = opt.e.deltaY;
+            var zoom = this.getZoom();
+            zoom *= 0.999 ** delta;
+            if (zoom > 20) zoom = 20;
+            if (zoom < 0.01) zoom = 0.01;
+            this.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+            opt.e.preventDefault();
+            opt.e.stopPropagation();
+        });
     }
 
     lockAllItems() {
