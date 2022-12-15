@@ -42,3 +42,5 @@ testStackFrame.functionParameters.push(testParam2);
 
 console.log("[DEBUG] Drawing the testing stackframe");
 myDrawingModule.drawStackFrame(testStackFrame);
+
+console.log("[DEBUG] Sample code change to test Docker");
