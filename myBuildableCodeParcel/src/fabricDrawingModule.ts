@@ -10,7 +10,7 @@ export class myFabricDrawingModule {
         //TODO: Think the sizing throught and adjust accordingly
         this.canvas.setWidth(screen.width);
         this.canvas.setHeight(screen.height/2);
-        
+
         this.initPanning();
         this.initZooming();
     }
@@ -129,8 +129,6 @@ export class myFabricDrawingModule {
             let variableText = functionVariable.variableName + ": " + functionVariable.dataTypeString + " (" + functionVariable.valueString + ")";
             retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey)); 
         });
-        //Function return address
-        retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.returnAddress, backgroundColorRed));
         //Function parameters
         stackFrameToDraw.functionParameters.forEach(functionParameter => {
             let variableText = functionParameter.variableName + ": " + functionParameter.dataTypeString + " (" + functionParameter.valueString + ")";

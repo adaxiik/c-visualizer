@@ -98,7 +98,7 @@ Poznámky do budoucna:
 
 - [x] Udělat Dockerfile, který dostane alespoň vykreslovací část s ParcelJS do spustitelného stavu
 - [x] Přidat zoom a panning (ve Fabricu)
-- [ ] Odstranit návratovou adresu (ze sledovaných dat u zásobníkových rámců)
+- [x] Odstranit návratovou adresu (ze sledovaných dat u zásobníkových rámců)
 
 - Vykreslování velkých dat
   - [ ] Vypracovat vykreslování stringů (zkoušet si i nějaké edge cases - např. string o 1000 znacích)
