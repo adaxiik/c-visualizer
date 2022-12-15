@@ -96,7 +96,7 @@ Poznámky do budoucna:
 
 ### 9. hovor
 
-- [ ] Udělat Dockerfile, který dostane alespoň vykreslovací část s ParcelJS do spustitelného stavu
+- [x] Udělat Dockerfile, který dostane alespoň vykreslovací část s ParcelJS do spustitelného stavu
 - [ ] Přidat zoom a panning (ve Fabricu)
 - [ ] Odstranit návratovou adresu (ze sledovaných dat u zásobníkových rámců)
 
