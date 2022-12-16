@@ -108,4 +108,4 @@ Poznámky do budoucna:
 
 - Poznámky do budoucna: 
   - Kouknout se na to, co vrací debugger VS Code, když se jedná o string (jestli celý string / první písmeno / ...)
-  - Je možno si vytvořit nějaké pipeliny / runnery na zkoušení Dockeru na GitHubu (možná by tam měly bý i větší kvóty, kdybych si aktivoval studentský účet) 
+  - Je možno si vytvořit nějaké pipeliny / runnery na zkoušení Dockeru na GitHubu (možná by tam měly být i větší kvóty, kdybych si aktivoval studentský účet) 
