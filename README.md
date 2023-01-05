@@ -108,4 +108,19 @@ Poznámky do budoucna:
 
 - Poznámky do budoucna: 
   - Kouknout se na to, co vrací debugger VS Code, když se jedná o string (jestli celý string / první písmeno / ...)
-  - Je možno si vytvořit nějaké pipeliny / runnery na zkoušení Dockeru na GitHubu (možná by tam měly být i větší kvóty, kdybych si aktivoval studentský účet) 
+  - Je možno si vytvořit nějaké pipeliny / runnery na zkoušení Dockeru na GitHubu (možná by tam měly být i větší kvóty, kdybych si aktivoval studentský účet)
+
+### 10. hovor
+
+- [x] Udělat nějaké základní vykreslování pro *Int*, *Bool*, *Float*, *String*,... 
+  - Po tomhle už zase pomalu řešit napojení na VS Code
+- [ ] Časem přidat *pointery* a *pole*
+- [ ] Založit časem novou větev na gitu, kde bych stáhl [šablonu na BP](https://www.cs.vsb.cz/dvorsky/Download/LaTeX/Diploma.zip) (v LateXu), vyplnil jméno, atd.
+  - Nejdříve si ale udělat projekt v Overleafu (dokud bude hodně změn) a časem až přejít lokálně na git (až v době, kdy těch změn bude méně)
+
+- Poznámky do budoucna:
+  - Teďka spíše řešit nějakou základnější implementaci vykreslování (MVP - minimal viable product) 
+  - U názvu proměnných maximálně přidat tři tečky a třeba jako tooltip ukázat celou délku (ty tři tečky spíše házet na konec)
+  - Zvážit vykreslení stringu jen jako text (třeba s tlačítkem a třema tečkama, po kterém by se otevřelo pop-up okno, kde by byl scrollbar, atd.)
+    - Ten string spíše otevírat v separátním okně (které bude sloužit jako textový editor)
+    - Ten edge case (s třemi tečkami) si spíše udělat jako TODO (časem)
