@@ -124,3 +124,12 @@ Poznámky do budoucna:
   - Zvážit vykreslení stringu jen jako text (třeba s tlačítkem a třema tečkama, po kterém by se otevřelo pop-up okno, kde by byl scrollbar, atd.)
     - Ten string spíše otevírat v separátním okně (které bude sloužit jako textový editor)
     - Ten edge case (s třemi tečkami) si spíše udělat jako TODO (časem)
+
+### 11. hovor
+
+- [ ] Napojit moji vykreslovací část na tu extensionovou
+  - [ ] Přebírání nějákých základních dat o proměnných (alespoň třeba datové typy - u hodnot by mohl být problém)
+  - [ ] Přebírání dat o zásobníkových rámcích - více prozkoumat, co lze z VS Code dostat (snad do stavu tak, že by se už vykreslil momentální stav nějákého programu)
+
+- Poznámky do budoucna:
+  - Zásobníkové rámce je možno vykreslovat postupně pod sebe (do jednoho velkého sloupce), kde pohyb mezi nimi by bylo možno řešit překlikáváním (část, kde by se už vykreslovaly jednotlivé proměnné, atd.)
