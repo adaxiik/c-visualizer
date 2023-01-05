@@ -49,7 +49,7 @@ testString.dataTypeString = "string";
 testString.valueString = "I am a testing string.";
 
 console.log("[DEBUG] Drawing the testing string");
-myDrawingModule.drawString(testString);
+myDrawingModule.drawVariable(testString);
 
 //Example char
 let testChar = new myDataModelStructures.myVariable();
@@ -58,7 +58,7 @@ testChar.dataTypeString = "char";
 testChar.valueString = "e";
 
 console.log("[DEBUG] Drawing the testing char");
-myDrawingModule.drawChar(testChar);
+myDrawingModule.drawVariable(testChar);
 
 //Example number (int)
 let testInt = new myDataModelStructures.myVariable();
@@ -67,7 +67,7 @@ testInt.dataTypeString = "int";
 testInt.valueString = "846151";
 
 console.log("[DEBUG] Drawing the testing int");
-myDrawingModule.drawNumber(testInt);
+myDrawingModule.drawVariable(testInt);
 
 //Example bool
 let testBool = new myDataModelStructures.myVariable();
@@ -76,4 +76,4 @@ testBool.dataTypeString = "bool";
 testBool.valueString = "1";
 
 console.log("[DEBUG] Drawing the testing bool");
-myDrawingModule.drawBool(testBool);
+myDrawingModule.drawVariable(testBool);

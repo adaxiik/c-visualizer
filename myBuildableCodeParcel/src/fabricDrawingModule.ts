@@ -146,6 +146,23 @@ export class myFabricDrawingModule {
     }
 
     //TODO: Move to a separate class with it's own drawing method
+    //More general method that prevents the user from misusing the drawing methods
+    drawVariable(variableToDraw: myDataModelStructures.myVariable) {
+        if (variableToDraw.dataTypeString == "string")
+            this.drawString(variableToDraw);
+        else if (variableToDraw.dataTypeString == "char")
+            this.drawChar(variableToDraw);
+        else if (variableToDraw.dataTypeString == "number" ||
+                variableToDraw.dataTypeString == "int" ||
+                variableToDraw.dataTypeString == "float")
+            this.drawNumber(variableToDraw);
+        else if (variableToDraw.dataTypeString == "bool" ||
+                variableToDraw.dataTypeString == "boolean")
+            this.drawBool(variableToDraw)
+        else
+            return;
+    }
+
     drawString(stringToDraw: myDataModelStructures.myVariable) {
         //Checking if the variable is really a string
         if (stringToDraw.dataTypeString != "string")
