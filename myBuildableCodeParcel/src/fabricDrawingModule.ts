@@ -144,6 +144,37 @@ export class myFabricDrawingModule {
         //Locking the movement of the items
         this.lockAllItems();
     }
+
+    //TODO: Move to a separate class with it's own drawing method
+    drawString(stringToDraw: myDataModelStructures.myVariable) {
+        //Checking if the variable is really a string
+        if (stringToDraw.dataTypeString != "string")
+            return;
+
+        //Default values
+        let textFill = "black";
+        let currentPositionX = 350;  //The position where we're drawing
+        let currentPositionY = 10;  //The position where we're drawing
+
+        //Drawing the slot's text
+        //TODO: Calculate the positioning correctly
+        let finalString = stringToDraw.variableName + " : \"" + stringToDraw.valueString + "\"";
+        let fabricSlotText = new fabric.Text(finalString, { 
+            left: currentPositionX,
+            top: currentPositionY,
+            fill: textFill,
+            fontSize: 20
+        });
+
+        //Creating the result
+        let resultFabricGroup = new fabric.Group([fabricSlotText]); //TODO: Add more things to the group (like background and such)
+        
+        //Adding the result group to the canvas
+        this.canvas.add(resultFabricGroup);
+
+        //Locking the movement of the items
+        this.lockAllItems();
+    }
 }
 
 //Old testing class (left just for inspiration and not exported outside of file)

@@ -40,3 +40,12 @@ testStackFrame.functionParameters.push(testParam2);
 
 console.log("[DEBUG] Drawing the testing stackframe");
 myDrawingModule.drawStackFrame(testStackFrame);
+
+//Example string (variable)
+let testString = new myDataModelStructures.myVariable();
+testString.variableName = "testStringVariable";
+testString.dataTypeString = "string";
+testString.valueString = "I am a testing string.";
+
+console.log("[DEBUG] Drawing the testing string");
+myDrawingModule.drawString(testString);
