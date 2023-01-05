@@ -68,3 +68,12 @@ testInt.valueString = "846151";
 
 console.log("[DEBUG] Drawing the testing int");
 myDrawingModule.drawNumber(testInt);
+
+//Example bool
+let testBool = new myDataModelStructures.myVariable();
+testBool.variableName = "testBoolVariable";
+testBool.dataTypeString = "bool";
+testBool.valueString = "1";
+
+console.log("[DEBUG] Drawing the testing bool");
+myDrawingModule.drawBool(testBool);
