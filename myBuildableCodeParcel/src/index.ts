@@ -41,7 +41,8 @@ testStackFrame.functionParameters.push(testParam2);
 console.log("[DEBUG] Drawing the testing stackframe");
 myDrawingModule.drawStackFrame(testStackFrame);
 
-//Example string (variable)
+//Testing variables
+//Example string
 let testString = new myDataModelStructures.myVariable();
 testString.variableName = "testStringVariable";
 testString.dataTypeString = "string";
@@ -49,3 +50,21 @@ testString.valueString = "I am a testing string.";
 
 console.log("[DEBUG] Drawing the testing string");
 myDrawingModule.drawString(testString);
+
+//Example char
+let testChar = new myDataModelStructures.myVariable();
+testChar.variableName = "testCharVariable";
+testChar.dataTypeString = "char";
+testChar.valueString = "e";
+
+console.log("[DEBUG] Drawing the testing char");
+myDrawingModule.drawChar(testChar);
+
+//Example number (int)
+let testInt = new myDataModelStructures.myVariable();
+testInt.variableName = "testIntVariable";
+testInt.dataTypeString = "int";
+testInt.valueString = "846151";
+
+console.log("[DEBUG] Drawing the testing int");
+myDrawingModule.drawNumber(testInt);
