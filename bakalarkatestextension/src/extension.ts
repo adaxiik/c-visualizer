@@ -3,12 +3,21 @@
 import * as vscode from 'vscode';
 //import * as path from 'path';
 import * as fs from 'fs';
+import { json } from 'stream/consumers';
+//import { myFabricDrawingModule } from "./fabricDrawingModule";
+//import * as myDataModelStructures from "./dataModelStructures";
+//
+//var myDrawingModule = new myFabricDrawingModule('myCanvas');
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	//Global panel (to be accessible)
 	let currentPanel: vscode.WebviewPanel;
+
+	//Moved to be global (TODO: Maybe change?)
+	//console.log("[DEBUG] Initialzing Fabric");
+	//var myDrawingModule = new myFabricDrawingModule('myCanvas');
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
@@ -44,7 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
 			createDebugAdapterTracker(session: vscode.DebugSession) {
 			  return {
 				onWillReceiveMessage: m => console.log(`bakalarkaTestExtension> ${JSON.stringify(m, undefined, 2)}`),
-				onDidSendMessage: m => console.log(`bakalarkaTestExtension< ${JSON.stringify(m, undefined, 2)}`)
+				onDidSendMessage: m => printAndTestForVariables(m), //console.log(`bakalarkaTestExtension< ${JSON.stringify(m, undefined, 2)}`)
 			  };
 			}
 		  });
@@ -106,4 +115,28 @@ function getWebviewContent(webview: vscode.Webview, context: any)
 	retHtml = retHtml.replace("${fabricLibraryScript}", fabricLibraryScript.toString(true));
 
 	return retHtml;
+}
+
+function printAndTestForVariables(message: any)
+{
+	console.log(`bakalarkaTestExtension> ${JSON.stringify(message, undefined, 2)}`);
+
+	//Testing catching the variable events
+	if (message.type == "response" && message.command == "variables")
+	{
+		console.log(JSON.stringify(message.body.variables, undefined, 2));	//Printing the variables
+
+		for (let i = 0; i < message.body.size(); i++) 
+		{
+			//Converting the variable to my own type
+			//var tempVar = new myDataModelStructures.myVariable();
+			//tempVar.dataTypeString = message.body[i].type;
+			//tempVar.valueString = message.body[i].value;
+			//tempVar.variableName = message.body[i].name;
+			//
+			//myDrawingModule.drawVariable(tempVar);
+		}
+		
+	}
+		
 }
