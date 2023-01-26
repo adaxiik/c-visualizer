@@ -53,6 +53,7 @@
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.0",
     "@types/node": "16.x",
+    "@types/fabric": "^4.5.12",
     "@typescript-eslint/eslint-plugin": "^5.38.1",
     "@typescript-eslint/parser": "^5.38.1",
     "eslint": "^8.24.0",
@@ -63,7 +64,7 @@
     "buffer": "^5.7.1"
   },
   "dependencies": {
-    "@types/fabric": "^4.5.12",
-    "fabric": "^5.2.4"
+    "fabric": "^5.2.4",
+    "drawlib": "file:../myBuildableCodeParcel/dist"
   }
 }

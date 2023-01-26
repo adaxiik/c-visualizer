@@ -1,4 +1,7 @@
 import { myFabricDrawingModule } from "./fabricDrawingModule";
+export { myFabricDrawingModule };
+
+/*import { myFabricDrawingModule } from "./fabricDrawingModule";
 import * as myDataModelStructures from "./dataModelStructures";
 
 console.log("[DEBUG] Initialzing Fabric");
@@ -76,4 +79,4 @@ testBool.dataTypeString = "bool";
 testBool.valueString = "1";
 
 console.log("[DEBUG] Drawing the testing bool");
-myDrawingModule.drawVariable(testBool);
+myDrawingModule.drawVariable(testBool);*/

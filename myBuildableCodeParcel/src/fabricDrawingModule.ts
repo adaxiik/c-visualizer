@@ -9,7 +9,7 @@ export class myFabricDrawingModule {
         //To have it a bit larger (not yet exact sizing)
         //TODO: Think the sizing throught and adjust accordingly
         this.canvas.setWidth(screen.width);
-        this.canvas.setHeight(screen.height/2);
+        this.canvas.setHeight(screen.height / 2);
 
         this.initPanning();
         this.initZooming();
@@ -18,7 +18,7 @@ export class myFabricDrawingModule {
     initPanning() {
         //TODO: Citation? (correctly)
         //src: http://fabricjs.com/fabric-intro-part-5
-        this.canvas.on('mouse:down', function(opt) {
+        this.canvas.on('mouse:down', function (opt) {
             var evt = opt.e;
 
             this.isDragging = true;
@@ -26,7 +26,7 @@ export class myFabricDrawingModule {
             this.lastPosX = evt.clientX;
             this.lastPosY = evt.clientY;
         });
-        this.canvas.on('mouse:move', function(opt) {
+        this.canvas.on('mouse:move', function (opt) {
             if (this.isDragging) {
                 var e = opt.e;
                 var vpt = this.viewportTransform;
@@ -37,7 +37,7 @@ export class myFabricDrawingModule {
                 this.lastPosY = e.clientY;
             }
         });
-        this.canvas.on('mouse:up', function(opt) {
+        this.canvas.on('mouse:up', function (opt) {
             // on mouse up we want to recalculate new interaction
             // for all objects, so we call setViewportTransform
             this.setViewportTransform(this.viewportTransform);
@@ -48,7 +48,7 @@ export class myFabricDrawingModule {
     initZooming() {
         //TODO: Citation? (correctly) 
         //src: http://fabricjs.com/fabric-intro-part-5
-        this.canvas.on('mouse:wheel', function(opt) {
+        this.canvas.on('mouse:wheel', function (opt) {
             var delta = opt.e.deltaY;
             var zoom = this.getZoom();
             zoom *= 0.999 ** delta;
@@ -84,7 +84,7 @@ export class myFabricDrawingModule {
         let currentPositionY = 10;  //The position where we're drawing
 
         //TODO: After moving to a separate class (add a method for drawing a single "slot" in the stackframe)
-        let myCreateSlotFunction = function(mySlotText: string, slotBackgroundColor: string): Array<fabric.Group> {
+        let myCreateSlotFunction = function (mySlotText: string, slotBackgroundColor: string): Array<fabric.Group> {
             let resultFabricStackFrameArray = new Array<fabric.Group>;    //Result group of stackframe "slots"
             //Drawing the slot's background
             let fabricSlotBackground = new fabric.Rect({
@@ -101,9 +101,9 @@ export class myFabricDrawingModule {
             });
             //Drawing the slot's text
             //TODO: Calculate the positioning correctly
-            let fabricSlotText = new fabric.Text(mySlotText, { 
+            let fabricSlotText = new fabric.Text(mySlotText, {
                 left: currentPositionX + 4,
-                top: currentPositionY + stackSlotHeight/8,
+                top: currentPositionY + stackSlotHeight / 8,
                 fill: textFill,
                 fontSize: 20
             });
@@ -118,27 +118,27 @@ export class myFabricDrawingModule {
 
             return resultFabricStackFrameArray;
         };
-        
+
         //Creating the slots
         //TODO: Refactor and improve
-        let retAllSlots = new Array<Array<fabric.Group>>;
+        let retAllSlots = new Array<Array<fabric.Group>>();
         //Function name
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
         //Function variables
         stackFrameToDraw.functionVariables.forEach(functionVariable => {
             let variableText = functionVariable.variableName + ": " + functionVariable.dataTypeString + " (" + functionVariable.valueString + ")";
-            retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey)); 
+            retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey));
         });
         //Function parameters
         stackFrameToDraw.functionParameters.forEach(functionParameter => {
             let variableText = functionParameter.variableName + ": " + functionParameter.dataTypeString + " (" + functionParameter.valueString + ")";
-            retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen)); 
+            retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen));
         });
         //Adding the result group to the canvas
         retAllSlots.forEach(stackGroup => {
-           stackGroup.forEach(stackFrameSlot => {
-            this.canvas.add(stackFrameSlot);
-           }); 
+            stackGroup.forEach(stackFrameSlot => {
+                this.canvas.add(stackFrameSlot);
+            });
         });
 
         //Locking the movement of the items
@@ -153,11 +153,11 @@ export class myFabricDrawingModule {
         else if (variableToDraw.dataTypeString == "char")
             this.drawChar(variableToDraw);
         else if (variableToDraw.dataTypeString == "number" ||
-                variableToDraw.dataTypeString == "int" ||
-                variableToDraw.dataTypeString == "float")
+            variableToDraw.dataTypeString == "int" ||
+            variableToDraw.dataTypeString == "float")
             this.drawNumber(variableToDraw);
         else if (variableToDraw.dataTypeString == "bool" ||
-                variableToDraw.dataTypeString == "boolean")
+            variableToDraw.dataTypeString == "boolean")
             this.drawBool(variableToDraw)
         else
             return;
@@ -176,7 +176,7 @@ export class myFabricDrawingModule {
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
         let finalString = stringToDraw.variableName + " : \"" + stringToDraw.valueString + "\"";
-        let fabricSlotText = new fabric.Text(finalString, { 
+        let fabricSlotText = new fabric.Text(finalString, {
             left: currentPositionX,
             top: currentPositionY,
             fill: textFill,
@@ -185,7 +185,7 @@ export class myFabricDrawingModule {
 
         //Creating the result
         let resultFabricGroup = new fabric.Group([fabricSlotText]); //TODO: Add more things to the group (like background and such)
-        
+
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
 
@@ -207,7 +207,7 @@ export class myFabricDrawingModule {
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
         let finalString = stringToDraw.variableName + " : \'" + stringToDraw.valueString + "\'";
-        let fabricSlotText = new fabric.Text(finalString, { 
+        let fabricSlotText = new fabric.Text(finalString, {
             left: currentPositionX,
             top: currentPositionY,
             fill: textFill,
@@ -216,7 +216,7 @@ export class myFabricDrawingModule {
 
         //Creating the result
         let resultFabricGroup = new fabric.Group([fabricSlotText]); //TODO: Add more things to the group (like background and such)
-        
+
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
 
@@ -240,7 +240,7 @@ export class myFabricDrawingModule {
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
         let finalString = stringToDraw.variableName + " : " + stringToDraw.valueString;
-        let fabricSlotText = new fabric.Text(finalString, { 
+        let fabricSlotText = new fabric.Text(finalString, {
             left: currentPositionX,
             top: currentPositionY,
             fill: textFill,
@@ -249,7 +249,7 @@ export class myFabricDrawingModule {
 
         //Creating the result
         let resultFabricGroup = new fabric.Group([fabricSlotText]); //TODO: Add more things to the group (like background and such)
-        
+
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
 
@@ -273,7 +273,7 @@ export class myFabricDrawingModule {
         //TODO: Calculate the positioning correctly
         let tempValueString = stringToDraw.valueString = "1" ? "true" : "false";
         let finalString = stringToDraw.variableName + " : " + tempValueString;
-        let fabricSlotText = new fabric.Text(finalString, { 
+        let fabricSlotText = new fabric.Text(finalString, {
             left: currentPositionX,
             top: currentPositionY,
             fill: textFill,
@@ -282,7 +282,7 @@ export class myFabricDrawingModule {
 
         //Creating the result
         let resultFabricGroup = new fabric.Group([fabricSlotText]); //TODO: Add more things to the group (like background and such)
-        
+
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
 

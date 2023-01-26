@@ -9,6 +9,8 @@ import { json } from 'stream/consumers';
 //
 //var myDrawingModule = new myFabricDrawingModule('myCanvas');
 
+import { myFabricDrawingModule } from "drawlib/src/fabricDrawingModule"
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -51,42 +53,42 @@ export function activate(context: vscode.ExtensionContext) {
 		//Registering the debug adapter
 		vscode.debug.registerDebugAdapterTrackerFactory('*', {
 			createDebugAdapterTracker(session: vscode.DebugSession) {
-			  return {
-				onWillReceiveMessage: m => console.log(`bakalarkaTestExtension> ${JSON.stringify(m, undefined, 2)}`),
-				onDidSendMessage: m => printAndTestForVariables(m), //console.log(`bakalarkaTestExtension< ${JSON.stringify(m, undefined, 2)}`)
-			  };
+				return {
+					onWillReceiveMessage: m => console.log(`bakalarkaTestExtension> ${JSON.stringify(m, undefined, 2)}`),
+					onDidSendMessage: m => printAndTestForVariables(m), //console.log(`bakalarkaTestExtension< ${JSON.stringify(m, undefined, 2)}`)
+				};
 			}
-		  });
+		});
 
 		//Periodically sending "o" message to the WebView
 		var messageString = "oogabooga";
 		setInterval(() => {
 			currentPanel.webview.postMessage({ messageData: messageString });
 			messageString = "o";
-        }, 1000);
+		}, 1000);
 	});
 
 	//Second function (to reset the text - testing calling other functions that affect the panel)
 	let resetTextCommand = vscode.commands.registerCommand('bakalarkatestextension.resetTextCommand', () => {
 		if (!currentPanel) {
-		  return;
+			return;
 		}
-  
+
 		// Send a message to our webview.
 		// You can send any JSON serializable data.
 		currentPanel.webview.postMessage({ command: 'resetText' });
-	  });
+	});
 
 	//Third function (to add a circle to the canvas - testing calling drawing from the outside script)
 	let drawCircleCommand = vscode.commands.registerCommand('bakalarkatestextension.drawCircleCommand', () => {
 		if (!currentPanel) {
-		  return;
+			return;
 		}
-  
+
 		// Send a message to our webview.
 		// You can send any JSON serializable data.
 		currentPanel.webview.postMessage({ command: 'drawCircle' });
-	  });  
+	});
 
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(testPreviewCommand);
@@ -96,16 +98,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }
 
-function getWebviewContent(webview: vscode.Webview, context: any)
-{
+function getWebviewContent(webview: vscode.Webview, context: any) {
 	let retHtml: string = ``;
-  
+
 	//Preparing the paths
-  	const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFileScript.js'));   // <--- 'src' is the folder where the .js file is stored
-  	const fabricLibraryScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'fabric.min.js'));
-  	const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFile.html'));
+	const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFileScript.js'));   // <--- 'src' is the folder where the .js file is stored
+	const fabricLibraryScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'fabric.min.js'));
+	const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFile.html'));
 
 	//Loading the resources
 	retHtml = fs.readFileSync(rawHtml.fsPath, 'utf8');
@@ -117,17 +118,14 @@ function getWebviewContent(webview: vscode.Webview, context: any)
 	return retHtml;
 }
 
-function printAndTestForVariables(message: any)
-{
+function printAndTestForVariables(message: any) {
 	console.log(`bakalarkaTestExtension> ${JSON.stringify(message, undefined, 2)}`);
 
 	//Testing catching the variable events
-	if (message.type == "response" && message.command == "variables")
-	{
+	if (message.type == "response" && message.command == "variables") {
 		console.log(JSON.stringify(message.body.variables, undefined, 2));	//Printing the variables
 
-		for (let i = 0; i < message.body.size(); i++) 
-		{
+		/*for (let i = 0; i < message.body.size(); i++) {
 			//Converting the variable to my own type
 			//var tempVar = new myDataModelStructures.myVariable();
 			//tempVar.dataTypeString = message.body[i].type;
@@ -135,8 +133,8 @@ function printAndTestForVariables(message: any)
 			//tempVar.variableName = message.body[i].name;
 			//
 			//myDrawingModule.drawVariable(tempVar);
-		}
-		
+		}*/
+
 	}
-		
+
 }
