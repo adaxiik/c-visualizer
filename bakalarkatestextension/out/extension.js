@@ -6,10 +6,6 @@ exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 //import * as path from 'path';
 const fs = require("fs");
-//import { myFabricDrawingModule } from "./fabricDrawingModule";
-//import * as myDataModelStructures from "./dataModelStructures";
-//
-//var myDrawingModule = new myFabricDrawingModule('myCanvas');
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -103,7 +99,7 @@ function printAndTestForVariables(message) {
     //Testing catching the variable events
     if (message.type == "response" && message.command == "variables") {
         console.log(JSON.stringify(message.body.variables, undefined, 2)); //Printing the variables
-        for (let i = 0; i < message.body.size(); i++) {
+        /*for (let i = 0; i < message.body.size(); i++) {
             //Converting the variable to my own type
             //var tempVar = new myDataModelStructures.myVariable();
             //tempVar.dataTypeString = message.body[i].type;
@@ -111,7 +107,7 @@ function printAndTestForVariables(message) {
             //tempVar.variableName = message.body[i].name;
             //
             //myDrawingModule.drawVariable(tempVar);
-        }
+        }*/
     }
 }
 //# sourceMappingURL=extension.js.map
