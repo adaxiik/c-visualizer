@@ -1,4 +1,9 @@
 ## Launching commands:
+### **(building the library)**
+*(after installing all the dependencies required)*
+**Necessary for the usage in the VS Code extension**
+`npx parcel build`
+
 ### **(local - debug)**
 *(after installing all the dependencies required)*
 

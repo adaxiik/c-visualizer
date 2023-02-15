@@ -1,5 +1,5 @@
-import { myFabricDrawingModule } from "./fabricDrawingModule";
-export { myFabricDrawingModule };
+import { myDrawlib } from "./drawlib";
+export { myDrawlib };
 
 /*import { myFabricDrawingModule } from "./fabricDrawingModule";
 import * as myDataModelStructures from "./dataModelStructures";
