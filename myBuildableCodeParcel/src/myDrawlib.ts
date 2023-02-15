@@ -1,4 +1,12 @@
-const dataElement = document.getElementById('dataOutput');
+import { fabric } from "fabric";
+import { myFabricDrawingModule } from "./fabricDrawingModule";
+import * as myDataModelStructures from "./dataModelStructures";
+
+//export class myDrawlib {
+//
+//    testCanvas() {
+        const dataElement = document.getElementById('dataOutput');
+
         //Testing the canvas
         var fabricCanvas = new fabric.Canvas('myCanvas');
         fabricCanvas.add(new fabric.Circle({ radius: 30, fill: '#33ccff', top: 100, left: 100 }));
@@ -10,15 +18,18 @@ const dataElement = document.getElementById('dataOutput');
         //Getting a test message from the external TypeScript
         // Handle the message inside the webview
         window.addEventListener('message', event => {
+        
+        const message = event.data; // The JSON data our extension sent
 
-            const message = event.data; // The JSON data our extension sent
-            
             if (message.command)
             {
               switch (message.command)
               {
                 case 'resetText':
-                  dataElement.textContent = "";
+                    if(dataElement != null)
+                    {
+                        dataElement.textContent = "";
+                    }
                   break;
                 case 'drawCircle':
                     fabricCanvas.add(new fabric.Circle({ radius: 15, fill: '#33ccff', top: Math.random()*100, left: Math.random()*100 })); //Adding the circles randomly within the bounds of the canvas
@@ -29,6 +40,11 @@ const dataElement = document.getElementById('dataOutput');
             }
             else
             {
-              dataElement.textContent = dataElement.textContent + message.messageData;
+                if(dataElement != null)
+                {
+                    dataElement.textContent = dataElement.textContent + message.messageData;
+                }
             }
         });
+//    }
+//}

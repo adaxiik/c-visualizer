@@ -2,7 +2,8 @@
 ### **(building the library)**
 *(after installing all the dependencies required)*
 **Necessary for the usage in the VS Code extension**
-`npx parcel build`
+
+`npx parcel src/myDrawlib.ts`
 
 ### **(local - debug)**
 *(after installing all the dependencies required)*

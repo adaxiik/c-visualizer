@@ -6,6 +6,12 @@ exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 //import * as path from 'path';
 const fs = require("fs");
+//My drawing library
+//import { myDrawlib } from 'drawlib/src/'
+//
+////var myDrawingModule = new myFabricDrawingModule('myCanvas');
+//var test = new myDrawlib();
+//test.testCanvas();
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -33,7 +39,7 @@ function activate(context) {
         vscode.ViewColumn.Beside, // Editor column to show the new webview panel in.
         {
             enableScripts: true,
-            localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'src')] //Allowing including only files from the "src" folder*/
+            localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, '..')] //Allowing including only files from the root directory and the one above*/
         } // Webview options
         );
         //Getting the WebView HTML
@@ -84,14 +90,13 @@ exports.deactivate = deactivate;
 function getWebviewContent(webview, context) {
     let retHtml = ``;
     //Preparing the paths
-    const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFileScript.js')); // <--- 'src' is the folder where the .js file is stored
-    const fabricLibraryScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'fabric.min.js'));
-    const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFile.html'));
+    const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, '../myBuildableCodeParcel/dist', 'myDrawlib.js'));
+    //const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFileScript.js'));   // <--- 'src' is the folder where the .js file is stored
+    const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src/testHtmlFile.html'));
     //Loading the resources
     retHtml = fs.readFileSync(rawHtml.fsPath, 'utf8');
     //Replacing the key sequences
     retHtml = retHtml.replace("${myScript}", myScript.toString(true));
-    retHtml = retHtml.replace("${fabricLibraryScript}", fabricLibraryScript.toString(true));
     return retHtml;
 }
 function printAndTestForVariables(message) {
@@ -99,15 +104,17 @@ function printAndTestForVariables(message) {
     //Testing catching the variable events
     if (message.type == "response" && message.command == "variables") {
         console.log(JSON.stringify(message.body.variables, undefined, 2)); //Printing the variables
-        /*for (let i = 0; i < message.body.size(); i++) {
+        for (let i = 0; i < message.body.size(); i++) {
             //Converting the variable to my own type
-            //var tempVar = new myDataModelStructures.myVariable();
-            //tempVar.dataTypeString = message.body[i].type;
-            //tempVar.valueString = message.body[i].value;
-            //tempVar.variableName = message.body[i].name;
-            //
-            //myDrawingModule.drawVariable(tempVar);
-        }*/
+            /*
+            var tempVar = new myDataModelStructures.myVariable();
+            tempVar.dataTypeString = message.body[i].type;
+            tempVar.valueString = message.body[i].value;
+            tempVar.variableName = message.body[i].name;
+            
+            myDrawingModule.drawVariable(tempVar);
+            */
+        }
     }
 }
 //# sourceMappingURL=extension.js.map

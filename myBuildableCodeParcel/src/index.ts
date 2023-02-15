@@ -1,4 +1,4 @@
-import { myDrawlib } from "./drawlib";
+import { myDrawlib } from "./myDrawlib";
 export { myDrawlib };
 
 /*import { myFabricDrawingModule } from "./fabricDrawingModule";
