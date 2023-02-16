@@ -5,22 +5,12 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { json } from 'stream/consumers';
 
-//My drawing library
-//import { myDrawlib } from 'drawlib/src/'
-//
-////var myDrawingModule = new myFabricDrawingModule('myCanvas');
-//var test = new myDrawlib();
-//test.testCanvas();
+//Global panel (to be accessible)
+let currentPanel: vscode.WebviewPanel;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-	//Global panel (to be accessible)
-	let currentPanel: vscode.WebviewPanel;
-
-	//Moved to be global (TODO: Maybe change?)
-	//console.log("[DEBUG] Initialzing Fabric");
-	//var myDrawingModule = new myFabricDrawingModule('myCanvas');
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
@@ -99,7 +89,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 // This method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {
+	currentPanel.dispose();
+}
 
 function getWebviewContent(webview: vscode.Webview, context: any) {
 	let retHtml: string = ``;
