@@ -45,8 +45,9 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.debug.registerDebugAdapterTrackerFactory('*', {
 			createDebugAdapterTracker(session: vscode.DebugSession) {
 				return {
-					onWillReceiveMessage: m => console.log(`bakalarkaTestExtension> ${JSON.stringify(m, undefined, 2)}`),
-					onDidSendMessage: m => printAndTestForVariables(m), //console.log(`bakalarkaTestExtension< ${JSON.stringify(m, undefined, 2)}`)
+					//TODO: Decide if we need messages recieved by the debugger
+					//onWillReceiveMessage: m => console.log(`bakalarkaTestExtension> ${JSON.stringify(m, undefined, 2)}`),
+					onDidSendMessage: m => printAndTestForVariables(m),
 				};
 			}
 		});
@@ -70,21 +71,9 @@ export function activate(context: vscode.ExtensionContext) {
 		currentPanel.webview.postMessage({ command: 'resetText' });
 	});
 
-	//Third function (to add a circle to the canvas - testing calling drawing from the outside script)
-	let drawCircleCommand = vscode.commands.registerCommand('bakalarkatestextension.drawCircleCommand', () => {
-		if (!currentPanel) {
-			return;
-		}
-
-		// Send a message to our webview.
-		// You can send any JSON serializable data.
-		currentPanel.webview.postMessage({ command: 'drawCircle' });
-	});
-
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(testPreviewCommand);
 	context.subscriptions.push(resetTextCommand);
-	context.subscriptions.push(drawCircleCommand);
 }
 
 
@@ -111,22 +100,13 @@ function getWebviewContent(webview: vscode.Webview, context: any) {
 }
 
 function printAndTestForVariables(message: any) {
-	console.log(`bakalarkaTestExtension> ${JSON.stringify(message, undefined, 2)}`);
-
 	//Testing catching the variable events
 	if (message.type == "response" && message.command == "variables") {
-		console.log(JSON.stringify(message.body.variables, undefined, 2));	//Printing the variables
+		console.log(JSON.stringify(message.body.variables, undefined, 2));	//Printing the variables to the debug console
 
-		for (let i = 0; i < message.body.size(); i++) {
-			//Converting the variable to my own type
-			/*
-			var tempVar = new myDataModelStructures.myVariable();
-			tempVar.dataTypeString = message.body[i].type;
-			tempVar.valueString = message.body[i].value;
-			tempVar.variableName = message.body[i].name;
-			
-			myDrawingModule.drawVariable(tempVar);
-			*/
+		//Passing the message to the extension window
+		for (let i = 0; i < Object.keys(message.body.variables).length; i++) {
+			currentPanel.webview.postMessage({ command: 'drawVariables', body: message.body.variables });
 		}
 
 	}
