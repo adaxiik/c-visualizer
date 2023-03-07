@@ -3,12 +3,12 @@
 *(after installing all the dependencies required)*
 **Necessary for the usage in the VS Code extension**
 
-`npx parcel src/myDrawlib.ts` - also added to the "buildOrRunScript.sh"
+`npx parcel src/myDrawlib.ts` - also added to the "buildOrRunScript.sh" (as option 1)
 
 ### **(local - debug)**
 *(after installing all the dependencies required)*
 
-`npx parcel src/index.html` - also added to the "buildOrRunScript.sh"
+`npx parcel src/index.html` - also added to the "buildOrRunScript.sh" (as option 2)
 
 ### **(Docker)**
 

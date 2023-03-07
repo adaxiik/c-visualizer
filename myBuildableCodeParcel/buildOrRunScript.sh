@@ -23,7 +23,11 @@ runDockerImage() {
 }
 
 selectAction() {
-    echo -e "$(tput setaf 3)[BASH]$(tput init) Please select if you want to:\n1. Just build the drawing library\n2. Run the drawing library locally\n3. Build and run the Docker image\n4. Just run the Docker image (in case the image is already built)"
+    echo -e "$(tput setaf 3)[BASH]$(tput init) Please select if you want to:"
+    echo -e "1. Just build the drawing library - needed for the VSC extension"
+    echo -e "2. Run the drawing library locally"
+    echo -e "3. Build and run the drawlib Docker image"
+    echo -e "4. Just run the drawlib Docker image (in case the image is already built)"
     read selectedAction
 }
 
