@@ -33,7 +33,6 @@ function drawStackframesJSON(messageBody: any){
 //export class myDrawlib {
 //
 //    testCanvas() {
-        const dataElement = document.getElementById('dataOutput');
 
         //Testing the canvas
         //TODO: Delete?
@@ -67,13 +66,6 @@ function drawStackframesJSON(messageBody: any){
                 default:
                   break;
               }
-            }
-            else
-            {
-                if(dataElement != null)
-                {
-                    dataElement.textContent = dataElement.textContent + message.messageData;
-                }
             }
         });
 //    }

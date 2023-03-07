@@ -45,12 +45,6 @@ function activate(context) {
                 };
             }
         });
-        //Periodically sending "o" message to the WebView
-        var messageString = "oogabooga";
-        setInterval(() => {
-            currentPanel.webview.postMessage({ messageData: messageString });
-            messageString = "o";
-        }, 1000);
     });
     context.subscriptions.push(disposable);
     context.subscriptions.push(testPreviewCommand);
