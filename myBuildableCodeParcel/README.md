@@ -3,18 +3,18 @@
 *(after installing all the dependencies required)*
 **Necessary for the usage in the VS Code extension**
 
-`npx parcel src/myDrawlib.ts`
+`npx parcel src/myDrawlib.ts` - also added to the "buildOrRunScript.sh"
 
 ### **(local - debug)**
 *(after installing all the dependencies required)*
 
-`npx parcel src/index.html`
+`npx parcel src/index.html` - also added to the "buildOrRunScript.sh"
 
 ### **(Docker)**
 
-`chmod +x ./dockerFullScript.sh`
+`chmod +x ./buildOrRunScript.sh`
 
-`./dockerFullScript.sh`
+`./buildOrRunScript.sh`
 
 (The site can be then found at http://localhost:1234)
 
