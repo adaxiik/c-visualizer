@@ -125,15 +125,21 @@ export class myFabricDrawingModule {
         //Function name
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
         //Function variables
-        stackFrameToDraw.functionVariables.forEach(functionVariable => {
-            let variableText = functionVariable.variableName + ": " + functionVariable.dataTypeString + " (" + functionVariable.valueString + ")";
-            retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey));
-        });
+        if (stackFrameToDraw.functionVariables != null)
+        {
+            stackFrameToDraw.functionVariables.forEach(functionVariable => {
+                let variableText = functionVariable.variableName + ": " + functionVariable.dataTypeString + " (" + functionVariable.valueString + ")";
+                retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey));
+            });
+        }
         //Function parameters
-        stackFrameToDraw.functionParameters.forEach(functionParameter => {
-            let variableText = functionParameter.variableName + ": " + functionParameter.dataTypeString + " (" + functionParameter.valueString + ")";
-            retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen));
-        });
+        if (stackFrameToDraw.functionParameters != null)
+        {
+            stackFrameToDraw.functionParameters.forEach(functionParameter => {
+                let variableText = functionParameter.variableName + ": " + functionParameter.dataTypeString + " (" + functionParameter.valueString + ")";
+                retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen));
+            });
+        }
         //Adding the result group to the canvas
         retAllSlots.forEach(stackGroup => {
             stackGroup.forEach(stackFrameSlot => {
@@ -170,7 +176,7 @@ export class myFabricDrawingModule {
 
         //Default values
         let textFill = "black";
-        let currentPositionX = 350;  //The position where we're drawing
+        let currentPositionX = 30;  //The position where we're drawing
         let currentPositionY = 10;  //The position where we're drawing
 
         //Drawing the slot's text
@@ -201,7 +207,7 @@ export class myFabricDrawingModule {
 
         //Default values
         let textFill = "black";
-        let currentPositionX = 350;  //The position where we're drawing
+        let currentPositionX = 30;  //The position where we're drawing
         let currentPositionY = 35;  //The position where we're drawing
 
         //Drawing the slot's text
@@ -234,7 +240,7 @@ export class myFabricDrawingModule {
 
         //Default values
         let textFill = "black";
-        let currentPositionX = 350;  //The position where we're drawing
+        let currentPositionX = 30;  //The position where we're drawing
         let currentPositionY = 60;  //The position where we're drawing
 
         //Drawing the slot's text
@@ -266,7 +272,7 @@ export class myFabricDrawingModule {
 
         //Default values
         let textFill = "black";
-        let currentPositionX = 350;  //The position where we're drawing
+        let currentPositionX = 30;  //The position where we're drawing
         let currentPositionY = 80;  //The position where we're drawing
 
         //Drawing the slot's text
