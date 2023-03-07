@@ -4,6 +4,17 @@
 int intGlob = 57;
 char charArrGlob[3] = {'t', 'e', '\n'};
 
+//Different scope / stackframe
+void testFunction1(int intParameter, char* charPointerParameter)
+{
+    if (charPointerParameter != nullptr)
+    {
+        printf("%c", charPointerParameter[intParameter]);
+    }
+
+    return;
+}
+
 int main()
 {
     //Local variable
@@ -20,6 +31,8 @@ int main()
         tempCharDynamicCounter++;
     }
     charArrDynamic[tempCharDynamicCounter] = '\0';
+
+    testFunction1(5, charArrDynamic);
 
     //Pointer (duplicate)
     char* charArrDynamic2 = nullptr;
