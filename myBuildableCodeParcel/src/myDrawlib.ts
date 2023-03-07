@@ -2,7 +2,7 @@ import { fabric } from "fabric";
 import { myFabricDrawingModule } from "./fabricDrawingModule";
 import * as myDataModelStructures from "./dataModelStructures";
 
-function drawJSON(messageBody: any){
+function drawVariablesJSON(messageBody: any){
   messageBody.forEach(messageVariable => {
     console.log("Processing variable named: \"" + messageVariable.name + "\"");
 
@@ -14,6 +14,19 @@ function drawJSON(messageBody: any){
     tempVar.valueString = messageVariable.value;
 
     myDrawingModule.drawVariable(tempVar);
+  });
+}
+
+function drawStackframesJSON(messageBody: any){
+  messageBody.forEach(messageStackframe => {
+    console.log("Processing stackframe from a function named: \"" + messageStackframe.name + "\"");
+
+    var tempVar = new myDataModelStructures.myStackFrame();
+    tempVar.functionName = messageStackframe.name;
+    //tempVar.functionVariables = ;//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
+    //tempVar.functionParameters = ;//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
+
+    myDrawingModule.drawStackFrame(tempVar);
   });
 }
 
@@ -45,15 +58,12 @@ function drawJSON(messageBody: any){
             {
               switch (message.command)
               {
-                case 'resetText':
-                    if(dataElement != null)
-                    {
-                        dataElement.textContent = "";
-                    }
-                  break;
                 case 'drawVariables':
-                    drawJSON(message.body); //Drawing the full JSON message
-                    break;
+                  drawVariablesJSON(message.body); //Drawing the full JSON message
+                  break;
+                case 'drawStackFrames':
+                  drawStackframesJSON(message.body); //Drawing the full JSON message
+                  break;
                 default:
                   break;
               }

@@ -52,18 +52,8 @@ function activate(context) {
             messageString = "o";
         }, 1000);
     });
-    //Second function (to reset the text - testing calling other functions that affect the panel)
-    let resetTextCommand = vscode.commands.registerCommand('bakalarkatestextension.resetTextCommand', () => {
-        if (!currentPanel) {
-            return;
-        }
-        // Send a message to our webview.
-        // You can send any JSON serializable data.
-        currentPanel.webview.postMessage({ command: 'resetText' });
-    });
     context.subscriptions.push(disposable);
     context.subscriptions.push(testPreviewCommand);
-    context.subscriptions.push(resetTextCommand);
 }
 exports.activate = activate;
 // This method is called when your extension is deactivated
@@ -84,12 +74,20 @@ function getWebviewContent(webview, context) {
     return retHtml;
 }
 function printAndTestForVariables(message) {
-    //Testing catching the variable events
+    console.log(message); //TODO: Delete - just temporary to check the message in full length
+    //Catching the variable events
     if (message.type == "response" && message.command == "variables") {
-        console.log(JSON.stringify(message.body.variables, undefined, 2)); //Printing the variables to the debug console
+        //console.log(JSON.stringify(message.body.variables, undefined, 2));	//Printing the variables to the debug console
         //Passing the message to the extension window
         for (let i = 0; i < Object.keys(message.body.variables).length; i++) {
             currentPanel.webview.postMessage({ command: 'drawVariables', body: message.body.variables });
+        }
+    }
+    else if (message.type == "response" && message.command == "stackTrace") {
+        //console.log(JSON.stringify(message.body.stackFrames, undefined, 2));	//Printing the stack frame to the debug console
+        //Passing the message to the extension window
+        for (let i = 0; i < Object.keys(message.body.stackFrames).length; i++) {
+            currentPanel.webview.postMessage({ command: 'drawStackFrames', body: message.body.stackFrames });
         }
     }
 }
