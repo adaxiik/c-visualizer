@@ -1,5 +1,12 @@
 #include <stdio.h>
 
+//Structure declaration
+struct myStruct
+{
+    int myNum = -1;
+    myStruct* myChildStruct = nullptr;
+};
+
 //Global variables
 int intGlob = 57;
 char charArrGlob[3] = {'t', 'e', '\n'};
@@ -38,6 +45,9 @@ int main()
     char* charArrDynamic2 = nullptr;
     charArrDynamic2 = charArrDynamic;
 
+    //Static string
+    char charArrStatic[] = "stat";
+
     //Static array (int) - without initializing
     int intStaticArr[5];
     for (int i = 0; i < sizeof(intStaticArr)/sizeof(int); i++)
@@ -45,6 +55,19 @@ int main()
     
     //Static array (int) - initialized to zeros
     int intStaticArr2[5] = {0};
+
+    //Structures
+    myStruct staticStruct1;
+    staticStruct1.myNum = 17; 
+
+    myStruct* myDynamicStruct1 = new myStruct();
+    myDynamicStruct1->myNum = 67;
+
+    myStruct staticStruct2;
+    staticStruct2.myNum = 70; 
+    staticStruct2.myChildStruct = myDynamicStruct1;
+
+
 
 
     return 0;

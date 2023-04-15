@@ -1,7 +1,7 @@
-all: main
+all: testingSourceCode
 
-main: main.cpp
+testingSourceCode: testingSourceCode.cpp
 	g++ $^ -o $@
 
 clean:
-	rm main
+	rm testingSourceCode
