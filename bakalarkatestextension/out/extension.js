@@ -45,6 +45,19 @@ function activate(context) {
                 };
             }
         });
+        // Handle messages from the webview
+        currentPanel.webview.onDidReceiveMessage(message => {
+            switch (message.command) {
+                case 'requestStackFrame':
+                    //Getting the stack frame
+                    const session = vscode.debug.activeDebugSession;
+                    if (session != undefined) {
+                        let response = session.customRequest('stackTrace', { threadId: 1 });
+                        //let frameId = response.stackFrames[0].id;
+                    }
+                    return;
+            }
+        }, undefined, context.subscriptions);
     });
     context.subscriptions.push(disposable);
     context.subscriptions.push(testPreviewCommand);

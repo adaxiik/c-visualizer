@@ -23,6 +23,11 @@ function drawStackframesJSON(messageBody: any){
 
     var tempVar = new myDataModelStructures.myStackFrame();
     tempVar.functionName = messageStackframe.name;
+    vscode.postMessage({
+      command: "requestStackFrame",
+      name: messageStackframe.name
+    }); //Posting a message back to the extension
+
     //tempVar.functionVariables = ;//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
     //tempVar.functionParameters = ;//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
 
@@ -46,6 +51,7 @@ function drawStackframesJSON(messageBody: any){
         */
 
         var myDrawingModule = new myFabricDrawingModule('myCanvas');
+        const vscode = acquireVsCodeApi();  //Getting the VS Code Api (to communicate with the extension)
 
         //Getting a test message from the external TypeScript
         // Handle the message inside the webview
