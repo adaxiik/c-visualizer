@@ -52,8 +52,24 @@ function activate(context) {
                     //Getting the stack frame
                     const session = vscode.debug.activeDebugSession;
                     if (session != undefined) {
-                        let response = session.customRequest('stackTrace', { threadId: 1 });
-                        //let frameId = response.stackFrames[0].id;
+                        let threadInfo = session.customRequest('threads');
+                        let frameId;
+                        //Request for thread info
+                        threadInfo.then(
+                        //(value) => session.customRequest('stackTrace', { threadId: value }).then(
+                        //	(value) => frameId = value.body.stackFrames[0].id
+                        //)
+                        (value) => {
+                            console.log("Value recieved (threads)");
+                            console.log(value);
+                            let myThreadId = value.threads[0].id; //Getting the thread id
+                            //Request for stack info
+                            session.customRequest('variables', { threadId: myThreadId }).then((value) => {
+                                console.log("Value recieved (variables)");
+                                console.log(value);
+                                currentPanel.webview.postMessage({ command: 'responseVariables', body: value });
+                            }, (reason) => console.error(reason));
+                        }, (reason) => console.error(reason));
                     }
                     return;
             }

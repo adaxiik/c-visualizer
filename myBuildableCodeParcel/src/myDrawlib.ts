@@ -69,6 +69,10 @@ function drawStackframesJSON(messageBody: any){
                 case 'drawStackFrames':
                   drawStackframesJSON(message.body); //Drawing the full JSON message
                   break;
+                case 'responseVariables':
+                  console.log("Variable message recieved in WebView")
+                  console.log(message.body);  //The requested variables
+                  break;
                 default:
                   break;
               }
