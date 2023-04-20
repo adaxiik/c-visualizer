@@ -57,6 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
 			message => {
 			  switch (message.command) {
 				case 'requestStackFrame':
+					//TODO: Check if the current scope is of the requested stackFrame's (message.name == currentScopeName)
 					//Getting the stack frame
 					const session = vscode.debug.activeDebugSession;
 					if (session != undefined)
