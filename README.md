@@ -1,19 +1,25 @@
 # VisualizerBP
 
 ## Prerequisites
-- Bash
-- Node.js
-- npm
-- Parcel.js
-- FabricJS
+- [Bash](https://www.gnu.org/software/bash/)
+  - `sudo apt-get install bash`
+- [Node.js](https://nodejs.org/en)
+  - `sudo apt-get install nodejs`
+- [Node Package Manager (npm)](https://www.npmjs.com/)
+  - `sudo apt-get install npm`
+- [Parcel.js](https://parceljs.org/)
+  - `npm install --save-dev parcel`
+- [FabricJS](http://www.fabricjs.com/)
+  - `npm install --save fabric`
 
 Optional:
-- Docker
+- [Docker](https://www.docker.com/)
+  - [Docker installation guide](https://docs.docker.com/engine/install/ubuntu/)
 
 ## Usage
-- Set `mainScript.sh` to be executable with: `chmod +x ./buildOrRunScript.sh`
-- Run `mainScript.sh` (and choose the desired option)
+1. Set `mainScript.sh` to be executable with: `chmod +x ./buildOrRunScript.sh`
+2. Run `mainScript.sh` (and choose the desired option)
 
 ___
-**Note**
-(The site can be then found at http://localhost:1234)
+### Note
+The site can be then found at http://localhost:1234
