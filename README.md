@@ -17,7 +17,7 @@ Optional:
   - [Docker installation guide](https://docs.docker.com/engine/install/ubuntu/)
 
 ## Usage
-1. Set `mainScript.sh` to be executable with: `chmod +x ./buildOrRunScript.sh`
+1. Set `mainScript.sh` to be executable with: `chmod +x ./mainScript.sh`
 2. Run `mainScript.sh` (and choose the desired option)
 
 ___

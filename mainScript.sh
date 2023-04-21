@@ -2,7 +2,7 @@
 
 APP_TAG="parcel-visualizer-bp"
 SCRIPT_HEADER="$(tput setaf 3)[SCRIPT]$(tput init)"
-PARCEL_DIRECTORY_NAME="myBuildableCodeParcel"
+PARCEL_DIRECTORY_NAME="myDrawingLibrary"
 
 buildLibrary() {
     echo "$SCRIPT_HEADER Building the drawing library"
