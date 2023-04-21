@@ -45,6 +45,7 @@ testStackFrame.functionParameters.push(testParam2);
 console.log("[DEBUG] Drawing the testing stackframe");
 myDrawingModule.drawStackFrame(testStackFrame);
 
+/*
 //Testing variables
 //Example string
 let testString = new myDataModelStructures.myVariable();
@@ -81,3 +82,4 @@ testBool.valueString = "1";
 
 console.log("[DEBUG] Drawing the testing bool");
 myDrawingModule.drawVariable(testBool);
+*/
