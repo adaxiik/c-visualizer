@@ -3,21 +3,18 @@
 *(after installing all the dependencies required)*
 **Necessary for the usage in the VS Code extension**
 
-`npx parcel src/myDrawlib.ts` - also added to the "buildOrRunScript.sh" (as option 1)
+`npx parcel src/myDrawlib.ts` - also added to the "mainScript.sh"
 
 ### **(local - debug)**
 *(after installing all the dependencies required)*
 
-`npx parcel src/index.html` - also added to the "buildOrRunScript.sh" (as option 2)
+`npx parcel src/index.html` - also added to the "mainScript.sh"
 
 ### **(Docker)**
+Due to the (slight) complexity of the Docker launch commands, it is easier to use the provided script. It contains the neccessary commands to build and run the drawing library (in Docker).
 
-`chmod +x ./buildOrRunScript.sh`
+`chmod +x ./mainScript.sh`
 
-`./buildOrRunScript.sh`
+`./mainScript.sh`
 
 (The site can be then found at http://localhost:1234)
-
-___
-**Notes:**
-- after changing any of the source files, the Docker image has to be rebuilt (due to the files being passed / copied to the image in the build process)
