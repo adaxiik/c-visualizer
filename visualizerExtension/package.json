@@ -1,0 +1,72 @@
+{
+  "name": "visualizerbp",
+  "displayName": "VisualizerBP",
+  "description": "",
+  "version": "0.0.1",
+  "publisher": "Adam Nevrly",
+  "engines": {
+    "vscode": "^1.72.0"
+  },
+  "categories": [
+    "Visualization",
+    "Debuggers",
+    "Education"
+  ],
+  "activationEvents": [
+    "onCommand:visualizerbp.helloWorld",
+    "onCommand:visualizerbp.showPreview"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "visualizerbp.helloWorld",
+        "title": "Hello World",
+        "category": "VisualizerBP"
+      },
+      {
+        "command": "visualizerbp.showPreview",
+        "title": "Show preview",
+        "category": "VisualizerBP"
+      }
+    ]
+  },
+  "scripts": {
+    "copy-drawlib": "ncp ../myDrawingLibrary/dist/myDrawlib.js ./lib/myDrawlib.js",
+    "copy-drawlib-map": "ncp ../myDrawingLibrary/dist/myDrawlib.js.map ./lib/myDrawlib.js.map",
+    "copy-all-files": "npm run copy-drawlib && npm run copy-drawlib-map",
+    "vscode:prepublish": "npm run copy-all-files && npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/fabric": "^4.5.12",
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.72.0",
+    "@typescript-eslint/eslint-plugin": "^5.38.1",
+    "@typescript-eslint/parser": "^5.38.1",
+    "@vscode/test-electron": "^2.1.5",
+    "buffer": "^5.7.1",
+    "eslint": "^8.24.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.0.0",
+    "ncp": "^2.0.0",
+    "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "fabric": "^5.2.4"
+  },
+  "files": [
+    "../myDrawingLibrary/dist/myDrawlib.js",
+    "lib/**"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anevrly/VisualizerBP"
+  }
+}

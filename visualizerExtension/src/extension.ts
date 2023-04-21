@@ -14,23 +14,23 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "bakalarkatestextension" is now active!');
+	console.log('Congratulations, your extension "visualizerbp" is now active!');
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('bakalarkatestextension.helloWorld', () => {
+	let disposable = vscode.commands.registerCommand('visualizerbp.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from BakalarkaTestExtension!');
+		vscode.window.showInformationMessage('Hello World from VisualizerBP!');
 	});
 
 	//src: https://code.visualstudio.com/api/extension-guides/webview
-	let testPreviewCommand = vscode.commands.registerCommand('bakalarkatestextension.showPreview', () => {
+	let testPreviewCommand = vscode.commands.registerCommand('visualizerbp.showPreview', () => {
 		// Create and show a new webview
 		currentPanel = vscode.window.createWebviewPanel(
-			'bakalarkaTestExtension', // Identifies the type of the webview. Used internally
-			'Bakalarka Test Extension - dog preview', // Title of the panel displayed to the user
+			'VisualizerBP', // Identifies the type of the webview. Used internally
+			'VisualizerBP - preview', // Title of the panel displayed to the user
 			vscode.ViewColumn.Beside, // Editor column to show the new webview panel in.
 			{
 				enableScripts: true,
@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 			createDebugAdapterTracker(session: vscode.DebugSession) {
 				return {
 					//TODO: Decide if we need messages recieved by the debugger
-					//onWillReceiveMessage: m => console.log(`bakalarkaTestExtension> ${JSON.stringify(m, undefined, 2)}`),
+					//onWillReceiveMessage: m => console.log(`visualizerbp> ${JSON.stringify(m, undefined, 2)}`),
 					onDidSendMessage: m => printAndTestForVariables(m),
 				};
 			}
@@ -110,13 +110,11 @@ function getWebviewContent(webview: vscode.Webview, context: any) {
 	let retHtml: string = ``;
 
 	//Preparing the paths
-	const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, '../myDrawingLibrary/dist', 'myDrawlib.js'));
-	const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src/sourceHtmlFile.html'));
+	const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'lib', 'myDrawlib.js'));
+	const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'lib', 'sourceHtmlFile.html'));
 
 	//Loading the resources
 	retHtml = fs.readFileSync(rawHtml.fsPath, 'utf8');
-
-	let tempTest = myScript.toString(true);
 
 	//Replacing the key sequences
 	retHtml = retHtml.replace("${myScript}", myScript.toString(true));

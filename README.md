@@ -11,6 +11,8 @@
   - `npm install --save-dev parcel`
 - [FabricJS](http://www.fabricjs.com/)
   - `npm install --save fabric`
+- [vsce](https://github.com/microsoft/vscode-vsce)
+  - `npm install --global @vscode/vsce`
 
 Optional:
 - [Docker](https://www.docker.com/)
