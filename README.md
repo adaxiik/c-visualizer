@@ -1,5 +1,5 @@
 # VisualizerBP
-___
+
 ## Prerequisites
 - Bash
 - Node.js
