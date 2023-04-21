@@ -1,6 +1,6 @@
 # VisualizerBP
 ## Importing the extension
-1. Package the extension into a single VSIX file using the provided bash script `"mainScript.sh"`.
+1. Package the extension into a single VSIX file using the bash script `"mainScript.sh"` provided in the project's root directory.
 2. Open Visual Studio Code
 3. Go to the `"Extensions"` tab
 4. Select the three dots / `"..."` option on top
