@@ -110,12 +110,13 @@ function getWebviewContent(webview: vscode.Webview, context: any) {
 	let retHtml: string = ``;
 
 	//Preparing the paths
-	const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, '../myBuildableCodeParcel/dist', 'myDrawlib.js'));
-	//const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src', 'testHtmlFileScript.js'));   // <--- 'src' is the folder where the .js file is stored
-	const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src/testHtmlFile.html'));
+	const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, '../myDrawingLibrary/dist', 'myDrawlib.js'));
+	const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'src/sourceHtmlFile.html'));
 
 	//Loading the resources
 	retHtml = fs.readFileSync(rawHtml.fsPath, 'utf8');
+
+	let tempTest = myScript.toString(true);
 
 	//Replacing the key sequences
 	retHtml = retHtml.replace("${myScript}", myScript.toString(true));
