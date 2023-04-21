@@ -44,8 +44,8 @@ runDockerImage() {
 selectAction() {
     echo -e "$SCRIPT_HEADER Please select if you want to:"
     echo -e "1. Prepare and package the extension into a VSIX file"
-    echo -e "2. Just build the drawing library (needed for the VSC extension running locally)"
-    echo -e "3. Run the drawing library locally"
+    echo -e "2. Run the drawing library locally"
+    echo -e "3. Only build the drawing library"
     echo -e "4. Build and run the drawlib Docker image"
     echo -e "5. Just run the drawlib Docker image (in case the image is already built)"
     read selectedAction
@@ -57,9 +57,9 @@ if [ $selectedAction == 1 ]; then
     buildLibrary
     packageExtension
 elif [ $selectedAction == 2 ]; then
-    buildLibrary
+    runParcelLocally
 elif [ $selectedAction == 3 ]; then
-    runParcelLocally    
+    buildLibrary 
 elif [ $selectedAction == 4 ]; then
     buildDockerImage
     runDockerImage
