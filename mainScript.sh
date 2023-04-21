@@ -6,7 +6,8 @@ PARCEL_DIRECTORY_NAME="myDrawingLibrary"
 
 buildLibrary() {
     echo "$SCRIPT_HEADER Building the drawing library"
-    npx parcel build $PARCEL_DIRECTORY_NAME/src/myDrawlib.ts --dist-dir $PARCEL_DIRECTORY_NAME/dist
+    npx parcel $PARCEL_DIRECTORY_NAME/src/myDrawlib.ts --dist-dir $PARCEL_DIRECTORY_NAME/dist
+    # using just "npx parcel ..." because "npx parcel build ..." option doesn't provide the neccessary output (output with everything neccesary compiled into a single file)
     echo "$SCRIPT_HEADER Library built. Exiting..."
 }
 
