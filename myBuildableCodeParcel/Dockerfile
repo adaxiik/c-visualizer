@@ -11,8 +11,6 @@ WORKDIR /usr/app
 
 # Copy app dependency files
 COPY package*.json /usr/app/
-# Copy ParcelJS source files (not necessary when binding / mounting the directory)
-#COPY src /usr/app/src/  
 
 # Installng the dependencies
 RUN npm install

@@ -1,9 +1,14 @@
 # VisualizerBP
 ___
-## Prerequisites - Work in progress
+## Prerequisites
+- Bash
+- Node.js
 - npm
 - Parcel.js
 - FabricJS
+
+Optional:
+- Docker
 
 ## Usage
 - Set `mainScript.sh` to be executable with: `chmod +x ./buildOrRunScript.sh`
