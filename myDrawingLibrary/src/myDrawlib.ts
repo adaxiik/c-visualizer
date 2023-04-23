@@ -35,48 +35,32 @@ function drawStackframesJSON(messageBody: any){
   });
 }
 
-//export class myDrawlib {
-//
-//    testCanvas() {
 
-        //Testing the canvas
-        //TODO: Delete?
-        /*
-        var fabricCanvas = new fabric.Canvas('myCanvas');
-        fabricCanvas.add(new fabric.Circle({ radius: 30, fill: '#33ccff', top: 100, left: 100 }));
+var myDrawingModule = new myFabricDrawingModule('myCanvas');
+const vscode = acquireVsCodeApi();  //Getting the VS Code Api (to communicate with the extension)
 
-        fabricCanvas.selectionColor = 'rgba(51, 204, 255, 0.3)';
-        fabricCanvas.selectionBorderColor = 'blue';
-        fabricCanvas.selectionLineWidth = 1;
-        */
-
-        var myDrawingModule = new myFabricDrawingModule('myCanvas');
-        const vscode = acquireVsCodeApi();  //Getting the VS Code Api (to communicate with the extension)
-
-        //Getting a test message from the external TypeScript
-        // Handle the message inside the webview
-        window.addEventListener('message', event => {
+//Getting a test message from the external TypeScript
+// Handle the message inside the webview
+window.addEventListener('message', event => {
         
-        const message = event.data; // The JSON data our extension sent
+const message = event.data; // The JSON data our extension sent
 
-            if (message.command)
-            {
-              switch (message.command)
-              {
-                case 'drawVariables':
-                  drawVariablesJSON(message.body); //Drawing the full JSON message
-                  break;
-                case 'drawStackFrames':
-                  drawStackframesJSON(message.body); //Drawing the full JSON message
-                  break;
-                case 'responseVariables':
-                  console.log("Variable message recieved in WebView")
-                  console.log(message.body);  //The requested variables
-                  break;
-                default:
-                  break;
-              }
-            }
-        });
-//    }
-//}
+  if (message.command)
+  {
+    switch (message.command)
+    {
+      case 'drawVariables':
+        drawVariablesJSON(message.body); //Drawing the full JSON message
+        break;
+      case 'drawStackFrames':
+        drawStackframesJSON(message.body); //Drawing the full JSON message
+        break;
+      case 'responseVariables':
+        console.log("Variable message recieved in WebView")
+        console.log(message.body);  //The requested variables
+        break;
+      default:
+        break;
+    }
+  }
+});
