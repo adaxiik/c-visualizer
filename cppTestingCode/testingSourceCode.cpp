@@ -7,6 +7,15 @@ struct myStruct
     myStruct* myChildStruct = nullptr;
 };
 
+struct myComplexStruct 
+{
+    float myFloat = -55;
+    char myString[128] = "My static string";
+    char* myStringPointer = nullptr;
+    myStruct myStruct1;
+    myComplexStruct* myStruct2 = nullptr;
+};
+
 //Global variables
 int intGlob = 57;
 char charArrGlob[3] = {'t', 'e', '\n'};
@@ -67,8 +76,16 @@ int main()
     staticStruct2.myNum = 70; 
     staticStruct2.myChildStruct = myDynamicStruct1;
 
-
-
+    myComplexStruct staticComplexStruct;
+    staticComplexStruct.myFloat = 70.6;
+    staticComplexStruct.myStringPointer = charArrDynamic;
+    staticComplexStruct.myStruct1.myNum = 5;
+    staticComplexStruct.myStruct1.myChildStruct = myDynamicStruct1;
+    staticComplexStruct.myStruct2 = new myComplexStruct();
+    staticComplexStruct.myStruct2->myFloat = 17.4;
+    staticComplexStruct.myStruct2->myStruct1.myNum = 78;
+    staticComplexStruct.myStruct2->myStruct1.myChildStruct = myDynamicStruct1;
+    staticComplexStruct.myStruct2->myStruct2 = new myComplexStruct();
 
     return 0;
 }
