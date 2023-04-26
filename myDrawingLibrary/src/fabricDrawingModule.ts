@@ -7,7 +7,7 @@ export class myFabricDrawingModule {
     constructor(canvasName: string) {
         this.canvas = new fabric.Canvas(canvasName);
         //To have it a bit larger (not yet exact sizing)
-        //TODO: Think the sizing throught and adjust accordingly
+        //TODO: Think the sizing through and adjust accordingly
         this.canvas.setWidth(screen.width);
         this.canvas.setHeight(screen.height / 2);
 
@@ -16,8 +16,10 @@ export class myFabricDrawingModule {
     }
 
     initPanning() {
-        //TODO: Citation? (correctly)
-        //src: http://fabricjs.com/fabric-intro-part-5
+        //Author: Unknown (Fabric.js)
+        //Date: 15.10.2022
+        //Availability: http://fabricjs.com/fabric-intro-part-5
+        //Citation start
         this.canvas.on('mouse:down', function (opt) {
             var evt = opt.e;
 
@@ -43,11 +45,14 @@ export class myFabricDrawingModule {
             this.setViewportTransform(this.viewportTransform);
             this.isDragging = false;
         });
+        //Citation end
     }
 
     initZooming() {
-        //TODO: Citation? (correctly) 
-        //src: http://fabricjs.com/fabric-intro-part-5
+        //Author: Unknown (Fabric.js)
+        //Date: 15.10.2022
+        //Availability: http://fabricjs.com/fabric-intro-part-5
+        //Citation start
         this.canvas.on('mouse:wheel', function (opt) {
             var delta = opt.e.deltaY;
             var zoom = this.getZoom();
@@ -58,6 +63,7 @@ export class myFabricDrawingModule {
             opt.e.preventDefault();
             opt.e.stopPropagation();
         });
+        //Citation end
     }
 
     lockAllItems() {
@@ -70,7 +76,6 @@ export class myFabricDrawingModule {
         });
     }
 
-    //TODO: Move to a separate class (something like myFabricStackFrame) with it's own drawing method
     drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame) {
         //Default values
         let backgroundColorBlue = '#33ccff';
@@ -151,7 +156,6 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 
-    //TODO: Move to a separate class with it's own drawing method
     //More general method that prevents the user from misusing the drawing methods
     drawVariable(variableToDraw: myDataModelStructures.myVariable) {
         if (variableToDraw.dataTypeString == "string")
@@ -199,7 +203,6 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 
-    //TODO: Move to a separate class with it's own drawing method
     drawChar(charToDraw: myDataModelStructures.myVariable) {
         //Checking if the variable is really a char
         if (charToDraw.dataTypeString != "char")
@@ -230,7 +233,6 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 
-    //TODO: Move to a separate class with it's own drawing method
     drawNumber(numberToDraw: myDataModelStructures.myVariable) {
         //Checking if the variable is really a number
         if (numberToDraw.dataTypeString != "number" &&
@@ -263,7 +265,6 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 
-    //TODO: Move to a separate class with it's own drawing method
     drawBool(boolToDraw: myDataModelStructures.myVariable) {
         //Checking if the variable is really a number
         if (boolToDraw.dataTypeString != "bool" &&
@@ -296,48 +297,3 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 }
-
-//Old testing class (left just for inspiration and not exported outside of file)
-//TODO: Delete
-/*
-class myInt {
-    value: number;
-
-    //Values for later drawing in Fabric
-    fabricGroup: fabric.Group;
-    fabricObject: fabric.Circle;
-    fabricText: fabric.Text;
-    color: string;
-    radius: number;
-    posTop: number;
-    posLeft: number;
-
-    constructor(setValue: number, setPosTop: number, setPosLeft: number) {
-        //Default values
-        this.color = '#33ccff';
-        this.radius = 30;
-        
-        //Set values
-        this.value = setValue;
-        this.posTop = setPosTop;
-        this.posLeft = setPosLeft;
-        
-        this.fabricObject = new fabric.Circle({
-            radius: this.radius,
-            fill: this.color,
-            top: this.posTop,
-            left: this.posLeft
-        })
-        this.fabricText = new fabric.Text(this.value.toString(), { 
-            left: this.fabricObject.left,
-            top: this.fabricObject.top,
-            fill: 'black'
-        });
-        this.fabricGroup = new fabric.Group([this.fabricObject, this.fabricText]);
-    }
-
-    drawObject(drawIntoCanvas: fabric.Canvas) {
-        drawIntoCanvas.add(this.fabricGroup);
-    }
-}
-*/
