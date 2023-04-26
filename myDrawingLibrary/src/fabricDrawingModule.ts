@@ -86,7 +86,7 @@ export class myFabricDrawingModule {
         let stackSlotHeight = 30;   //Height of a single "slot" in the drawn stackframe
         let stackSlotWidth = 300;   //Width of a single "slot" in the drawn stackframe
 
-        //TODO: After moving to a separate class (add a method for drawing a single "slot" in the stackframe)
+        //Function to create a single slot in the stackframe
         let myCreateSlotFunction = function (mySlotText: string, slotBackgroundColor: string): Array<fabric.Group> {
             let resultFabricStackFrameArray = new Array<fabric.Group>;    //Result group of stackframe "slots"
             //Drawing the slot's background
@@ -97,7 +97,7 @@ export class myFabricDrawingModule {
                 height: stackSlotHeight,
                 fill: slotBackgroundColor,
 
-                //TODO: Change (Testing values)
+                //Default values
                 padding: 8,
                 stroke: "#000000",
                 strokeWidth: 2
@@ -123,7 +123,6 @@ export class myFabricDrawingModule {
         };
 
         //Creating the slots
-        //TODO: Refactor and improve
         let retAllSlots = new Array<Array<fabric.Group>>();
         //Function name
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
