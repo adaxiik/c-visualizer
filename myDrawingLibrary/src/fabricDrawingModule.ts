@@ -76,7 +76,7 @@ export class myFabricDrawingModule {
         });
     }
 
-    drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame) {
+    drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10) {
         //Default values
         let backgroundColorBlue = '#33ccff';
         let backgroundColorGrey = '#8f8f8f';
@@ -85,16 +85,14 @@ export class myFabricDrawingModule {
         let textFill = "black";
         let stackSlotHeight = 30;   //Height of a single "slot" in the drawn stackframe
         let stackSlotWidth = 300;   //Width of a single "slot" in the drawn stackframe
-        let currentPositionX = 10;  //The position where we're drawing
-        let currentPositionY = 10;  //The position where we're drawing
 
         //TODO: After moving to a separate class (add a method for drawing a single "slot" in the stackframe)
         let myCreateSlotFunction = function (mySlotText: string, slotBackgroundColor: string): Array<fabric.Group> {
             let resultFabricStackFrameArray = new Array<fabric.Group>;    //Result group of stackframe "slots"
             //Drawing the slot's background
             let fabricSlotBackground = new fabric.Rect({
-                left: currentPositionX,
-                top: currentPositionY,
+                left: startPosX,
+                top: startPosY,
                 width: stackSlotWidth,
                 height: stackSlotHeight,
                 fill: slotBackgroundColor,
@@ -107,8 +105,8 @@ export class myFabricDrawingModule {
             //Drawing the slot's text
             //TODO: Calculate the positioning correctly
             let fabricSlotText = new fabric.Text(mySlotText, {
-                left: currentPositionX + 4,
-                top: currentPositionY + stackSlotHeight / 8,
+                left: startPosX + 4,
+                top: startPosY + stackSlotHeight / 8,
                 fill: textFill,
                 fontSize: 20
             });
@@ -119,7 +117,7 @@ export class myFabricDrawingModule {
             resultFabricStackFrameArray.push(resultFabricGroup);
 
             //Moving the position, where we're drawing
-            currentPositionY += stackSlotHeight;
+            startPosY += stackSlotHeight;
 
             return resultFabricStackFrameArray;
         };
@@ -157,38 +155,36 @@ export class myFabricDrawingModule {
     }
 
     //More general method that prevents the user from misusing the drawing methods
-    drawVariable(variableToDraw: myDataModelStructures.myVariable) {
+    drawVariable(variableToDraw: myDataModelStructures.myVariable, startPosX?: number, startPosY?: number) {
         if (variableToDraw.dataTypeString == "string")
-            this.drawString(variableToDraw);
+            this.drawString(variableToDraw, startPosX, startPosY);
         else if (variableToDraw.dataTypeString == "char")
-            this.drawChar(variableToDraw);
+            this.drawChar(variableToDraw, startPosX, startPosY);
         else if (variableToDraw.dataTypeString == "number" ||
             variableToDraw.dataTypeString == "int" ||
             variableToDraw.dataTypeString == "float")
-            this.drawNumber(variableToDraw);
+            this.drawNumber(variableToDraw, startPosX, startPosY);
         else if (variableToDraw.dataTypeString == "bool" ||
             variableToDraw.dataTypeString == "boolean")
-            this.drawBool(variableToDraw)
+            this.drawBool(variableToDraw, startPosX, startPosY)
         else
             return;
     }
 
-    drawString(stringToDraw: myDataModelStructures.myVariable) {
+    drawString(stringToDraw: myDataModelStructures.myVariable, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a string
         if (stringToDraw.dataTypeString != "string")
             return;
 
         //Default values
         let textFill = "black";
-        let currentPositionX = 30;  //The position where we're drawing
-        let currentPositionY = 10;  //The position where we're drawing
 
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
         let finalString = stringToDraw.variableName + " : \"" + stringToDraw.valueString + "\"";
         let fabricSlotText = new fabric.Text(finalString, {
-            left: currentPositionX,
-            top: currentPositionY,
+            left: startPosX,
+            top: startPosY,
             fill: textFill,
             fontSize: 20
         });
@@ -203,22 +199,20 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 
-    drawChar(charToDraw: myDataModelStructures.myVariable) {
+    drawChar(charToDraw: myDataModelStructures.myVariable, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a char
         if (charToDraw.dataTypeString != "char")
             return;
 
         //Default values
         let textFill = "black";
-        let currentPositionX = 30;  //The position where we're drawing
-        let currentPositionY = 35;  //The position where we're drawing
 
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
         let finalString = charToDraw.variableName + " : \'" + charToDraw.valueString + "\'";
         let fabricSlotText = new fabric.Text(finalString, {
-            left: currentPositionX,
-            top: currentPositionY,
+            left: startPosX,
+            top: startPosY,
             fill: textFill,
             fontSize: 20
         });
@@ -233,7 +227,7 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 
-    drawNumber(numberToDraw: myDataModelStructures.myVariable) {
+    drawNumber(numberToDraw: myDataModelStructures.myVariable, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a number
         if (numberToDraw.dataTypeString != "number" &&
             numberToDraw.dataTypeString != "int" &&
@@ -242,15 +236,13 @@ export class myFabricDrawingModule {
 
         //Default values
         let textFill = "black";
-        let currentPositionX = 30;  //The position where we're drawing
-        let currentPositionY = 60;  //The position where we're drawing
 
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
         let finalString = numberToDraw.variableName + " : " + numberToDraw.valueString;
         let fabricSlotText = new fabric.Text(finalString, {
-            left: currentPositionX,
-            top: currentPositionY,
+            left: startPosX,
+            top: startPosY,
             fill: textFill,
             fontSize: 20
         });
@@ -265,7 +257,7 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 
-    drawBool(boolToDraw: myDataModelStructures.myVariable) {
+    drawBool(boolToDraw: myDataModelStructures.myVariable, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a number
         if (boolToDraw.dataTypeString != "bool" &&
             boolToDraw.dataTypeString != "boolean")
@@ -273,16 +265,14 @@ export class myFabricDrawingModule {
 
         //Default values
         let textFill = "black";
-        let currentPositionX = 30;  //The position where we're drawing
-        let currentPositionY = 80;  //The position where we're drawing
 
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
         let tempValueString = boolToDraw.valueString = "1" ? "true" : "false";
         let finalString = boolToDraw.variableName + " : " + tempValueString;
         let fabricSlotText = new fabric.Text(finalString, {
-            left: currentPositionX,
-            top: currentPositionY,
+            left: startPosX,
+            top: startPosY,
             fill: textFill,
             fontSize: 20
         });
