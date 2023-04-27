@@ -24,4 +24,4 @@ Optional:
 
 ___
 ### Note
-The site can be then found at http://localhost:1234
+The site can be then found at http://localhost:1234 (assuming the port 1234 is available)
