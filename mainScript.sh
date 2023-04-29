@@ -18,7 +18,7 @@ packageExtension() {
 
 buildLibrary() {
     echo "$SCRIPT_HEADER Building the drawing library"
-    npx parcel $PARCEL_DIRECTORY_NAME/src/myDrawlib.ts --dist-dir $PARCEL_DIRECTORY_NAME/dist & sleep $PARCEL_BUILD_SLEEP_TIME && pkill -f "node"
+    npx parcel $PARCEL_DIRECTORY_NAME/src/myDrawlib.ts --dist-dir $EXTENSION_DIRECTORY_NAME/lib & sleep $PARCEL_BUILD_SLEEP_TIME && pkill -f "node"
    # using just "npx parcel ..." because "npx parcel build ..." option doesn't provide the neccessary output (output with everything neccesary compiled into a single file)
     # "... & sleep ..." used to wait for Parcel to finish building (variable can be edited)
     # "... && pkill ..." used to kill the NodeJs process (to kill Parcel)
@@ -45,7 +45,7 @@ selectAction() {
     echo -e "$SCRIPT_HEADER Please select if you want to:"
     echo -e "1. Prepare and package the extension into a VSIX file"
     echo -e "2. Run the drawing library locally"
-    echo -e "3. Only build the drawing library"
+    echo -e "3. Only build the drawing library (for the VS Code extension)"
     echo -e "4. Build and run the drawlib Docker image"
     echo -e "5. Just run the drawlib Docker image (in case the image is already built)"
     read selectedAction

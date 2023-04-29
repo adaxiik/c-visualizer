@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	//src: https://code.visualstudio.com/api/extension-guides/webview
-	let testPreviewCommand = vscode.commands.registerCommand('visualizerbp.showPreview', () => {
+	let previewCommand = vscode.commands.registerCommand('visualizerbp.showPreview', () => {
 		// Create and show a new webview
 		currentPanel = vscode.window.createWebviewPanel(
 			'VisualizerBP', // Identifies the type of the webview. Used internally
@@ -97,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	context.subscriptions.push(disposable);
-	context.subscriptions.push(testPreviewCommand);
+	context.subscriptions.push(previewCommand);
 }
 
 
@@ -126,7 +126,10 @@ function printAndTestForVariables(message: any) {
 	console.log(message);	//TODO: Delete - just temporary to check the message in full length
 
 	//Catching the variable events
-	if (message.type == "response" && message.command == "variables") {
+	if (message.type == "event" && message.event == "stopped") {
+		currentPanel.webview.postMessage({ command: 'redrawCanvas', body: message.body});	//Redrawing the canvas (as the state of the program has changed)
+	}
+	else if (message.type == "response" && message.command == "variables") {
 		//console.log(JSON.stringify(message.body.variables, undefined, 2));	//Printing the variables to the debug console
 
 		//Passing the message to the extension window
@@ -140,7 +143,7 @@ function printAndTestForVariables(message: any) {
 
 		//Passing the message to the extension window
 		for (let i = 0; i < Object.keys(message.body.stackFrames).length; i++) {
-			currentPanel.webview.postMessage({ command: 'drawStackFrames', body: message.body.stackFrames });
+			currentPanel.webview.postMessage({ command: 'drawProgramStack', body: message.body.stackFrames });
 		}
 	}
 

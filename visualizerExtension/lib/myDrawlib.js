@@ -142,13 +142,13 @@
       this[globalName] = mainExports;
     }
   }
-})({"1mLBy":[function(require,module,exports) {
+})({"eejnM":[function(require,module,exports) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
-module.bundle.HMR_BUNDLE_ID = "e3f3489fd3eec4e0";
+module.bundle.HMR_BUNDLE_ID = "8b173a94e0ca5844";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, chrome, browser, globalThis, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -559,6 +559,12 @@ function hmrAccept(bundle, id) {
 },{}],"9lXWx":[function(require,module,exports) {
 var _fabricDrawingModule = require("./fabricDrawingModule");
 var _dataModelStructures = require("./dataModelStructures");
+function redrawCanvas() {
+    //Clearing the canvas
+    myDrawingModule.clearCanvas();
+//Drawing the new state of the program
+//... (save the state and draw it again)
+}
 function drawVariablesJSON(messageBody) {
     messageBody.forEach((messageVariable)=>{
         console.log('Processing variable named: "' + messageVariable.name + '"');
@@ -571,44 +577,40 @@ function drawVariablesJSON(messageBody) {
         myDrawingModule.drawVariable(tempVar);
     });
 }
-function drawStackframesJSON(messageBody) {
+function drawProgramStackJSON(messageBody) {
+    //Initializing the used program stack variable
+    var tempProgramStackVar = new _dataModelStructures.myProgramStack();
+    tempProgramStackVar.stackFrames = new Array();
+    //Processing all the stackframes
     messageBody.forEach((messageStackframe)=>{
         console.log('Processing stackframe from a function named: "' + messageStackframe.name + '"');
-        var tempVar = new _dataModelStructures.myStackFrame();
-        tempVar.functionName = messageStackframe.name;
+        var tempStackFrameVar = new _dataModelStructures.myStackFrame();
+        tempStackFrameVar.functionName = messageStackframe.name;
         vscode.postMessage({
             command: "requestStackFrame",
             name: messageStackframe.name
         }); //Posting a message back to the extension
-        //tempVar.functionVariables = ;//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
-        //tempVar.functionParameters = ;//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
-        myDrawingModule.drawStackFrame(tempVar);
+        //tempStackFrameVar.functionVariables = ;//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
+        //tempStackFrameVar.functionParameters = ;//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
+        tempProgramStackVar.stackFrames.push(tempStackFrameVar);
     });
+    //Drawing the program full stack
+    myDrawingModule.drawProgramStack(tempProgramStackVar);
 }
-//export class myDrawlib {
-//
-//    testCanvas() {
-//Testing the canvas
-//TODO: Delete?
-/*
-        var fabricCanvas = new fabric.Canvas('myCanvas');
-        fabricCanvas.add(new fabric.Circle({ radius: 30, fill: '#33ccff', top: 100, left: 100 }));
-
-        fabricCanvas.selectionColor = 'rgba(51, 204, 255, 0.3)';
-        fabricCanvas.selectionBorderColor = 'blue';
-        fabricCanvas.selectionLineWidth = 1;
-        */ var myDrawingModule = new (0, _fabricDrawingModule.myFabricDrawingModule)("myCanvas");
+var myDrawingModule = new (0, _fabricDrawingModule.myFabricDrawingModule)("myCanvas");
 const vscode = acquireVsCodeApi(); //Getting the VS Code Api (to communicate with the extension)
 //Getting a test message from the external TypeScript
 // Handle the message inside the webview
 window.addEventListener("message", (event)=>{
     const message = event.data; // The JSON data our extension sent
     if (message.command) switch(message.command){
+        case "redrawCanvas":
+            break;
         case "drawVariables":
             drawVariablesJSON(message.body); //Drawing the full JSON message
             break;
-        case "drawStackFrames":
-            drawStackframesJSON(message.body); //Drawing the full JSON message
+        case "drawProgramStack":
+            drawProgramStackJSON(message.body); //Drawing the full JSON message
             break;
         case "responseVariables":
             console.log("Variable message recieved in WebView");
@@ -617,70 +619,32 @@ window.addEventListener("message", (event)=>{
         default:
             break;
     }
-}); //    }
- //}
+});
 
 },{"./fabricDrawingModule":"cCY4o","./dataModelStructures":"gh9Dt"}],"cCY4o":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "myFabricDrawingModule", ()=>myFabricDrawingModule) //Old testing class (left just for inspiration and not exported outside of file)
- //TODO: Delete
- /*
-class myInt {
-    value: number;
-
-    //Values for later drawing in Fabric
-    fabricGroup: fabric.Group;
-    fabricObject: fabric.Circle;
-    fabricText: fabric.Text;
-    color: string;
-    radius: number;
-    posTop: number;
-    posLeft: number;
-
-    constructor(setValue: number, setPosTop: number, setPosLeft: number) {
-        //Default values
-        this.color = '#33ccff';
-        this.radius = 30;
-        
-        //Set values
-        this.value = setValue;
-        this.posTop = setPosTop;
-        this.posLeft = setPosLeft;
-        
-        this.fabricObject = new fabric.Circle({
-            radius: this.radius,
-            fill: this.color,
-            top: this.posTop,
-            left: this.posLeft
-        })
-        this.fabricText = new fabric.Text(this.value.toString(), { 
-            left: this.fabricObject.left,
-            top: this.fabricObject.top,
-            fill: 'black'
-        });
-        this.fabricGroup = new fabric.Group([this.fabricObject, this.fabricText]);
-    }
-
-    drawObject(drawIntoCanvas: fabric.Canvas) {
-        drawIntoCanvas.add(this.fabricGroup);
-    }
-}
-*/ ;
+parcelHelpers.export(exports, "myFabricDrawingModule", ()=>myFabricDrawingModule);
 var _fabric = require("fabric");
 class myFabricDrawingModule {
     constructor(canvasName){
         this.canvas = new (0, _fabric.fabric).Canvas(canvasName);
         //To have it a bit larger (not yet exact sizing)
-        //TODO: Think the sizing throught and adjust accordingly
+        //TODO: Think the sizing through and adjust accordingly
         this.canvas.setWidth(screen.width);
         this.canvas.setHeight(screen.height / 2);
         this.initPanning();
         this.initZooming();
     }
+    clearCanvas() {
+        console.log("[DEBUG] Clearing the canvas");
+        this.canvas.clear();
+    }
     initPanning() {
-        //TODO: Citation? (correctly)
-        //src: http://fabricjs.com/fabric-intro-part-5
+        //Author: Unknown (Fabric.js)
+        //Date: 15.10.2022
+        //Availability: http://fabricjs.com/fabric-intro-part-5
+        //Citation start
         this.canvas.on("mouse:down", function(opt) {
             var evt = opt.e;
             this.isDragging = true;
@@ -705,10 +669,13 @@ class myFabricDrawingModule {
             this.setViewportTransform(this.viewportTransform);
             this.isDragging = false;
         });
+    //Citation end
     }
     initZooming() {
-        //TODO: Citation? (correctly) 
-        //src: http://fabricjs.com/fabric-intro-part-5
+        //Author: Unknown (Fabric.js)
+        //Date: 15.10.2022
+        //Availability: http://fabricjs.com/fabric-intro-part-5
+        //Citation start
         this.canvas.on("mouse:wheel", function(opt) {
             var delta = opt.e.deltaY;
             var zoom = this.getZoom();
@@ -722,6 +689,7 @@ class myFabricDrawingModule {
             opt.e.preventDefault();
             opt.e.stopPropagation();
         });
+    //Citation end
     }
     lockAllItems() {
         let allFabricItems = this.canvas.getObjects();
@@ -731,8 +699,14 @@ class myFabricDrawingModule {
             fabricObject.evented = false;
         });
     }
-    //TODO: Move to a separate class (something like myFabricStackFrame) with it's own drawing method
-    drawStackFrame(stackFrameToDraw) {
+    drawProgramStack(programStackToDraw, startPosX = 10, startPosY = 10) {
+        //Drawing all the stackframes present
+        programStackToDraw.stackFrames.forEach((currentStackFrame)=>{
+            //Chaging the starting position with each drawn stackframe
+            startPosY = this.drawStackFrame(currentStackFrame, startPosX, startPosY);
+        });
+    }
+    drawStackFrame(stackFrameToDraw, startPosX = 10, startPosY = 10) {
         //Default values
         let backgroundColorBlue = "#33ccff";
         let backgroundColorGrey = "#8f8f8f";
@@ -741,19 +715,17 @@ class myFabricDrawingModule {
         let textFill = "black";
         let stackSlotHeight = 30; //Height of a single "slot" in the drawn stackframe
         let stackSlotWidth = 300; //Width of a single "slot" in the drawn stackframe
-        let currentPositionX = 10; //The position where we're drawing
-        let currentPositionY = 10; //The position where we're drawing
-        //TODO: After moving to a separate class (add a method for drawing a single "slot" in the stackframe)
+        //Function to create a single slot in the stackframe
         let myCreateSlotFunction = function(mySlotText, slotBackgroundColor) {
             let resultFabricStackFrameArray = new Array; //Result group of stackframe "slots"
             //Drawing the slot's background
             let fabricSlotBackground = new (0, _fabric.fabric).Rect({
-                left: currentPositionX,
-                top: currentPositionY,
+                left: startPosX,
+                top: startPosY,
                 width: stackSlotWidth,
                 height: stackSlotHeight,
                 fill: slotBackgroundColor,
-                //TODO: Change (Testing values)
+                //Default values
                 padding: 8,
                 stroke: "#000000",
                 strokeWidth: 2
@@ -761,8 +733,8 @@ class myFabricDrawingModule {
             //Drawing the slot's text
             //TODO: Calculate the positioning correctly
             let fabricSlotText = new (0, _fabric.fabric).Text(mySlotText, {
-                left: currentPositionX + 4,
-                top: currentPositionY + stackSlotHeight / 8,
+                left: startPosX + 4,
+                top: startPosY + stackSlotHeight / 8,
                 fill: textFill,
                 fontSize: 20
             });
@@ -774,11 +746,10 @@ class myFabricDrawingModule {
             //Adding the "slot's" group to the result group
             resultFabricStackFrameArray.push(resultFabricGroup);
             //Moving the position, where we're drawing
-            currentPositionY += stackSlotHeight;
+            startPosY += stackSlotHeight;
             return resultFabricStackFrameArray;
         };
         //Creating the slots
-        //TODO: Refactor and improve
         let retAllSlots = new Array();
         //Function name
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
@@ -800,29 +771,28 @@ class myFabricDrawingModule {
         });
         //Locking the movement of the items
         this.lockAllItems();
+        //Returning the future start position (for easy drawing of other stackframes under this one)
+        return startPosY;
     }
-    //TODO: Move to a separate class with it's own drawing method
     //More general method that prevents the user from misusing the drawing methods
-    drawVariable(variableToDraw) {
-        if (variableToDraw.dataTypeString == "string") this.drawString(variableToDraw);
-        else if (variableToDraw.dataTypeString == "char") this.drawChar(variableToDraw);
-        else if (variableToDraw.dataTypeString == "number" || variableToDraw.dataTypeString == "int" || variableToDraw.dataTypeString == "float") this.drawNumber(variableToDraw);
-        else if (variableToDraw.dataTypeString == "bool" || variableToDraw.dataTypeString == "boolean") this.drawBool(variableToDraw);
+    drawVariable(variableToDraw, startPosX, startPosY) {
+        if (variableToDraw.dataTypeString == "string") this.drawString(variableToDraw, startPosX, startPosY);
+        else if (variableToDraw.dataTypeString == "char") this.drawChar(variableToDraw, startPosX, startPosY);
+        else if (variableToDraw.dataTypeString == "number" || variableToDraw.dataTypeString == "int" || variableToDraw.dataTypeString == "float") this.drawNumber(variableToDraw, startPosX, startPosY);
+        else if (variableToDraw.dataTypeString == "bool" || variableToDraw.dataTypeString == "boolean") this.drawBool(variableToDraw, startPosX, startPosY);
         else return;
     }
-    drawString(stringToDraw) {
+    drawString(stringToDraw, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a string
         if (stringToDraw.dataTypeString != "string") return;
         //Default values
         let textFill = "black";
-        let currentPositionX = 30; //The position where we're drawing
-        let currentPositionY = 10; //The position where we're drawing
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
         let finalString = stringToDraw.variableName + ' : "' + stringToDraw.valueString + '"';
         let fabricSlotText = new (0, _fabric.fabric).Text(finalString, {
-            left: currentPositionX,
-            top: currentPositionY,
+            left: startPosX,
+            top: startPosY,
             fill: textFill,
             fontSize: 20
         });
@@ -835,20 +805,17 @@ class myFabricDrawingModule {
         //Locking the movement of the items
         this.lockAllItems();
     }
-    //TODO: Move to a separate class with it's own drawing method
-    drawChar(stringToDraw) {
+    drawChar(charToDraw, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a char
-        if (stringToDraw.dataTypeString != "char") return;
+        if (charToDraw.dataTypeString != "char") return;
         //Default values
         let textFill = "black";
-        let currentPositionX = 30; //The position where we're drawing
-        let currentPositionY = 35; //The position where we're drawing
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
-        let finalString = stringToDraw.variableName + " : '" + stringToDraw.valueString + "'";
+        let finalString = charToDraw.variableName + " : '" + charToDraw.valueString + "'";
         let fabricSlotText = new (0, _fabric.fabric).Text(finalString, {
-            left: currentPositionX,
-            top: currentPositionY,
+            left: startPosX,
+            top: startPosY,
             fill: textFill,
             fontSize: 20
         });
@@ -861,20 +828,17 @@ class myFabricDrawingModule {
         //Locking the movement of the items
         this.lockAllItems();
     }
-    //TODO: Move to a separate class with it's own drawing method
-    drawNumber(stringToDraw) {
+    drawNumber(numberToDraw, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a number
-        if (stringToDraw.dataTypeString != "number" && stringToDraw.dataTypeString != "int" && stringToDraw.dataTypeString != "float") return;
+        if (numberToDraw.dataTypeString != "number" && numberToDraw.dataTypeString != "int" && numberToDraw.dataTypeString != "float") return;
         //Default values
         let textFill = "black";
-        let currentPositionX = 30; //The position where we're drawing
-        let currentPositionY = 60; //The position where we're drawing
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
-        let finalString = stringToDraw.variableName + " : " + stringToDraw.valueString;
+        let finalString = numberToDraw.variableName + " : " + numberToDraw.valueString;
         let fabricSlotText = new (0, _fabric.fabric).Text(finalString, {
-            left: currentPositionX,
-            top: currentPositionY,
+            left: startPosX,
+            top: startPosY,
             fill: textFill,
             fontSize: 20
         });
@@ -887,21 +851,18 @@ class myFabricDrawingModule {
         //Locking the movement of the items
         this.lockAllItems();
     }
-    //TODO: Move to a separate class with it's own drawing method
-    drawBool(stringToDraw) {
+    drawBool(boolToDraw, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a number
-        if (stringToDraw.dataTypeString != "bool" && stringToDraw.dataTypeString != "boolean") return;
+        if (boolToDraw.dataTypeString != "bool" && boolToDraw.dataTypeString != "boolean") return;
         //Default values
         let textFill = "black";
-        let currentPositionX = 30; //The position where we're drawing
-        let currentPositionY = 80; //The position where we're drawing
         //Drawing the slot's text
         //TODO: Calculate the positioning correctly
-        let tempValueString = stringToDraw.valueString = "true";
-        let finalString = stringToDraw.variableName + " : " + tempValueString;
+        let tempValueString = boolToDraw.valueString = "true";
+        let finalString = boolToDraw.variableName + " : " + tempValueString;
         let fabricSlotText = new (0, _fabric.fabric).Text(finalString, {
-            left: currentPositionX,
-            top: currentPositionY,
+            left: startPosX,
+            top: startPosY,
             fill: textFill,
             fontSize: 20
         });
@@ -916,7 +877,7 @@ class myFabricDrawingModule {
     }
 }
 
-},{"fabric":"jHiDH","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jHiDH":[function(require,module,exports) {
+},{"fabric":"jHiDH","@parcel/transformer-js/src/esmodule-helpers.js":"le3sx"}],"jHiDH":[function(require,module,exports) {
 /* build: `node build.js modules=ALL exclude=gestures,accessors,erasing requirejs minifier=uglifyjs` */ /*! Fabric.js Copyright 2008-2015, Printio (Juriy Zaytsev, Maxim Chernyak) */ var Buffer = require("d7af27f9e64f37fd").Buffer;
 var fabric = fabric || {
     version: "5.3.0"
@@ -23737,7 +23698,7 @@ fabric.util.object.extend(fabric.IText.prototype, /** @lends fabric.IText.protot
     }
 })();
 
-},{"d7af27f9e64f37fd":"fCgem","cfd9c38e9415a795":"jhUEF","848ffd6855ad6fd7":"jhUEF","57903b4a6299c2e7":"jhUEF"}],"fCgem":[function(require,module,exports) {
+},{"d7af27f9e64f37fd":"fCgem","cfd9c38e9415a795":"6RySt","848ffd6855ad6fd7":"6RySt","57903b4a6299c2e7":"6RySt"}],"fCgem":[function(require,module,exports) {
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -25137,10 +25098,10 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
     buffer[offset + i - d] |= s * 128;
 };
 
-},{}],"jhUEF":[function(require,module,exports) {
+},{}],"6RySt":[function(require,module,exports) {
 "use strict";
 
-},{}],"gkKU3":[function(require,module,exports) {
+},{}],"le3sx":[function(require,module,exports) {
 exports.interopDefault = function(a) {
     return a && a.__esModule ? a : {
         default: a
@@ -25219,6 +25180,6 @@ class myStruct {
 class myMemory {
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["1mLBy","9lXWx"], "9lXWx", "parcelRequiredd7b")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"le3sx"}]},["eejnM","9lXWx"], "9lXWx", "parcelRequiredd7b")
 
 //# sourceMappingURL=myDrawlib.js.map
