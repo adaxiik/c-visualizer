@@ -16,6 +16,11 @@ export class myFabricDrawingModule {
         this.initZooming();
     }
 
+    clearCanvas() {
+        console.log("[DEBUG] Clearing the canvas");
+        this.canvas.clear();
+    }
+
     initPanning() {
         //Author: Unknown (Fabric.js)
         //Date: 15.10.2022
