@@ -121,7 +121,7 @@ export class myFabricDrawingModule {
                 strokeWidth: 2
             });
             //Drawing the slot's text
-            //TODO: Calculate the positioning correctly
+            //TODO: Calculate the text positioning correctly (and width)
             let fabricSlotText = new fabric.Text(mySlotText, {
                 left: startPosX + 4,
                 top: startPosY + stackSlotHeight / 8,
@@ -134,7 +134,7 @@ export class myFabricDrawingModule {
             //Adding the "slot's" group to the result group
             resultFabricStackFrameArray.push(resultFabricGroup);
 
-            //Moving the position, where we're drawing
+            //Moving the starting position for the next stackframe
             startPosY += stackSlotHeight;
 
             return resultFabricStackFrameArray;
@@ -217,7 +217,7 @@ export class myFabricDrawingModule {
         });
 
         //Creating the result
-        let resultFabricGroup = new fabric.Group([fabricSlotText]); //TODO: Add more things to the group (like background and such)
+        let resultFabricGroup = new fabric.Group([fabricSlotText]);
 
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
@@ -244,7 +244,7 @@ export class myFabricDrawingModule {
         });
 
         //Creating the result
-        let resultFabricGroup = new fabric.Group([fabricSlotText]); //TODO: Add more things to the group (like background and such)
+        let resultFabricGroup = new fabric.Group([fabricSlotText]);
 
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
@@ -273,7 +273,7 @@ export class myFabricDrawingModule {
         });
 
         //Creating the result
-        let resultFabricGroup = new fabric.Group([fabricSlotText]); //TODO: Add more things to the group (like background and such)
+        let resultFabricGroup = new fabric.Group([fabricSlotText]);
 
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
@@ -302,7 +302,7 @@ export class myFabricDrawingModule {
         });
 
         //Creating the result
-        let resultFabricGroup = new fabric.Group([fabricSlotText]); //TODO: Add more things to the group (like background and such)
+        let resultFabricGroup = new fabric.Group([fabricSlotText]);
 
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);

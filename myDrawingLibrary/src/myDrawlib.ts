@@ -21,12 +21,12 @@ function drawVariablesJSON(message: any){
 
     var tempVar = new myDataModelStructures.myVariable();
     tempVar.variableName = messageVariable.name;
-    //tempVar.dataTypeEnum = ;  //TODO: Delete?
+    //tempVar.dataTypeEnum = ;  //Not used
     tempVar.dataTypeString = messageVariable.type;
-    //tempVar.value = ; //TODO: Delete?
+    //tempVar.value = ;         //Not used
     tempVar.valueString = messageVariable.value;
 
-    //TODO: Decide correctly to which stackframe to add the variable (then convert stackFrames in programStack to a dictionary as well)
+    //Adding the variable to the correct stackframe
     currentProgramStack.stackFrames[message.id].functionVariables[tempVar.variableName] = tempVar;
   });
 
@@ -47,13 +47,11 @@ function drawProgramStackJSON(messageBody: any){
       id: messageStackframe.id
     }); //Posting a message back to the extension
 
-    //tempStackFrameVar.functionVariables = new Array<myDataModelStructures.myVariable>();//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
-    //tempStackFrameVar.functionParameters = new Array<myDataModelStructures.myVariable>();//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
-
+    //Adding the stackframe to the program stack
     currentProgramStack.stackFrames[tempStackFrameVar.frameId] = tempStackFrameVar;
   });
 
-  //Drawing the program full stack
+  //Drawing the full program stack
   myDrawingModule.drawProgramStack(currentProgramStack);
 }
 
@@ -76,10 +74,6 @@ const message = event.data; // The JSON data our extension sent
     {
       case 'clearCanvas':
         clearCanvas();
-        break;
-      case 'drawVariables':
-        // TODO: Maybe will be deprecated by the "responseVariables" - consider
-        //drawVariablesJSON(message.body); //Drawing the full JSON message
         break;
       case 'drawProgramStack':
         drawProgramStackJSON(message.body); //Drawing the full JSON message

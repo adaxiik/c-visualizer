@@ -45,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.debug.registerDebugAdapterTrackerFactory('*', {
 			createDebugAdapterTracker(session: vscode.DebugSession) {
 				return {
-					//TODO: Decide if we need messages recieved by the debugger
+					//Messages recieved by the debugger are not now used
 					//onWillReceiveMessage: m => console.log(`visualizerbp> ${JSON.stringify(m, undefined, 2)}`),
 					onDidSendMessage: m => printAndTestForVariables(m),
 				};
@@ -57,14 +57,14 @@ export function activate(context: vscode.ExtensionContext) {
 			message => {
 			  switch (message.command) {
 				case 'requestStackFrame':
-					//TODO: Check if the current scope is of the requested stackFrame's (message.name == currentScopeName)
 					//Getting the stack frame
 					const session = vscode.debug.activeDebugSession;
 					if (session != undefined)
 					{
-						//Request for stack info
+						//Wait for scope response (only after then the variable info will be valid)
 						session.customRequest('scopes', { frameId: message.id }).then(
 							(value) => {
+								//Request variable info
 								session.customRequest('variables', { variablesReference: message.id }).then(
 									(value) => {
 										console.log("Value for frame id " + message.id + " recieved (variables)");
@@ -113,20 +113,11 @@ function getWebviewContent(webview: vscode.Webview, context: any) {
 }
 
 function printAndTestForVariables(message: any) {
-	console.log(message);	//TODO: Delete - just temporary to check the message in full length
+	console.log(message);
 
 	//Catching the variable events
 	if (message.type == "event" && message.event == "stopped") {
 		currentPanel.webview.postMessage({ command: 'clearCanvas', body: message.body});	//Redrawing the canvas (as the state of the program has changed)
-	}
-	else if (message.type == "response" && message.command == "variables") {
-		//console.log(JSON.stringify(message.body.variables, undefined, 2));	//Printing the variables to the debug console
-
-		//Passing the message to the extension window
-		for (let i = 0; i < Object.keys(message.body.variables).length; i++) {
-			currentPanel.webview.postMessage({ command: 'drawVariables', body: message.body.variables });
-		}
-
 	}
 	else if (message.type == "response" && message.command == "stackTrace") {
 		//console.log(JSON.stringify(message.body.stackFrames, undefined, 2));	//Printing the stack frame to the debug console
