@@ -12,7 +12,7 @@ export enum myDataTypeEnum {
     char = "char",
     float = "float",
     bool = "bool"
-}                                       //TODO: Add some more later (based on the C-like datatype names)
+}
 
 /*  CLASSES     */
 //ProgramStack
@@ -35,7 +35,7 @@ export class myArray {
     dimensionCount: number;
     isAllocated: boolean;
     arrayPointerAddress: string;
-    size: number;   //If the array is already allocated (if this.isAllocated == true)
+    size: number;                       //If the array is already allocated (if this.isAllocated == true)
     arrayElements: myVariable[];
 }
 
@@ -65,8 +65,8 @@ export class myStruct {
 //myMemory
 export class myMemory {
     isAllocated: boolean;
-    size: number;   //If the memory is already allocated (if this.isAllocated == true)
+    size: number;                       //If the memory is already allocated (if this.isAllocated == true)
     memoryType: myMemoryTypeEnum;
-    pointer: string;    //Present if the memory is dynamic (if this.memoryType == myMemoryTypeEnum.dynamic) - otherwise it probably doesn't have much sense
+    pointer: string;                    //Present if the memory is dynamic (if this.memoryType == myMemoryTypeEnum.dynamic) - otherwise it probably doesn't have much sense
     memoryElements: myVariable[];       //TODO: Maybe change the implementation of this (it will be difficult to track fragmented memory / memory that isn't completely filled, etc.)
 }
