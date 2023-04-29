@@ -17,11 +17,12 @@ export enum myDataTypeEnum {
 /*  CLASSES     */
 //ProgramStack
 export class myProgramStack {
-    stackFrames: myStackFrame[];
+    stackFrames: { [id: number] : myStackFrame } = {};          //To easily avoid duplicates (differentiate by ID)
 }
 
 //StackFrame
 export class myStackFrame {
+    frameId: number;
     functionName: string;
     functionVariables: { [id: string] : myVariable } = {};      //Using a dictionary for faster usage when searching 
     functionParameters: { [id: string] : myVariable } = {};     //Using a dictionary for faster usage when searching

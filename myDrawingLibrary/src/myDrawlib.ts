@@ -7,7 +7,6 @@ function clearCanvas() {
   myDrawingModule.clearCanvas();
   //Reset the current program stack
   currentProgramStack = new myDataModelStructures.myProgramStack();
-  currentProgramStack.stackFrames = new Array<myDataModelStructures.myStackFrame>();
 }
 
 function redrawCanvas() {
@@ -16,8 +15,8 @@ function redrawCanvas() {
   myDrawingModule.drawProgramStack(currentProgramStack);
 }
 
-function drawVariablesJSON(messageBody: any){
-  messageBody.forEach(messageVariable => {
+function drawVariablesJSON(message: any){
+  message.body.variables.forEach(messageVariable => {
     console.log("Processing variable named: \"" + messageVariable.name + "\"");
 
     var tempVar = new myDataModelStructures.myVariable();
@@ -28,7 +27,7 @@ function drawVariablesJSON(messageBody: any){
     tempVar.valueString = messageVariable.value;
 
     //TODO: Decide correctly to which stackframe to add the variable (then convert stackFrames in programStack to a dictionary as well)
-    currentProgramStack.stackFrames[0].functionVariables[tempVar.variableName] = tempVar;
+    currentProgramStack.stackFrames[message.id].functionVariables[tempVar.variableName] = tempVar;
   });
 
   //Redrawing the canvas
@@ -38,9 +37,10 @@ function drawVariablesJSON(messageBody: any){
 function drawProgramStackJSON(messageBody: any){
   //Processing all the stackframes
   messageBody.forEach(messageStackframe => {
-    console.log("Processing stackframe from a function named: \"" + messageStackframe.name + "\"");
+    console.log("Processing stackframe from a function named: \"" + messageStackframe.name + "\" (id: " + messageStackframe.id + ")");
 
     var tempStackFrameVar = new myDataModelStructures.myStackFrame();
+    tempStackFrameVar.frameId = messageStackframe.id;
     tempStackFrameVar.functionName = messageStackframe.name;
     vscode.postMessage({
       command: "requestStackFrame",
@@ -50,7 +50,7 @@ function drawProgramStackJSON(messageBody: any){
     //tempStackFrameVar.functionVariables = new Array<myDataModelStructures.myVariable>();//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
     //tempStackFrameVar.functionParameters = new Array<myDataModelStructures.myVariable>();//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
 
-    currentProgramStack.stackFrames.push(tempStackFrameVar);
+    currentProgramStack.stackFrames[tempStackFrameVar.frameId] = tempStackFrameVar;
   });
 
   //Drawing the program full stack
@@ -87,6 +87,7 @@ const message = event.data; // The JSON data our extension sent
       case 'responseVariables':
         console.log("Variable message recieved in WebView")
         console.log(message);  //The requested variables
+        drawVariablesJSON(message); //Drawing the full JSON message
         break;
       default:
         break;

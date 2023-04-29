@@ -564,15 +564,14 @@ function clearCanvas() {
     myDrawingModule.clearCanvas();
     //Reset the current program stack
     currentProgramStack = new _dataModelStructures.myProgramStack();
-    currentProgramStack.stackFrames = new Array();
 }
 function redrawCanvas() {
     myDrawingModule.clearCanvas();
     //Drawing the program full stack
     myDrawingModule.drawProgramStack(currentProgramStack);
 }
-function drawVariablesJSON(messageBody) {
-    messageBody.forEach((messageVariable)=>{
+function drawVariablesJSON(message) {
+    message.body.variables.forEach((messageVariable)=>{
         console.log('Processing variable named: "' + messageVariable.name + '"');
         var tempVar = new _dataModelStructures.myVariable();
         tempVar.variableName = messageVariable.name;
@@ -581,7 +580,7 @@ function drawVariablesJSON(messageBody) {
         //tempVar.value = ; //TODO: Delete?
         tempVar.valueString = messageVariable.value;
         //TODO: Decide correctly to which stackframe to add the variable (then convert stackFrames in programStack to a dictionary as well)
-        currentProgramStack.stackFrames[0].functionVariables[tempVar.variableName] = tempVar;
+        currentProgramStack.stackFrames[message.id].functionVariables[tempVar.variableName] = tempVar;
     });
     //Redrawing the canvas
     redrawCanvas();
@@ -589,8 +588,9 @@ function drawVariablesJSON(messageBody) {
 function drawProgramStackJSON(messageBody) {
     //Processing all the stackframes
     messageBody.forEach((messageStackframe)=>{
-        console.log('Processing stackframe from a function named: "' + messageStackframe.name + '"');
+        console.log('Processing stackframe from a function named: "' + messageStackframe.name + '" (id: ' + messageStackframe.id + ")");
         var tempStackFrameVar = new _dataModelStructures.myStackFrame();
+        tempStackFrameVar.frameId = messageStackframe.id;
         tempStackFrameVar.functionName = messageStackframe.name;
         vscode.postMessage({
             command: "requestStackFrame",
@@ -598,7 +598,7 @@ function drawProgramStackJSON(messageBody) {
         }); //Posting a message back to the extension
         //tempStackFrameVar.functionVariables = new Array<myDataModelStructures.myVariable>();//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
         //tempStackFrameVar.functionParameters = new Array<myDataModelStructures.myVariable>();//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
-        currentProgramStack.stackFrames.push(tempStackFrameVar);
+        currentProgramStack.stackFrames[tempStackFrameVar.frameId] = tempStackFrameVar;
     });
     //Drawing the program full stack
     myDrawingModule.drawProgramStack(currentProgramStack);
@@ -616,14 +616,14 @@ window.addEventListener("message", (event)=>{
             clearCanvas();
             break;
         case "drawVariables":
-            drawVariablesJSON(message.body); //Drawing the full JSON message
             break;
         case "drawProgramStack":
             drawProgramStackJSON(message.body); //Drawing the full JSON message
             break;
         case "responseVariables":
             console.log("Variable message recieved in WebView");
-            console.log(message.body); //The requested variables
+            console.log(message); //The requested variables
+            drawVariablesJSON(message); //Drawing the full JSON message
             break;
         default:
             break;
@@ -710,10 +710,11 @@ class myFabricDrawingModule {
     }
     drawProgramStack(programStackToDraw, startPosX = 10, startPosY = 10) {
         //Drawing all the stackframes present
-        programStackToDraw.stackFrames.forEach((currentStackFrame)=>{
-            //Chaging the starting position with each drawn stackframe
-            startPosY = this.drawStackFrame(currentStackFrame, startPosX, startPosY);
-        });
+        for(let key in programStackToDraw.stackFrames){
+            let value = programStackToDraw.stackFrames[key];
+            if (value != null) //Chaging the starting position with each drawn stackframe
+            startPosY = this.drawStackFrame(value, startPosX, startPosY);
+        }
     }
     drawStackFrame(stackFrameToDraw, startPosX = 10, startPosY = 10) {
         //Default values
@@ -25177,6 +25178,7 @@ let myDataTypeEnum//TODO: Add some more later (based on the C-like datatype name
     myDataTypeEnum["bool"] = "bool";
 })(myDataTypeEnum || (myDataTypeEnum = {}));
 class myProgramStack {
+    stackFrames = {};
 }
 class myStackFrame {
     functionVariables = {};

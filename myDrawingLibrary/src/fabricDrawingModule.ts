@@ -84,10 +84,14 @@ export class myFabricDrawingModule {
 
     drawProgramStack(programStackToDraw: myDataModelStructures.myProgramStack, startPosX = 10, startPosY = 10) {
         //Drawing all the stackframes present
-        programStackToDraw.stackFrames.forEach(currentStackFrame => {
-            //Chaging the starting position with each drawn stackframe
-            startPosY = this.drawStackFrame(currentStackFrame, startPosX, startPosY);
-        });
+        for (let key in programStackToDraw.stackFrames) {
+            let value = programStackToDraw.stackFrames[key];
+            
+            if (value != null) {
+                //Chaging the starting position with each drawn stackframe
+                startPosY = this.drawStackFrame(value, startPosX, startPosY);
+            }
+        }
     }
 
     drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10): number {
