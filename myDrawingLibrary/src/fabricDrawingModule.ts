@@ -143,18 +143,26 @@ export class myFabricDrawingModule {
         //Function variables
         if (stackFrameToDraw.functionVariables != null)
         {
-            stackFrameToDraw.functionVariables.forEach(functionVariable => {
-                let variableText = functionVariable.variableName + ": " + functionVariable.dataTypeString + " (" + functionVariable.valueString + ")";
-                retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey));
-            });
+            for (let key in stackFrameToDraw.functionVariables) {
+                let value = stackFrameToDraw.functionVariables[key];
+                
+                if (value != null) {
+                    let variableText = value.variableName + ": " + value.dataTypeString + " (" + value.valueString + ")";
+                    retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey));
+                }
+            }
         }
         //Function parameters
         if (stackFrameToDraw.functionParameters != null)
         {
-            stackFrameToDraw.functionParameters.forEach(functionParameter => {
-                let variableText = functionParameter.variableName + ": " + functionParameter.dataTypeString + " (" + functionParameter.valueString + ")";
-                retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen));
-            });
+            for (let key in stackFrameToDraw.functionParameters) {
+                let value = stackFrameToDraw.functionParameters[key];
+                
+                if (value != null) {
+                    let variableText = value.variableName + ": " + value.dataTypeString + " (" + value.valueString + ")";
+                    retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen));
+                }
+            }
         }
         //Adding the result group to the canvas
         retAllSlots.forEach(stackGroup => {
@@ -196,7 +204,6 @@ export class myFabricDrawingModule {
         let textFill = "black";
 
         //Drawing the slot's text
-        //TODO: Calculate the positioning correctly
         let finalString = stringToDraw.variableName + " : \"" + stringToDraw.valueString + "\"";
         let fabricSlotText = new fabric.Text(finalString, {
             left: startPosX,
@@ -224,7 +231,6 @@ export class myFabricDrawingModule {
         let textFill = "black";
 
         //Drawing the slot's text
-        //TODO: Calculate the positioning correctly
         let finalString = charToDraw.variableName + " : \'" + charToDraw.valueString + "\'";
         let fabricSlotText = new fabric.Text(finalString, {
             left: startPosX,
@@ -254,7 +260,6 @@ export class myFabricDrawingModule {
         let textFill = "black";
 
         //Drawing the slot's text
-        //TODO: Calculate the positioning correctly
         let finalString = numberToDraw.variableName + " : " + numberToDraw.valueString;
         let fabricSlotText = new fabric.Text(finalString, {
             left: startPosX,
@@ -283,7 +288,6 @@ export class myFabricDrawingModule {
         let textFill = "black";
 
         //Drawing the slot's text
-        //TODO: Calculate the positioning correctly
         let tempValueString = boolToDraw.valueString = "1" ? "true" : "false";
         let finalString = boolToDraw.variableName + " : " + tempValueString;
         let fabricSlotText = new fabric.Text(finalString, {

@@ -27,6 +27,7 @@ void testFunction1(int intParameter, char* charPointerParameter)
     {
         printf("%c", charPointerParameter[intParameter]);
     }
+    testFunction1(1, charPointerParameter);
 
     return;
 }

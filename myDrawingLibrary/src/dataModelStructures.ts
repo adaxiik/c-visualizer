@@ -23,8 +23,8 @@ export class myProgramStack {
 //StackFrame
 export class myStackFrame {
     functionName: string;
-    functionVariables: myVariable[];
-    functionParameters: myVariable[];
+    functionVariables: { [id: string] : myVariable } = {};      //Using a dictionary for faster usage when searching 
+    functionParameters: { [id: string] : myVariable } = {};     //Using a dictionary for faster usage when searching
 }
 
 //myArray

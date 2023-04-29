@@ -580,8 +580,8 @@ function drawVariablesJSON(messageBody) {
         tempVar.dataTypeString = messageVariable.type;
         //tempVar.value = ; //TODO: Delete?
         tempVar.valueString = messageVariable.value;
-        //TODO: Decide correctly to which stackframe to add the variable
-        currentProgramStack.stackFrames[0].functionVariables.push(tempVar);
+        //TODO: Decide correctly to which stackframe to add the variable (then convert stackFrames in programStack to a dictionary as well)
+        currentProgramStack.stackFrames[0].functionVariables[tempVar.variableName] = tempVar;
     });
     //Redrawing the canvas
     redrawCanvas();
@@ -594,10 +594,10 @@ function drawProgramStackJSON(messageBody) {
         tempStackFrameVar.functionName = messageStackframe.name;
         vscode.postMessage({
             command: "requestStackFrame",
-            name: messageStackframe.name
+            id: messageStackframe.id
         }); //Posting a message back to the extension
-        tempStackFrameVar.functionVariables = new Array(); //: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
-        tempStackFrameVar.functionParameters = new Array(); //: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
+        //tempStackFrameVar.functionVariables = new Array<myDataModelStructures.myVariable>();//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
+        //tempStackFrameVar.functionParameters = new Array<myDataModelStructures.myVariable>();//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
         currentProgramStack.stackFrames.push(tempStackFrameVar);
     });
     //Drawing the program full stack
@@ -763,15 +763,21 @@ class myFabricDrawingModule {
         //Function name
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
         //Function variables
-        if (stackFrameToDraw.functionVariables != null) stackFrameToDraw.functionVariables.forEach((functionVariable)=>{
-            let variableText = functionVariable.variableName + ": " + functionVariable.dataTypeString + " (" + functionVariable.valueString + ")";
-            retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey));
-        });
+        if (stackFrameToDraw.functionVariables != null) for(let key in stackFrameToDraw.functionVariables){
+            let value = stackFrameToDraw.functionVariables[key];
+            if (value != null) {
+                let variableText = value.variableName + ": " + value.dataTypeString + " (" + value.valueString + ")";
+                retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey));
+            }
+        }
         //Function parameters
-        if (stackFrameToDraw.functionParameters != null) stackFrameToDraw.functionParameters.forEach((functionParameter)=>{
-            let variableText = functionParameter.variableName + ": " + functionParameter.dataTypeString + " (" + functionParameter.valueString + ")";
-            retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen));
-        });
+        if (stackFrameToDraw.functionParameters != null) for(let key in stackFrameToDraw.functionParameters){
+            let value = stackFrameToDraw.functionParameters[key];
+            if (value != null) {
+                let variableText = value.variableName + ": " + value.dataTypeString + " (" + value.valueString + ")";
+                retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen));
+            }
+        }
         //Adding the result group to the canvas
         retAllSlots.forEach((stackGroup)=>{
             stackGroup.forEach((stackFrameSlot)=>{
@@ -797,7 +803,6 @@ class myFabricDrawingModule {
         //Default values
         let textFill = "black";
         //Drawing the slot's text
-        //TODO: Calculate the positioning correctly
         let finalString = stringToDraw.variableName + ' : "' + stringToDraw.valueString + '"';
         let fabricSlotText = new (0, _fabric.fabric).Text(finalString, {
             left: startPosX,
@@ -820,7 +825,6 @@ class myFabricDrawingModule {
         //Default values
         let textFill = "black";
         //Drawing the slot's text
-        //TODO: Calculate the positioning correctly
         let finalString = charToDraw.variableName + " : '" + charToDraw.valueString + "'";
         let fabricSlotText = new (0, _fabric.fabric).Text(finalString, {
             left: startPosX,
@@ -843,7 +847,6 @@ class myFabricDrawingModule {
         //Default values
         let textFill = "black";
         //Drawing the slot's text
-        //TODO: Calculate the positioning correctly
         let finalString = numberToDraw.variableName + " : " + numberToDraw.valueString;
         let fabricSlotText = new (0, _fabric.fabric).Text(finalString, {
             left: startPosX,
@@ -866,7 +869,6 @@ class myFabricDrawingModule {
         //Default values
         let textFill = "black";
         //Drawing the slot's text
-        //TODO: Calculate the positioning correctly
         let tempValueString = boolToDraw.valueString = "true";
         let finalString = boolToDraw.variableName + " : " + tempValueString;
         let fabricSlotText = new (0, _fabric.fabric).Text(finalString, {
@@ -25177,6 +25179,8 @@ let myDataTypeEnum//TODO: Add some more later (based on the C-like datatype name
 class myProgramStack {
 }
 class myStackFrame {
+    functionVariables = {};
+    functionParameters = {};
 }
 class myArray {
 }

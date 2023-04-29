@@ -27,8 +27,8 @@ function drawVariablesJSON(messageBody: any){
     //tempVar.value = ; //TODO: Delete?
     tempVar.valueString = messageVariable.value;
 
-    //TODO: Decide correctly to which stackframe to add the variable
-    currentProgramStack.stackFrames[0].functionVariables.push(tempVar);
+    //TODO: Decide correctly to which stackframe to add the variable (then convert stackFrames in programStack to a dictionary as well)
+    currentProgramStack.stackFrames[0].functionVariables[tempVar.variableName] = tempVar;
   });
 
   //Redrawing the canvas
@@ -44,11 +44,11 @@ function drawProgramStackJSON(messageBody: any){
     tempStackFrameVar.functionName = messageStackframe.name;
     vscode.postMessage({
       command: "requestStackFrame",
-      name: messageStackframe.name
+      id: messageStackframe.id
     }); //Posting a message back to the extension
 
-    tempStackFrameVar.functionVariables = new Array<myDataModelStructures.myVariable>();//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
-    tempStackFrameVar.functionParameters = new Array<myDataModelStructures.myVariable>();//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
+    //tempStackFrameVar.functionVariables = new Array<myDataModelStructures.myVariable>();//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
+    //tempStackFrameVar.functionParameters = new Array<myDataModelStructures.myVariable>();//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
 
     currentProgramStack.stackFrames.push(tempStackFrameVar);
   });
@@ -78,14 +78,15 @@ const message = event.data; // The JSON data our extension sent
         clearCanvas();
         break;
       case 'drawVariables':
-        drawVariablesJSON(message.body); //Drawing the full JSON message
+        // TODO: Maybe will be deprecated by the "responseVariables" - consider
+        //drawVariablesJSON(message.body); //Drawing the full JSON message
         break;
       case 'drawProgramStack':
         drawProgramStackJSON(message.body); //Drawing the full JSON message
         break;
       case 'responseVariables':
         console.log("Variable message recieved in WebView")
-        console.log(message.body);  //The requested variables
+        console.log(message);  //The requested variables
         break;
       default:
         break;

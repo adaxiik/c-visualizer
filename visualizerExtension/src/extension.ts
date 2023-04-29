@@ -62,30 +62,20 @@ export function activate(context: vscode.ExtensionContext) {
 					const session = vscode.debug.activeDebugSession;
 					if (session != undefined)
 					{
-						let threadInfo = session.customRequest('threads');
-						let frameId : number;
-						//Request for thread info
-						threadInfo.then(
-							//(value) => session.customRequest('stackTrace', { threadId: value }).then(
-							//	(value) => frameId = value.body.stackFrames[0].id
-							//)
+						//Request for stack info
+						session.customRequest('scopes', { frameId: message.id }).then(
 							(value) => {
-								console.log("Value recieved (threads)");
-								console.log(value);
-								let myThreadId = value.threads[0].id;	//Getting the thread id
-
-								//Request for stack info
-								session.customRequest('variables', { threadId: myThreadId }).then(
+								session.customRequest('variables', { variablesReference: message.id }).then(
 									(value) => {
-										console.log("Value recieved (variables)");
+										console.log("Value for frame id " + message.id + " recieved (variables)");
 										console.log(value);
-										currentPanel.webview.postMessage({ command: 'responseVariables', body: value });
+										currentPanel.webview.postMessage({ command: 'responseVariables', id: message.id, body: value });
 									},
 									(reason) => console.error(reason)
 								)
 							},
-							(reason) => console.error(reason)
-						);
+							(reason) => {}
+						)
 					}
 					
 				  return;
