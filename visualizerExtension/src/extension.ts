@@ -127,7 +127,7 @@ function printAndTestForVariables(message: any) {
 
 	//Catching the variable events
 	if (message.type == "event" && message.event == "stopped") {
-		currentPanel.webview.postMessage({ command: 'redrawCanvas', body: message.body});	//Redrawing the canvas (as the state of the program has changed)
+		currentPanel.webview.postMessage({ command: 'clearCanvas', body: message.body});	//Redrawing the canvas (as the state of the program has changed)
 	}
 	else if (message.type == "response" && message.command == "variables") {
 		//console.log(JSON.stringify(message.body.variables, undefined, 2));	//Printing the variables to the debug console

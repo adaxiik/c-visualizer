@@ -559,11 +559,17 @@ function hmrAccept(bundle, id) {
 },{}],"9lXWx":[function(require,module,exports) {
 var _fabricDrawingModule = require("./fabricDrawingModule");
 var _dataModelStructures = require("./dataModelStructures");
-function redrawCanvas() {
+function clearCanvas() {
     //Clearing the canvas
     myDrawingModule.clearCanvas();
-//Drawing the new state of the program
-//... (save the state and draw it again)
+    //Reset the current program stack
+    currentProgramStack = new _dataModelStructures.myProgramStack();
+    currentProgramStack.stackFrames = new Array();
+}
+function redrawCanvas() {
+    myDrawingModule.clearCanvas();
+    //Drawing the program full stack
+    myDrawingModule.drawProgramStack(currentProgramStack);
 }
 function drawVariablesJSON(messageBody) {
     messageBody.forEach((messageVariable)=>{
@@ -574,13 +580,13 @@ function drawVariablesJSON(messageBody) {
         tempVar.dataTypeString = messageVariable.type;
         //tempVar.value = ; //TODO: Delete?
         tempVar.valueString = messageVariable.value;
-        myDrawingModule.drawVariable(tempVar);
+        //TODO: Decide correctly to which stackframe to add the variable
+        currentProgramStack.stackFrames[0].functionVariables.push(tempVar);
     });
+    //Redrawing the canvas
+    redrawCanvas();
 }
 function drawProgramStackJSON(messageBody) {
-    //Initializing the used program stack variable
-    var tempProgramStackVar = new _dataModelStructures.myProgramStack();
-    tempProgramStackVar.stackFrames = new Array();
     //Processing all the stackframes
     messageBody.forEach((messageStackframe)=>{
         console.log('Processing stackframe from a function named: "' + messageStackframe.name + '"');
@@ -590,21 +596,24 @@ function drawProgramStackJSON(messageBody) {
             command: "requestStackFrame",
             name: messageStackframe.name
         }); //Posting a message back to the extension
-        //tempStackFrameVar.functionVariables = ;//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
-        //tempStackFrameVar.functionParameters = ;//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
-        tempProgramStackVar.stackFrames.push(tempStackFrameVar);
+        tempStackFrameVar.functionVariables = new Array(); //: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
+        tempStackFrameVar.functionParameters = new Array(); //: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
+        currentProgramStack.stackFrames.push(tempStackFrameVar);
     });
     //Drawing the program full stack
-    myDrawingModule.drawProgramStack(tempProgramStackVar);
+    myDrawingModule.drawProgramStack(currentProgramStack);
 }
 var myDrawingModule = new (0, _fabricDrawingModule.myFabricDrawingModule)("myCanvas");
 const vscode = acquireVsCodeApi(); //Getting the VS Code Api (to communicate with the extension)
+var currentProgramStack = new _dataModelStructures.myProgramStack();
+currentProgramStack.stackFrames = new Array();
 //Getting a test message from the external TypeScript
 // Handle the message inside the webview
 window.addEventListener("message", (event)=>{
     const message = event.data; // The JSON data our extension sent
     if (message.command) switch(message.command){
-        case "redrawCanvas":
+        case "clearCanvas":
+            clearCanvas();
             break;
         case "drawVariables":
             drawVariablesJSON(message.body); //Drawing the full JSON message
