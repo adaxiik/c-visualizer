@@ -1,5 +1,6 @@
 import { fabric } from "fabric";
 import * as myDataModelStructures from "./dataModelStructures";
+import { myStackFrame } from "./dataModelStructures";
 
 export class myFabricDrawingModule {
     canvas: fabric.Canvas;
@@ -76,7 +77,15 @@ export class myFabricDrawingModule {
         });
     }
 
-    drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10) {
+    drawProgramStack(programStackToDraw: myDataModelStructures.myProgramStack, startPosX = 10, startPosY = 10) {
+        //Drawing all the stackframes present
+        programStackToDraw.stackFrames.forEach(currentStackFrame => {
+            //Chaging the starting position with each drawn stackframe
+            startPosY = this.drawStackFrame(currentStackFrame, startPosX, startPosY);
+        });
+    }
+
+    drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10): number {
         //Default values
         let backgroundColorBlue = '#33ccff';
         let backgroundColorGrey = '#8f8f8f';
@@ -151,6 +160,9 @@ export class myFabricDrawingModule {
 
         //Locking the movement of the items
         this.lockAllItems();
+
+        //Returning the future start position (for easy drawing of other stackframes under this one)
+        return startPosY;
     }
 
     //More general method that prevents the user from misusing the drawing methods
