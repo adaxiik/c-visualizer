@@ -86,8 +86,25 @@ const message = event.data; // The JSON data our extension sent
         break;
       case 'responseVariables':
         console.log("Variable message recieved in WebView")
-        console.log(message);  //The requested variables
-        drawVariablesJSON(message); //Drawing the full JSON message
+        //Checking for registers
+        let drawVariable = true;
+        for (let i = 0; i < message.body.variables.length; i++)
+        {
+          if(message.body.variables[i].name == "Other Registers") //If register values are present
+          {
+            console.log("Registers frame detected. Deleting (id: " + message.id + ")");
+            //Find the frame in the programStack and delete it
+            delete currentProgramStack.stackFrames[message.id];
+            drawVariable = false;
+            redrawCanvas();
+          }
+        }
+        //If it's not a registers stackframe
+        if (drawVariable)
+        {
+          console.log(message);  //The requested variables
+          drawVariablesJSON(message); //Drawing the full JSON message
+        }
         break;
       default:
         break;
