@@ -142,13 +142,13 @@
       this[globalName] = mainExports;
     }
   }
-})({"eejnM":[function(require,module,exports) {
+})({"ebgtl":[function(require,module,exports) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "d6ea1d42532a7575";
-module.bundle.HMR_BUNDLE_ID = "8b173a94e0ca5844";
+module.bundle.HMR_BUNDLE_ID = "e3f3489fd3eec4e0";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, chrome, browser, globalThis, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -25207,6 +25207,6 @@ class myStruct {
 class myMemory {
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"le3sx"}]},["eejnM","9lXWx"], "9lXWx", "parcelRequiredd7b")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"le3sx"}]},["ebgtl","9lXWx"], "9lXWx", "parcelRequiredd7b")
 
 //# sourceMappingURL=myDrawlib.js.map
