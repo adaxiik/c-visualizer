@@ -1,7 +1,3 @@
-/*
-import { myDrawlib } from "./myDrawlib";
-export { myDrawlib };
-*/
 import { myFabricDrawingModule } from "./fabricDrawingModule";
 import * as myDataModelStructures from "./dataModelStructures";
 
@@ -10,7 +6,7 @@ var myDrawingModule = new myFabricDrawingModule('myCanvas');
 
 //Example stackframe 1
 let testStackFrame1 = new myDataModelStructures.myStackFrame();
-//Function name 1
+testStackFrame1.frameId = 1;
 testStackFrame1.functionName = "TestFunction1";
 //Function variables 1
 let stackFrame1TestVar1 = new myDataModelStructures.myVariable();
@@ -25,10 +21,9 @@ let stackFrame1TestVar3 = new myDataModelStructures.myVariable();
 stackFrame1TestVar3.variableName = "stackFrame1TestVar3";
 stackFrame1TestVar3.dataTypeString = "float";
 stackFrame1TestVar3.valueString = "3.28";
-testStackFrame1.functionVariables = new Array<myDataModelStructures.myVariable>();
-testStackFrame1.functionVariables.push(stackFrame1TestVar1);
-testStackFrame1.functionVariables.push(stackFrame1TestVar2);
-testStackFrame1.functionVariables.push(stackFrame1TestVar3);
+testStackFrame1.functionVariables[stackFrame1TestVar1.variableName] = stackFrame1TestVar1;
+testStackFrame1.functionVariables[stackFrame1TestVar2.variableName] = stackFrame1TestVar2;
+testStackFrame1.functionVariables[stackFrame1TestVar3.variableName] = stackFrame1TestVar3;
 //Function parameters 1
 let stackFrame1TestParam1 = new myDataModelStructures.myVariable();
 stackFrame1TestParam1.variableName = "stackFrame1TestParam1";
@@ -38,13 +33,12 @@ let stackFrame1TestParam2 = new myDataModelStructures.myVariable();
 stackFrame1TestParam2.variableName = "stackFrame1TestParam2";
 stackFrame1TestParam2.dataTypeString = "double";
 stackFrame1TestParam2.valueString = "15.893";
-testStackFrame1.functionParameters = new Array<myDataModelStructures.myVariable>();
-testStackFrame1.functionParameters.push(stackFrame1TestParam1);
-testStackFrame1.functionParameters.push(stackFrame1TestParam2);
+testStackFrame1.functionParameters[stackFrame1TestParam1.variableName] = stackFrame1TestParam1;
+testStackFrame1.functionParameters[stackFrame1TestParam2.variableName] = stackFrame1TestParam2;
 
 //Example stackframe 2
 let testStackFrame2 = new myDataModelStructures.myStackFrame();
-//Function name 2
+testStackFrame2.frameId = 2;
 testStackFrame2.functionName = "TestFunction2";
 //Function variables 2
 let stackFrame2TestVar1 = new myDataModelStructures.myVariable();
@@ -59,10 +53,9 @@ let stackFrame2TestVar3 = new myDataModelStructures.myVariable();
 stackFrame2TestVar3.variableName = "stackFrame2TestVar3";
 stackFrame2TestVar3.dataTypeString = "float";
 stackFrame2TestVar3.valueString = "3.28";
-testStackFrame2.functionVariables = new Array<myDataModelStructures.myVariable>();
-testStackFrame2.functionVariables.push(stackFrame2TestVar1);
-testStackFrame2.functionVariables.push(stackFrame2TestVar2);
-testStackFrame2.functionVariables.push(stackFrame2TestVar3);
+testStackFrame2.functionVariables[stackFrame2TestVar1.variableName] = stackFrame2TestVar1;
+testStackFrame2.functionVariables[stackFrame2TestVar2.variableName] = stackFrame2TestVar2;
+testStackFrame2.functionVariables[stackFrame2TestVar3.variableName] = stackFrame2TestVar3;
 //Function parameters 2
 let stackFrame2TestParam1 = new myDataModelStructures.myVariable();
 stackFrame2TestParam1.variableName = "stackFrame2TestParam1";
@@ -72,18 +65,21 @@ let stackFrame2TestParam2 = new myDataModelStructures.myVariable();
 stackFrame2TestParam2.variableName = "stackFrame2TestParam2";
 stackFrame2TestParam2.dataTypeString = "double";
 stackFrame2TestParam2.valueString = "15.893";
-testStackFrame2.functionParameters = new Array<myDataModelStructures.myVariable>();
-testStackFrame2.functionParameters.push(stackFrame2TestParam1);
-testStackFrame2.functionParameters.push(stackFrame2TestParam2);
+testStackFrame2.functionParameters[stackFrame2TestParam1.variableName] = stackFrame2TestParam1;
+testStackFrame2.functionParameters[stackFrame2TestParam2.variableName] = stackFrame2TestParam2;
 
 //Creating the program stack
 let testProgramStack = new myDataModelStructures.myProgramStack();
 testProgramStack.stackFrames = new Array<myDataModelStructures.myStackFrame>();
-testProgramStack.stackFrames.push(testStackFrame1);
-testProgramStack.stackFrames.push(testStackFrame2);
 
+//Adding the stackframes
+testProgramStack.stackFrames[testStackFrame1.frameId] = testStackFrame1;
+testProgramStack.stackFrames[testStackFrame2.frameId] = testStackFrame2;
+
+//Drawing the program stack
 console.log("[DEBUG] Drawing the full program stack");
 myDrawingModule.drawProgramStack(testProgramStack);
+
 
 /*
 //Testing variables
