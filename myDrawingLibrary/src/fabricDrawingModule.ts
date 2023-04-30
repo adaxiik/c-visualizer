@@ -10,7 +10,7 @@ export class myFabricDrawingModule {
         //To have it a bit larger (not yet exact sizing)
         //TODO: Think the sizing through and adjust accordingly
         this.canvas.setWidth(screen.width);
-        this.canvas.setHeight(screen.height / 2);
+        this.canvas.setHeight(screen.height);
 
         this.initPanning();
         this.initZooming();

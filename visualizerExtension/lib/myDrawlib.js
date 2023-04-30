@@ -575,11 +575,11 @@ function drawVariablesJSON(message) {
         console.log('Processing variable named: "' + messageVariable.name + '"');
         var tempVar = new _dataModelStructures.myVariable();
         tempVar.variableName = messageVariable.name;
-        //tempVar.dataTypeEnum = ;  //TODO: Delete?
+        //tempVar.dataTypeEnum = ;  //Not used
         tempVar.dataTypeString = messageVariable.type;
-        //tempVar.value = ; //TODO: Delete?
+        //tempVar.value = ;         //Not used
         tempVar.valueString = messageVariable.value;
-        //TODO: Decide correctly to which stackframe to add the variable (then convert stackFrames in programStack to a dictionary as well)
+        //Adding the variable to the correct stackframe
         currentProgramStack.stackFrames[message.id].functionVariables[tempVar.variableName] = tempVar;
     });
     //Redrawing the canvas
@@ -596,11 +596,10 @@ function drawProgramStackJSON(messageBody) {
             command: "requestStackFrame",
             id: messageStackframe.id
         }); //Posting a message back to the extension
-        //tempStackFrameVar.functionVariables = new Array<myDataModelStructures.myVariable>();//: myVariable[];      //TODO: Find out how to find that information out (from the JSON)
-        //tempStackFrameVar.functionParameters = new Array<myDataModelStructures.myVariable>();//: myVariable[];     //TODO: Find out how to find that information out (from the JSON)
+        //Adding the stackframe to the program stack
         currentProgramStack.stackFrames[tempStackFrameVar.frameId] = tempStackFrameVar;
     });
-    //Drawing the program full stack
+    //Drawing the full program stack
     myDrawingModule.drawProgramStack(currentProgramStack);
 }
 var myDrawingModule = new (0, _fabricDrawingModule.myFabricDrawingModule)("myCanvas");
@@ -614,8 +613,6 @@ window.addEventListener("message", (event)=>{
     if (message.command) switch(message.command){
         case "clearCanvas":
             clearCanvas();
-            break;
-        case "drawVariables":
             break;
         case "drawProgramStack":
             drawProgramStackJSON(message.body); //Drawing the full JSON message
@@ -653,7 +650,7 @@ class myFabricDrawingModule {
         //To have it a bit larger (not yet exact sizing)
         //TODO: Think the sizing through and adjust accordingly
         this.canvas.setWidth(screen.width);
-        this.canvas.setHeight(screen.height / 2);
+        this.canvas.setHeight(screen.height);
         this.initPanning();
         this.initZooming();
     }
@@ -753,7 +750,7 @@ class myFabricDrawingModule {
                 strokeWidth: 2
             });
             //Drawing the slot's text
-            //TODO: Calculate the positioning correctly
+            //TODO: Calculate the text positioning correctly (and width)
             let fabricSlotText = new (0, _fabric.fabric).Text(mySlotText, {
                 left: startPosX + 4,
                 top: startPosY + stackSlotHeight / 8,
@@ -767,7 +764,7 @@ class myFabricDrawingModule {
             ]);
             //Adding the "slot's" group to the result group
             resultFabricStackFrameArray.push(resultFabricGroup);
-            //Moving the position, where we're drawing
+            //Moving the starting position for the next stackframe
             startPosY += stackSlotHeight;
             return resultFabricStackFrameArray;
         };
@@ -826,7 +823,7 @@ class myFabricDrawingModule {
         //Creating the result
         let resultFabricGroup = new (0, _fabric.fabric).Group([
             fabricSlotText
-        ]); //TODO: Add more things to the group (like background and such)
+        ]);
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
         //Locking the movement of the items
@@ -848,7 +845,7 @@ class myFabricDrawingModule {
         //Creating the result
         let resultFabricGroup = new (0, _fabric.fabric).Group([
             fabricSlotText
-        ]); //TODO: Add more things to the group (like background and such)
+        ]);
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
         //Locking the movement of the items
@@ -870,7 +867,7 @@ class myFabricDrawingModule {
         //Creating the result
         let resultFabricGroup = new (0, _fabric.fabric).Group([
             fabricSlotText
-        ]); //TODO: Add more things to the group (like background and such)
+        ]);
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
         //Locking the movement of the items
@@ -893,7 +890,7 @@ class myFabricDrawingModule {
         //Creating the result
         let resultFabricGroup = new (0, _fabric.fabric).Group([
             fabricSlotText
-        ]); //TODO: Add more things to the group (like background and such)
+        ]);
         //Adding the result group to the canvas
         this.canvas.add(resultFabricGroup);
         //Locking the movement of the items
@@ -25181,8 +25178,7 @@ let myMemoryTypeEnum;
     myMemoryTypeEnum["static"] = "static";
     myMemoryTypeEnum["global"] = "global";
 })(myMemoryTypeEnum || (myMemoryTypeEnum = {}));
-let myDataTypeEnum//TODO: Add some more later (based on the C-like datatype names)
-;
+let myDataTypeEnum;
 (function(myDataTypeEnum) {
     myDataTypeEnum["int"] = "int";
     myDataTypeEnum["char"] = "char";
