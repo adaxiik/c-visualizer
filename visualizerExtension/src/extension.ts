@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 			createDebugAdapterTracker(session: vscode.DebugSession) {
 				return {
 					//Messages recieved by the debugger are not now used
-					//onWillReceiveMessage: m => console.log(`visualizerbp> ${JSON.stringify(m, undefined, 2)}`),
+					onWillReceiveMessage: m => console.log(`visualizerbp> ${JSON.stringify(m, undefined, 2)}`),
 					onDidSendMessage: m => printAndTestForVariables(m),
 				};
 			}
@@ -115,10 +115,17 @@ function getWebviewContent(webview: vscode.Webview, context: any) {
 function printAndTestForVariables(message: any) {
 	console.log(message);
 
-	//Catching the variable events
-	if (message.type == "event" && message.event == "stopped") {
-		currentPanel.webview.postMessage({ command: 'clearCanvas', body: message.body});	//Redrawing the canvas (as the state of the program has changed)
+	//If the program ends
+	if (message.type == "response" && message.command == "disconnect") {
+		currentPanel.webview.postMessage({ command: 'clearCanvas'});	//Clearing the canvas
 	}
+	//If the program has been stopped
+	else if (message.type == "event" && message.event == "stopped") {
+		currentPanel.webview.postMessage({ command: 'clearCanvas'});	//Before redrawing the canvas (as the state of the program has changed)
+
+		//Add function to query the program state (and call draw functions)
+	}
+	//When the program stops (TODO: Delete and replace with my own manual querying of program state)
 	else if (message.type == "response" && message.command == "stackTrace") {
 		//console.log(JSON.stringify(message.body.stackFrames, undefined, 2));	//Printing the stack frame to the debug console
 
