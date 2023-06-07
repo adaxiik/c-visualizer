@@ -188,7 +188,7 @@ async function getProgramState(stoppedThreadId: number) {
 	}
 	else
 	{
-		currentPanel.webview.postMessage({ command: 'drawProgramStack', body: myCustomStackTraceMessageBody.stackFrames }); //TODO: Refactor - move this code somewhere else / reconsider the approach
+		currentPanel.webview.postMessage({ command: 'drawProgramStack', body: myCustomStackTraceMessageBody }); //Passing the customized message
 		return;
 	}
 }

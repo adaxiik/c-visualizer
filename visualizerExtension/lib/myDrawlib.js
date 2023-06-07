@@ -571,7 +571,7 @@ function redrawCanvas() {
     myDrawingModule.drawProgramStack(currentProgramStack);
 }
 function drawVariablesJSON(message) {
-    message.body.variables.forEach((messageVariable)=>{
+    message.variables.forEach((messageVariable)=>{
         console.log('Processing variable named: "' + messageVariable.name + '"');
         var tempVar = new _dataModelStructures.myVariable();
         tempVar.variableName = messageVariable.name;
@@ -587,17 +587,24 @@ function drawVariablesJSON(message) {
 }
 function drawProgramStackJSON(messageBody) {
     //Processing all the stackframes
-    messageBody.forEach((messageStackframe)=>{
-        console.log('Processing stackframe from a function named: "' + messageStackframe.name + '" (id: ' + messageStackframe.id + ")");
+    messageBody.stackFrames.forEach((currentStackFrame)=>{
+        console.log('Processing stackframe from a function named: "' + currentStackFrame.name + '" (id: ' + currentStackFrame.id + ")");
         var tempStackFrameVar = new _dataModelStructures.myStackFrame();
-        tempStackFrameVar.frameId = messageStackframe.id;
-        tempStackFrameVar.functionName = messageStackframe.name;
-        vscode.postMessage({
-            command: "requestStackFrame",
-            id: messageStackframe.id
-        }); //Posting a message back to the extension
-        //Adding the stackframe to the program stack
+        tempStackFrameVar.frameId = currentStackFrame.id;
+        tempStackFrameVar.functionName = currentStackFrame.name;
+        //TODO: Remove - probably not needed anymore
+        /*
+    vscode.postMessage({
+      command: "requestStackFrame",
+      id: currentStackFrame.id
+    }); //Posting a message back to the extension
+    */ //Adding the stackframe to the program stack
         currentProgramStack.stackFrames[tempStackFrameVar.frameId] = tempStackFrameVar;
+        //Adding its variables
+        drawVariablesJSON({
+            id: tempStackFrameVar.frameId,
+            variables: currentStackFrame.variables
+        });
     });
     //Drawing the full program stack
     myDrawingModule.drawProgramStack(currentProgramStack);
@@ -606,6 +613,7 @@ var myDrawingModule = new (0, _fabricDrawingModule.myFabricDrawingModule)("myCan
 const vscode = acquireVsCodeApi(); //Getting the VS Code Api (to communicate with the extension)
 var currentProgramStack = new _dataModelStructures.myProgramStack();
 currentProgramStack.stackFrames = new Array();
+var currentProgramStackMessage = {};
 //Getting a test message from the external TypeScript
 // Handle the message inside the webview
 window.addEventListener("message", (event)=>{
@@ -615,26 +623,34 @@ window.addEventListener("message", (event)=>{
             clearCanvas();
             break;
         case "drawProgramStack":
+            currentProgramStackMessage = message.body;
             drawProgramStackJSON(message.body); //Drawing the full JSON message
             break;
-        case "responseVariables":
-            console.log("Variable message recieved in WebView");
-            //Checking for registers
-            let drawVariable = true;
-            for(let i = 0; i < message.body.variables.length; i++)if (message.body.variables[i].name == "Other Registers") {
-                console.log("Registers frame detected. Deleting (id: " + message.id + ")");
-                //Find the frame in the programStack and delete it
-                delete currentProgramStack.stackFrames[message.id];
-                drawVariable = false;
-                redrawCanvas();
-            }
-            //If it's not a registers stackframe
-            if (drawVariable) {
-                console.log(message); //The requested variables
-                drawVariablesJSON(message); //Drawing the full JSON message
-            }
-            break;
-        default:
+        //TODO: Remove afterwards (if it really wont be used)
+        /*
+      case 'responseVariables':
+        console.log("Variable message recieved in WebView")
+        //Checking for registers
+        let drawVariable = true;
+        for (let i = 0; i < message.body.variables.length; i++)
+        {
+          if(message.body.variables[i].name == "Other Registers") //If register values are present
+          {
+            console.log("Registers frame detected. Deleting (id: " + message.id + ")");
+            //Find the frame in the programStack and delete it
+            delete currentProgramStack.stackFrames[message.id];
+            drawVariable = false;
+            redrawCanvas();
+          }
+        }
+        //If it's not a registers stackframe
+        if (drawVariable)
+        {
+          console.log(message);  //The requested variables
+          drawVariablesJSON(message); //Drawing the full JSON message
+        }
+        break;
+        */ default:
             break;
     }
 });

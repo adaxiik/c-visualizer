@@ -16,7 +16,7 @@ function redrawCanvas() {
 }
 
 function drawVariablesJSON(message: any){
-  message.body.variables.forEach(messageVariable => {
+  message.variables.forEach(messageVariable => {
     console.log("Processing variable named: \"" + messageVariable.name + "\"");
 
     var tempVar = new myDataModelStructures.myVariable();
@@ -36,19 +36,25 @@ function drawVariablesJSON(message: any){
 
 function drawProgramStackJSON(messageBody: any){
   //Processing all the stackframes
-  messageBody.forEach(messageStackframe => {
-    console.log("Processing stackframe from a function named: \"" + messageStackframe.name + "\" (id: " + messageStackframe.id + ")");
+  messageBody.stackFrames.forEach(currentStackFrame => {
+    console.log("Processing stackframe from a function named: \"" + currentStackFrame.name + "\" (id: " + currentStackFrame.id + ")");
 
     var tempStackFrameVar = new myDataModelStructures.myStackFrame();
-    tempStackFrameVar.frameId = messageStackframe.id;
-    tempStackFrameVar.functionName = messageStackframe.name;
+    tempStackFrameVar.frameId = currentStackFrame.id;
+    tempStackFrameVar.functionName = currentStackFrame.name;
+    //TODO: Remove - probably not needed anymore
+    /*
     vscode.postMessage({
       command: "requestStackFrame",
-      id: messageStackframe.id
+      id: currentStackFrame.id
     }); //Posting a message back to the extension
+    */
 
     //Adding the stackframe to the program stack
     currentProgramStack.stackFrames[tempStackFrameVar.frameId] = tempStackFrameVar;
+    
+    //Adding its variables
+    drawVariablesJSON({id: tempStackFrameVar.frameId, variables: currentStackFrame.variables});
   });
 
   //Drawing the full program stack
@@ -61,6 +67,7 @@ const vscode = acquireVsCodeApi();  //Getting the VS Code Api (to communicate wi
 
 var currentProgramStack = new myDataModelStructures.myProgramStack();
 currentProgramStack.stackFrames = new Array<myDataModelStructures.myStackFrame>();
+var currentProgramStackMessage = {};
 
 //Getting a test message from the external TypeScript
 // Handle the message inside the webview
@@ -76,8 +83,11 @@ const message = event.data; // The JSON data our extension sent
         clearCanvas();
         break;
       case 'drawProgramStack':
-        drawProgramStackJSON(message.body); //Drawing the full JSON message
+      	currentProgramStackMessage = message.body;	//Saving the last recieved program state
+        drawProgramStackJSON(message.body); 		//Drawing the full JSON message
         break;
+        //TODO: Remove afterwards (if it really wont be used)
+        /*
       case 'responseVariables':
         console.log("Variable message recieved in WebView")
         //Checking for registers
@@ -100,6 +110,7 @@ const message = event.data; // The JSON data our extension sent
           drawVariablesJSON(message); //Drawing the full JSON message
         }
         break;
+        */
       default:
         break;
     }
