@@ -155,6 +155,7 @@ async function callVariables(callVariablesReference: number): Promise<any> {
 async function getProgramState(stoppedThreadId: number) {
 	//Getting stackframes of the current thread
 	let mainStackTraceMessageBody = await callStackTrace(stoppedThreadId);
+	let myCustomStackTraceMessageBody = {...mainStackTraceMessageBody};	//Copying the main message (this version will be edited and passed to the glue code - after adding variable data)
 	//For each stackFrame call scope request
 	for (let i = 0; i < mainStackTraceMessageBody.totalFrames; i++) {
 		const elementStackFrame = mainStackTraceMessageBody.stackFrames[i];
@@ -168,7 +169,9 @@ async function getProgramState(stoppedThreadId: number) {
 			//Skipping registers (TODO: If we want to add register support, differentiate the scopes and don't skip the registers)
 			if (elementScope.name != "Registers")
 			{
-				//TODO: Change - trying to write the variable data
+				myCustomStackTraceMessageBody.stackFrames[i].variables = [...currentScopeVariables.variables];	//Adding the variable data to the custom message
+
+				//DEBUG: Outputting the variable data
 				for (let k = 0; k < currentScopeVariables.variables.length; k++) {
 					const elementVariable = currentScopeVariables.variables[k];
 					console.log("Function " + elementStackFrame.name + " (" + elementStackFrame.id + "), Variable ", elementVariable.name + " (" +  elementVariable.value + ")");
@@ -185,7 +188,7 @@ async function getProgramState(stoppedThreadId: number) {
 	}
 	else
 	{
-		currentPanel.webview.postMessage({ command: 'drawProgramStack', body: mainStackTraceMessageBody.stackFrames }); //TODO: Refactor - move this code somewhere else / reconsider the approach
+		currentPanel.webview.postMessage({ command: 'drawProgramStack', body: myCustomStackTraceMessageBody.stackFrames }); //TODO: Refactor - move this code somewhere else / reconsider the approach
 		return;
 	}
 }
