@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 //import * as path from 'path';
 import * as fs from 'fs';
 import { json } from 'stream/consumers';
+import { error } from 'console';
 
 //Global panel (to be accessible)
 let currentPanel: vscode.WebviewPanel;
@@ -46,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 			createDebugAdapterTracker(session: vscode.DebugSession) {
 				return {
 					//Messages recieved by the debugger are not now used
-					onWillReceiveMessage: m => console.log(`visualizerbp> ${JSON.stringify(m, undefined, 2)}`),
+					//onWillReceiveMessage: m => console.log(`visualizerbp> ${JSON.stringify(m, undefined, 2)}`),
 					onDidSendMessage: m => printAndTestForVariables(m),
 				};
 			}
@@ -56,6 +57,9 @@ export function activate(context: vscode.ExtensionContext) {
 		currentPanel.webview.onDidReceiveMessage(
 			message => {
 			  switch (message.command) {
+				
+				// TODO: Refactor / rethink the approach
+				/*
 				case 'requestStackFrame':
 					//Getting the stack frame
 					const session = vscode.debug.activeDebugSession;
@@ -78,7 +82,10 @@ export function activate(context: vscode.ExtensionContext) {
 						)
 					}
 					
-				  return;
+					return;
+				*/
+				default:
+					return;
 			  }
 			},
 			undefined,
@@ -112,6 +119,77 @@ function getWebviewContent(webview: vscode.Webview, context: any) {
 	return retHtml;
 }
 
+//My DAP call function
+async function callStackTrace(callThreadId: number): Promise<any> {
+	const session = vscode.debug.activeDebugSession;
+	if (session == undefined)
+	{
+		return null
+	}
+
+	return await session.customRequest('stackTrace', { threadId: callThreadId, format: {includeAll : true} });
+}
+
+//My DAP call function
+async function callScopes(callFrameId: number): Promise<any> {
+	const session = vscode.debug.activeDebugSession;
+	if (session == undefined)
+	{
+		return null
+	}
+
+	return await session.customRequest('scopes', { frameId: callFrameId });
+}
+
+//My DAP call function
+async function callVariables(callVariablesReference: number): Promise<any> {
+	const session = vscode.debug.activeDebugSession;
+	if (session == undefined)
+	{
+		return null
+	}
+
+	return await session.customRequest('variables', { variablesReference: callVariablesReference });
+}
+
+async function getProgramState(stoppedThreadId: number) {
+	//Getting stackframes of the current thread
+	let mainStackTraceMessageBody = await callStackTrace(stoppedThreadId);
+	//For each stackFrame call scope request
+	for (let i = 0; i < mainStackTraceMessageBody.totalFrames; i++) {
+		const elementStackFrame = mainStackTraceMessageBody.stackFrames[i];
+		let currentStackFrameScopes = await callScopes(elementStackFrame.id);
+		
+		//For each scope call variable request
+		for (let j = 0; j < currentStackFrameScopes.scopes.length; j++) {
+			const elementScope = currentStackFrameScopes.scopes[j];
+			let currentScopeVariables = await callVariables(elementScope.variablesReference);
+
+			//Skipping registers (TODO: If we want to add register support, differentiate the scopes and don't skip the registers)
+			if (elementScope.name != "Registers")
+			{
+				//TODO: Change - trying to write the variable data
+				for (let k = 0; k < currentScopeVariables.variables.length; k++) {
+					const elementVariable = currentScopeVariables.variables[k];
+					console.log("Function " + elementStackFrame.name + " (" + elementStackFrame.id + "), Variable ", elementVariable.name + " (" +  elementVariable.value + ")");
+				}
+			}
+		}
+	}
+
+	//Checking if frame count is correct
+	if (mainStackTraceMessageBody.totalFrames != mainStackTraceMessageBody.totalFrames)
+	{
+		//throw new Error("VisualizerBP: Expected and actual frame count does not match!");
+		getProgramState(stoppedThreadId);
+	}
+	else
+	{
+		currentPanel.webview.postMessage({ command: 'drawProgramStack', body: mainStackTraceMessageBody.stackFrames }); //TODO: Refactor - move this code somewhere else / reconsider the approach
+		return;
+	}
+}
+
 function printAndTestForVariables(message: any) {
 	console.log(message);
 
@@ -124,8 +202,10 @@ function printAndTestForVariables(message: any) {
 		currentPanel.webview.postMessage({ command: 'clearCanvas'});	//Before redrawing the canvas (as the state of the program has changed)
 
 		//Add function to query the program state (and call draw functions)
+		getProgramState(message.body.threadId);
 	}
 	//When the program stops (TODO: Delete and replace with my own manual querying of program state)
+	/*
 	else if (message.type == "response" && message.command == "stackTrace") {
 		//console.log(JSON.stringify(message.body.stackFrames, undefined, 2));	//Printing the stack frame to the debug console
 
@@ -134,5 +214,6 @@ function printAndTestForVariables(message: any) {
 			currentPanel.webview.postMessage({ command: 'drawProgramStack', body: message.body.stackFrames });
 		}
 	}
+	*/
 
 }
