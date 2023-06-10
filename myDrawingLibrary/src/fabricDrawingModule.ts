@@ -76,6 +76,7 @@ export class myFabricDrawingModule {
 
     initHoverOver() {
         const requestRenderAll = this.canvas.requestRenderAll.bind(this.canvas);
+        const calculateNewHex = this.calculateLighterDarkerHex;
         let previousObjectColor = this.cachedObjectColor;
 
         this.canvas.on('mouse:over', function(opt) {
@@ -85,7 +86,8 @@ export class myFabricDrawingModule {
                 if("_objects" in opt.target)
                 {
                     previousObjectColor = opt.target._objects[0].get('fill');
-                    opt.target._objects[0].set('fill', 'red');
+                    //opt.target._objects[0].set('fill', 'red');
+                    opt.target._objects[0].set('fill', calculateNewHex(previousObjectColor, -20));
                 }
             }
             requestRenderAll();
@@ -97,12 +99,41 @@ export class myFabricDrawingModule {
             {
                 if("_objects" in opt.target)
                 {
+                    //opt.target._objects[0].set('fill', previousObjectColor);
                     opt.target._objects[0].set('fill', previousObjectColor);
                     previousObjectColor = "";
                 }
             }
             requestRenderAll();
         });
+    }
+
+    //Helper function (for mouse:over events, etc.)
+    calculateLighterDarkerHex(inputHex : string, percentage : number) : string {
+        //Parsing the rbg values
+        const r = parseInt(inputHex.substring(1, 3), 16);
+        const g = parseInt(inputHex.substring(3, 5), 16);
+        const b = parseInt(inputHex.substring(5, 7), 16);
+
+        //Helper function to keep values between bounds
+        function clamp(value: number, min: number, max: number): number {
+            return Math.min(Math.max(value, min), max);
+        }
+        
+        const clampedPercentage = clamp(percentage, -100, 100);         //Percentage by which to lighten / darken the color
+        const offset = Math.round((clampedPercentage / 100) * 255);     //Calculated offset which will be added
+
+        const newR = clamp(r + offset, 0, 255);
+        const newG = clamp(g + offset, 0, 255);
+        const newB = clamp(b + offset, 0, 255);
+        
+        //Helper function to convert decimal values back to a two-digit hex
+        function toTwoDigitHex(value: number): string {
+            const hex = value.toString(16);
+            return hex.length === 1 ? `0${hex}` : hex;
+        }
+
+        return "#" + toTwoDigitHex(newR) + toTwoDigitHex(newG) + toTwoDigitHex(newB);
     }
 
     lockAllItems() {
