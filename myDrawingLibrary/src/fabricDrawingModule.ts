@@ -4,6 +4,7 @@ import { myStackFrame } from "./dataModelStructures";
 
 export class myFabricDrawingModule {
     canvas: fabric.Canvas;
+    cachedObjectColor: string;
 
     constructor(canvasName: string) {
         this.canvas = new fabric.Canvas(canvasName);
@@ -14,6 +15,7 @@ export class myFabricDrawingModule {
 
         this.initPanning();
         this.initZooming();
+        this.initHoverOver();
     }
 
     clearCanvas() {
@@ -72,13 +74,44 @@ export class myFabricDrawingModule {
         //Citation end
     }
 
+    initHoverOver() {
+        const requestRenderAll = this.canvas.requestRenderAll.bind(this.canvas);
+        let previousObjectColor = this.cachedObjectColor;
+
+        this.canvas.on('mouse:over', function(opt) {
+            console.log("[DEBUG] mouse:over event - target: " + opt.target);
+            if(opt.target !== undefined && opt.target !== null)
+            {
+                if("_objects" in opt.target)
+                {
+                    previousObjectColor = opt.target._objects[0].get('fill');
+                    opt.target._objects[0].set('fill', 'red');
+                }
+            }
+            requestRenderAll();
+        });
+        
+        this.canvas.on('mouse:out', function(opt) {
+            console.log("[DEBUG] mouse:out event - target: " + opt.target);
+            if(opt.target !== undefined && opt.target !== null)
+            {
+                if("_objects" in opt.target)
+                {
+                    opt.target._objects[0].set('fill', previousObjectColor);
+                    previousObjectColor = "";
+                }
+            }
+            requestRenderAll();
+        });
+    }
+
     lockAllItems() {
         let allFabricItems = this.canvas.getObjects();
 
         allFabricItems.forEach(fabricObject => {
             fabricObject.selectable = false;
             fabricObject.hoverCursor = "default";
-            fabricObject.evented = false;
+            fabricObject.evented = true;
         });
     }
 
@@ -105,8 +138,8 @@ export class myFabricDrawingModule {
         let stackSlotWidth = 300;   //Width of a single "slot" in the drawn stackframe
 
         //Function to create a single slot in the stackframe
-        let myCreateSlotFunction = function (mySlotText: string, slotBackgroundColor: string): Array<fabric.Group> {
-            let resultFabricStackFrameArray = new Array<fabric.Group>;    //Result group of stackframe "slots"
+        let myCreateSlotFunction = function (mySlotText: string, slotBackgroundColor: string): fabric.Group {
+            //let resultFabricStackFrameArray = new Array<fabric.Group>;    //Result group of stackframe "slots"
             //Drawing the slot's background
             let fabricSlotBackground = new fabric.Rect({
                 left: startPosX,
@@ -132,16 +165,17 @@ export class myFabricDrawingModule {
             //Creating the result
             let resultFabricGroup = new fabric.Group([fabricSlotBackground, fabricSlotText]);
             //Adding the "slot's" group to the result group
-            resultFabricStackFrameArray.push(resultFabricGroup);
+            //resultFabricStackFrameArray.push(resultFabricGroup);
 
             //Moving the starting position for the next stackframe
             startPosY += stackSlotHeight;
 
-            return resultFabricStackFrameArray;
+            //return resultFabricStackFrameArray;
+            return resultFabricGroup;
         };
 
         //Creating the slots
-        let retAllSlots = new Array<Array<fabric.Group>>();
+        let retAllSlots = new Array<fabric.Group>();
         //Function name
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
         //Function variables
@@ -169,10 +203,8 @@ export class myFabricDrawingModule {
             }
         }
         //Adding the result group to the canvas
-        retAllSlots.forEach(stackGroup => {
-            stackGroup.forEach(stackFrameSlot => {
-                this.canvas.add(stackFrameSlot);
-            });
+        retAllSlots.forEach(stackFrameSlot => {
+            this.canvas.add(stackFrameSlot);
         });
 
         //Locking the movement of the items
