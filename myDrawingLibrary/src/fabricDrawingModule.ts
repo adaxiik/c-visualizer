@@ -146,24 +146,6 @@ export class myFabricDrawingModule {
         });
     }
 
-    /*
-    calculateStackWidth(programStackToDraw: myDataModelStructures.myProgramStack, textFontSize : number) : number {
-        let maxTotalTextWidth = 0;
-        
-        //Going through all stackframes present
-        for (let key in programStackToDraw.stackFrames) {
-            let value = programStackToDraw.stackFrames[key];
-            
-            if (value != null) {
-                //Checking the text length
-
-            }
-        }
-
-        return maxTotalTextWidth;
-    }
-    */
-
     drawProgramStack(programStackToDraw: myDataModelStructures.myProgramStack, startPosX = 10, startPosY = 10) {
         //Drawing all the stackframes present
         for (let key in programStackToDraw.stackFrames) {
@@ -174,6 +156,52 @@ export class myFabricDrawingModule {
                 startPosY = this.drawStackFrame(value, startPosX, startPosY);
             }
         }
+    }
+
+    calculateStackWidth(programStackToDraw: myDataModelStructures.myProgramStack, textFontSize : number) : number {
+        let maxTotalTextWidth = 0;
+        let allVariableTexts = new Array<string>();
+        
+        //Going through all stackframes present (and noting their parameter's and variable's text)
+        for (let stackFrameKey in programStackToDraw.stackFrames) {
+            let currentStackFrame = programStackToDraw.stackFrames[stackFrameKey];
+            
+            if (currentStackFrame != null) {
+                //Going through function parameters
+                for (let functionParameterKey in currentStackFrame.functionParameters) {
+                    let currentFunctionParameter = currentStackFrame.functionParameters[functionParameterKey];
+                    if (currentFunctionParameter != null) {
+                        let variableText = currentFunctionParameter.variableName + ": " + currentFunctionParameter.dataTypeString + " (" + currentFunctionParameter.valueString + ")";
+                        allVariableTexts.push(variableText);
+                    }
+                }
+
+                //Going through function variables
+                for (let functionVariableKey in currentStackFrame.functionVariables) {
+                    let currentFunctionVariable = currentStackFrame.functionVariables[functionVariableKey];
+                    if (currentFunctionVariable != null) {
+                        let variableText = currentFunctionVariable.variableName + ": " + currentFunctionVariable.dataTypeString + " (" + currentFunctionVariable.valueString + ")";
+                        allVariableTexts.push(variableText);
+                    }
+                }
+            }
+        }
+
+        //For all variables found
+        for (let i = 0; i < allVariableTexts.length; i++) {
+            //"Mock" creating Fabric text (to calculate total width properly)
+            let tempFabricSlotText = new fabric.Text(allVariableTexts[i], {
+                left: 0,
+                top: 0,
+                fill: "black",
+                fontSize: textFontSize
+            });
+
+            //Comparing the current variable text's length to the maximum 
+            maxTotalTextWidth = tempFabricSlotText.getScaledWidth() > maxTotalTextWidth ? tempFabricSlotText.getScaledWidth() : maxTotalTextWidth;
+        }
+        
+        return maxTotalTextWidth;
     }
 
     drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10, stackSlotWidth = 300): number {
