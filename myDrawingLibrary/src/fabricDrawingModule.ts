@@ -146,6 +146,24 @@ export class myFabricDrawingModule {
         });
     }
 
+    /*
+    calculateStackWidth(programStackToDraw: myDataModelStructures.myProgramStack, textFontSize : number) : number {
+        let maxTotalTextWidth = 0;
+        
+        //Going through all stackframes present
+        for (let key in programStackToDraw.stackFrames) {
+            let value = programStackToDraw.stackFrames[key];
+            
+            if (value != null) {
+                //Checking the text length
+
+            }
+        }
+
+        return maxTotalTextWidth;
+    }
+    */
+
     drawProgramStack(programStackToDraw: myDataModelStructures.myProgramStack, startPosX = 10, startPosY = 10) {
         //Drawing all the stackframes present
         for (let key in programStackToDraw.stackFrames) {
@@ -158,19 +176,19 @@ export class myFabricDrawingModule {
         }
     }
 
-    drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10): number {
+    drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10, stackSlotWidth = 300): number {
         //Default values
         let backgroundColorBlue = '#33ccff';
         let backgroundColorGrey = '#8f8f8f';
         let backgroundColorRed = '#ff0000';
         let backgroundColorGreen = '#00ff04';
         let textFill = "black";
-        let stackSlotHeight = 30;   //Height of a single "slot" in the drawn stackframe
-        let stackSlotWidth = 300;   //Width of a single "slot" in the drawn stackframe
+        let stackSlotHeight = 30;   //Height of a single "slot" in the drawn stackframe - all remaining variables regarding text size are dynamically adjusted by this variable
+        let textFontSize = stackSlotHeight - stackSlotHeight / 3;
+        let textLeftOffset = textFontSize / 5;
 
         //Function to create a single slot in the stackframe
         let myCreateSlotFunction = function (mySlotText: string, slotBackgroundColor: string): fabric.Group {
-            //let resultFabricStackFrameArray = new Array<fabric.Group>;    //Result group of stackframe "slots"
             //Drawing the slot's background
             let fabricSlotBackground = new fabric.Rect({
                 left: startPosX,
@@ -180,28 +198,25 @@ export class myFabricDrawingModule {
                 fill: slotBackgroundColor,
 
                 //Default values
-                padding: 8,
+                padding: textFontSize / 2.5,
                 stroke: "#000000",
-                strokeWidth: 2
+                strokeWidth: textFontSize / 10
             });
             //Drawing the slot's text
             //TODO: Calculate the text positioning correctly (and width)
             let fabricSlotText = new fabric.Text(mySlotText, {
-                left: startPosX + 4,
-                top: startPosY + stackSlotHeight / 8,
+                left: startPosX + textLeftOffset,
+                top: startPosY - 2 + (stackSlotHeight - textFontSize) / 2,
                 fill: textFill,
-                fontSize: 20
+                fontSize: textFontSize
             });
 
             //Creating the result
             let resultFabricGroup = new fabric.Group([fabricSlotBackground, fabricSlotText]);
-            //Adding the "slot's" group to the result group
-            //resultFabricStackFrameArray.push(resultFabricGroup);
 
             //Moving the starting position for the next stackframe
             startPosY += stackSlotHeight;
 
-            //return resultFabricStackFrameArray;
             return resultFabricGroup;
         };
 
