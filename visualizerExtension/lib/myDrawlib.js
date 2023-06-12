@@ -623,7 +623,7 @@ window.addEventListener("message", (event)=>{
             clearCanvas();
             break;
         case "drawProgramStack":
-            currentProgramStackMessage = message.body;
+            currentProgramStackMessage = message.body; //Saving the last recieved program state
             drawProgramStackJSON(message.body); //Drawing the full JSON message
             break;
         //TODO: Remove afterwards (if it really wont be used)
@@ -669,6 +669,7 @@ class myFabricDrawingModule {
         this.canvas.setHeight(screen.height);
         this.initPanning();
         this.initZooming();
+        this.initHoverOver();
     }
     clearCanvas() {
         console.log("[DEBUG] Clearing the canvas");
@@ -725,12 +726,61 @@ class myFabricDrawingModule {
         });
     //Citation end
     }
+    initHoverOver() {
+        const requestRenderAll = this.canvas.requestRenderAll.bind(this.canvas);
+        const calculateNewHex = this.calculateLighterDarkerHex;
+        let previousObjectColor = this.cachedObjectColor;
+        this.canvas.on("mouse:over", function(opt) {
+            console.log("[DEBUG] mouse:over event - target: " + opt.target);
+            if (opt.target !== undefined && opt.target !== null) {
+                if ("_objects" in opt.target) {
+                    previousObjectColor = opt.target._objects[0].get("fill");
+                    //opt.target._objects[0].set('fill', 'red');
+                    opt.target._objects[0].set("fill", calculateNewHex(previousObjectColor, -20));
+                }
+            }
+            requestRenderAll();
+        });
+        this.canvas.on("mouse:out", function(opt) {
+            console.log("[DEBUG] mouse:out event - target: " + opt.target);
+            if (opt.target !== undefined && opt.target !== null) {
+                if ("_objects" in opt.target) {
+                    //opt.target._objects[0].set('fill', previousObjectColor);
+                    opt.target._objects[0].set("fill", previousObjectColor);
+                    previousObjectColor = "";
+                }
+            }
+            requestRenderAll();
+        });
+    }
+    //Helper function (for mouse:over events, etc.)
+    calculateLighterDarkerHex(inputHex, percentage) {
+        //Parsing the rbg values
+        const r = parseInt(inputHex.substring(1, 3), 16);
+        const g = parseInt(inputHex.substring(3, 5), 16);
+        const b = parseInt(inputHex.substring(5, 7), 16);
+        //Helper function to keep values between bounds
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+        const clampedPercentage = clamp(percentage, -100, 100); //Percentage by which to lighten / darken the color
+        const offset = Math.round(clampedPercentage / 100 * 255); //Calculated offset which will be added
+        const newR = clamp(r + offset, 0, 255);
+        const newG = clamp(g + offset, 0, 255);
+        const newB = clamp(b + offset, 0, 255);
+        //Helper function to convert decimal values back to a two-digit hex
+        function toTwoDigitHex(value) {
+            const hex = value.toString(16);
+            return hex.length === 1 ? `0${hex}` : hex;
+        }
+        return "#" + toTwoDigitHex(newR) + toTwoDigitHex(newG) + toTwoDigitHex(newB);
+    }
     lockAllItems() {
         let allFabricItems = this.canvas.getObjects();
         allFabricItems.forEach((fabricObject)=>{
             fabricObject.selectable = false;
             fabricObject.hoverCursor = "default";
-            fabricObject.evented = false;
+            fabricObject.evented = true;
         });
     }
     drawProgramStack(programStackToDraw, startPosX = 10, startPosY = 10) {
@@ -752,7 +802,7 @@ class myFabricDrawingModule {
         let stackSlotWidth = 300; //Width of a single "slot" in the drawn stackframe
         //Function to create a single slot in the stackframe
         let myCreateSlotFunction = function(mySlotText, slotBackgroundColor) {
-            let resultFabricStackFrameArray = new Array; //Result group of stackframe "slots"
+            //let resultFabricStackFrameArray = new Array<fabric.Group>;    //Result group of stackframe "slots"
             //Drawing the slot's background
             let fabricSlotBackground = new (0, _fabric.fabric).Rect({
                 left: startPosX,
@@ -779,10 +829,11 @@ class myFabricDrawingModule {
                 fabricSlotText
             ]);
             //Adding the "slot's" group to the result group
-            resultFabricStackFrameArray.push(resultFabricGroup);
+            //resultFabricStackFrameArray.push(resultFabricGroup);
             //Moving the starting position for the next stackframe
             startPosY += stackSlotHeight;
-            return resultFabricStackFrameArray;
+            //return resultFabricStackFrameArray;
+            return resultFabricGroup;
         };
         //Creating the slots
         let retAllSlots = new Array();
@@ -805,10 +856,8 @@ class myFabricDrawingModule {
             }
         }
         //Adding the result group to the canvas
-        retAllSlots.forEach((stackGroup)=>{
-            stackGroup.forEach((stackFrameSlot)=>{
-                this.canvas.add(stackFrameSlot);
-            });
+        retAllSlots.forEach((stackFrameSlot)=>{
+            this.canvas.add(stackFrameSlot);
         });
         //Locking the movement of the items
         this.lockAllItems();
