@@ -146,19 +146,37 @@ export class myFabricDrawingModule {
         });
     }
 
-    drawProgramStack(programStackToDraw: myDataModelStructures.myProgramStack, startPosX = 10, startPosY = 10) {
+    drawProgramStack(programStackToDraw: myDataModelStructures.myProgramStack, startPosX = 10, startPosY = 10, maxStackSlotWidth? : number) {
+        let shortenText = false;
+        let stackSlotHeight = 30;
+        let textFontSize = stackSlotHeight - stackSlotHeight / 3;
+        let textLeftOffset = textFontSize / 5;
+        let textRightOffset = textLeftOffset * 2;
+        let calculatedMaxTextWidth = this.calculateMaxTextWidth(programStackToDraw, textFontSize);
+
+        //If maximum stack slot width is set
+        if (typeof maxStackSlotWidth !== "undefined") {
+            //Checking if we'll need to shorten the variable text (if all variable texts are shorter than the desired stackSlotWidth)
+            shortenText = maxStackSlotWidth < calculatedMaxTextWidth;
+        }
+        
         //Drawing all the stackframes present
         for (let key in programStackToDraw.stackFrames) {
             let value = programStackToDraw.stackFrames[key];
             
             if (value != null) {
                 //Chaging the starting position with each drawn stackframe
-                startPosY = this.drawStackFrame(value, startPosX, startPosY);
+                if(shortenText) {
+                    startPosY = this.drawStackFrame(value, startPosX, startPosY, stackSlotHeight, maxStackSlotWidth, shortenText);
+                }
+                else {
+                    startPosY = this.drawStackFrame(value, startPosX, startPosY, stackSlotHeight, calculatedMaxTextWidth + textRightOffset, shortenText);
+                }
             }
         }
     }
 
-    calculateStackWidth(programStackToDraw: myDataModelStructures.myProgramStack, textFontSize : number) : number {
+    calculateMaxTextWidth(programStackToDraw: myDataModelStructures.myProgramStack, textFontSize : number) : number {
         let maxTotalTextWidth = 0;
         let allVariableTexts = new Array<string>();
         
@@ -204,16 +222,17 @@ export class myFabricDrawingModule {
         return maxTotalTextWidth;
     }
 
-    drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10, stackSlotWidth = 300): number {
+    drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10, stackSlotHeight = 30, stackSlotWidth = 300, shortenText = false): number {
         //Default values
         let backgroundColorBlue = '#33ccff';
         let backgroundColorGrey = '#8f8f8f';
         let backgroundColorRed = '#ff0000';
         let backgroundColorGreen = '#00ff04';
         let textFill = "black";
-        let stackSlotHeight = 30;   //Height of a single "slot" in the drawn stackframe - all remaining variables regarding text size are dynamically adjusted by this variable
+        //Note: Text and frame rectangle variables are dynamically adjusted by the stackSlotHeight variable
         let textFontSize = stackSlotHeight - stackSlotHeight / 3;
         let textLeftOffset = textFontSize / 5;
+        let textRightOffset = textLeftOffset * 2;
 
         //Function to create a single slot in the stackframe
         let myCreateSlotFunction = function (mySlotText: string, slotBackgroundColor: string): fabric.Group {
@@ -238,6 +257,26 @@ export class myFabricDrawingModule {
                 fill: textFill,
                 fontSize: textFontSize
             });
+
+            if (shortenText) {
+                //Checking if the text is longer than maximum
+                let maxTextLength = stackSlotWidth - textLeftOffset - textRightOffset;
+                if(fabricSlotText.getScaledWidth() > maxTextLength) {
+                    //Calculating how much to shorten the text
+                    let averageCharLength = fabricSlotText.getScaledWidth() / mySlotText.length;
+                    let overflowInWidth = fabricSlotText.getScaledWidth() - maxTextLength;
+                    let overflowInChars = overflowInWidth / averageCharLength + 1;  //+1 to account for the space of "..."
+                    let newSlotText = mySlotText.substring(0, mySlotText.length - 1 - overflowInChars) + "...";
+
+                    //Making a shortened version of the text
+                    fabricSlotText = new fabric.Text(newSlotText, {
+                        left: startPosX + textLeftOffset,
+                        top: startPosY - 2 + (stackSlotHeight - textFontSize) / 2,
+                        fill: textFill,
+                        fontSize: textFontSize
+                    });
+                }
+            }
 
             //Creating the result
             let resultFabricGroup = new fabric.Group([fabricSlotBackground, fabricSlotText]);

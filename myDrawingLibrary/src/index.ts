@@ -78,7 +78,8 @@ testProgramStack.stackFrames[testStackFrame2.frameId] = testStackFrame2;
 
 //Drawing the program stack
 console.log("[DEBUG] Drawing the full program stack");
-myDrawingModule.drawProgramStack(testProgramStack);
+myDrawingModule.drawProgramStack(testProgramStack);                 //Unlimited in length
+//myDrawingModule.drawProgramStack(testProgramStack, 10, 10, 150);    //Limited in length
 
 
 /*
