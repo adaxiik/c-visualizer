@@ -44,7 +44,6 @@ export class myFabricDrawingModule {
                     //If the clicked on object is a stackFrame header (function name without ":")
                     if (!hoveredOverObjectText.includes(":")) {
                         //Set the corresponding stackframe as collapsed / uncollapsed
-                        console.log(drawingModuleThis.cachedDrawProgramStackArguments);
                         if (drawingModuleThis.cachedDrawProgramStackArguments != undefined && drawingModuleThis.cachedDrawProgramStackArguments != null)
                         {
                             for (let key in drawingModuleThis.cachedDrawProgramStackArguments[0].stackFrames) {
@@ -135,11 +134,14 @@ export class myFabricDrawingModule {
                     {
                         //Changing the color of the variable (over which we're hovering)
                         drawingModuleThis.cachedObjectColor = opt.target._objects[0].get('fill');
-                        opt.target._objects[0].set('fill', calculateNewHex(drawingModuleThis.cachedObjectColor, -20));
-    
+                        if (drawingModuleThis.cachedObjectColor != "")
+                        {
+                            console.log("[DEBUG] Setting \"" + opt.target._objects[1].text + "\" to color \"" + drawingModuleThis.cachedObjectColor + "\"");
+                            opt.target._objects[0].set('fill', calculateNewHex(drawingModuleThis.cachedObjectColor, -20));
+                        }
     
                         //Checking if the hovered over variable is a pointer
-                        if(typeof drawingModuleThis.cachedPointers !== "undefined")
+                        if(drawingModuleThis.cachedPointers != undefined)
                         {
                             for (let i = 0; i < drawingModuleThis.cachedPointers.length; i++)
                             {
@@ -152,9 +154,9 @@ export class myFabricDrawingModule {
                                 }
                             }
                         }
+                        requestRenderAll();
                     }
                 }
-                requestRenderAll();
             }
         });
         
@@ -166,9 +168,12 @@ export class myFabricDrawingModule {
                 {
                     if("_objects" in opt.target)
                     {
-                        //opt.target._objects[0].set('fill', previousObjectColor);
-                        opt.target._objects[0].set('fill', drawingModuleThis.cachedObjectColor);
-                        drawingModuleThis.cachedObjectColor = "";
+                        if(drawingModuleThis.cachedObjectColor != "")
+                        {
+                            console.log("[DEBUG] Setting \"" + opt.target._objects[1].text + "\" to color \"" + drawingModuleThis.cachedObjectColor + "\"");
+                            opt.target._objects[0].set('fill', drawingModuleThis.cachedObjectColor);
+                            drawingModuleThis.cachedObjectColor = "";
+                        }
     
                         //Resetting the state of the pointee variable (if changed)
                         if (drawingModuleThis.cachedPointeeObject[1] !== "")
@@ -179,9 +184,9 @@ export class myFabricDrawingModule {
                             drawingModuleThis.cachedPointeeObject[0] = new fabric.Object();
                             drawingModuleThis.cachedPointeeObject[1] = "";
                         }
+                        requestRenderAll();
                     }
                 }
-                requestRenderAll();
             }
         });
     }
@@ -337,7 +342,7 @@ export class myFabricDrawingModule {
                     console.log("[DEBUG] Pointee found!")
 
                     //Saving the previous state of the pointee
-                    this.cachedPointeeObject[0] = allCanvasObjects[i]._objects[0]
+                    this.cachedPointeeObject[0] = allCanvasObjects[i]._objects[0];
                     this.cachedPointeeObject[1] = allCanvasObjects[i]._objects[0].get("fill");  
                     //Changing the pointee's color
                     allCanvasObjects[i]._objects[0].set("fill", "red");
