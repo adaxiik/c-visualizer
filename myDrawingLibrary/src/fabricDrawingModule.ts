@@ -250,7 +250,6 @@ export class myFabricDrawingModule {
                 strokeWidth: textFontSize / 10
             });
             //Drawing the slot's text
-            //TODO: Calculate the text positioning correctly (and width)
             let fabricSlotText = new fabric.Text(mySlotText, {
                 left: startPosX + textLeftOffset,
                 top: startPosY - 2 + (stackSlotHeight - textFontSize) / 2,
