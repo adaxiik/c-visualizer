@@ -21,9 +21,15 @@ let stackFrame1TestVar3 = new myDataModelStructures.myVariable();
 stackFrame1TestVar3.variableName = "stackFrame1TestVar3";
 stackFrame1TestVar3.dataTypeString = "float";
 stackFrame1TestVar3.valueString = "3.28";
+let stackFrame1TestPointerVar1 = new myDataModelStructures.myVariable();
+stackFrame1TestPointerVar1.variableName = "stackFrame1TestPointerVar1";
+stackFrame1TestPointerVar1.dataTypeString = "int *";
+stackFrame1TestPointerVar1.valueString = "stackFrame1TestVar2";
+stackFrame1TestPointerVar1.isPointer = true;
 testStackFrame1.functionVariables[stackFrame1TestVar1.variableName] = stackFrame1TestVar1;
 testStackFrame1.functionVariables[stackFrame1TestVar2.variableName] = stackFrame1TestVar2;
 testStackFrame1.functionVariables[stackFrame1TestVar3.variableName] = stackFrame1TestVar3;
+testStackFrame1.functionVariables[stackFrame1TestPointerVar1.variableName] = stackFrame1TestPointerVar1;
 //Function parameters 1
 let stackFrame1TestParam1 = new myDataModelStructures.myVariable();
 stackFrame1TestParam1.variableName = "stackFrame1TestParam1";

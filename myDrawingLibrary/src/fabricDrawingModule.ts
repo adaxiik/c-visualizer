@@ -5,6 +5,8 @@ import { myStackFrame } from "./dataModelStructures";
 export class myFabricDrawingModule {
     canvas: fabric.Canvas;
     cachedObjectColor: string;
+    cachedPointeeObject: [fabric.Object, string];   //[backgroundRectangleObject, previousColor]
+    cachedPointers: Array<[any, any]>;              //in a [pointerVariable, pointingTo] format
 
     constructor(canvasName: string) {
         this.canvas = new fabric.Canvas(canvasName);
@@ -12,6 +14,9 @@ export class myFabricDrawingModule {
         //TODO: Think the sizing through and adjust accordingly
         this.canvas.setWidth(screen.width);
         this.canvas.setHeight(screen.height);
+        this.cachedObjectColor = "";
+        this.cachedPointeeObject = [new fabric.Object, ""];
+        this.cachedPointers = new Array<[any, any]>();
 
         this.initPanning();
         this.initZooming();
@@ -78,6 +83,9 @@ export class myFabricDrawingModule {
         const requestRenderAll = this.canvas.requestRenderAll.bind(this.canvas);
         const calculateNewHex = this.calculateLighterDarkerHex;
         let previousObjectColor = this.cachedObjectColor;
+        let cachedPointers = this.cachedPointers;
+        const markPointee = this.markPointee.bind(this);
+        let cachedPointeeObject = this.cachedPointeeObject;
 
         this.canvas.on('mouse:over', function(opt) {
             console.log("[DEBUG] mouse:over event - target: " + opt.target);
@@ -85,9 +93,25 @@ export class myFabricDrawingModule {
             {
                 if("_objects" in opt.target)
                 {
+                    //Changing the color of the variable (over which we're hovering)
                     previousObjectColor = opt.target._objects[0].get('fill');
-                    //opt.target._objects[0].set('fill', 'red');
                     opt.target._objects[0].set('fill', calculateNewHex(previousObjectColor, -20));
+
+
+                    //Checking if the hovered over variable is a pointer
+                    if(typeof cachedPointers !== "undefined")
+                    {
+                        for (let i = 0; i < cachedPointers.length; i++)
+                        {
+                            let hoveredOverVariableText = opt.target._objects[1].text; 
+                            let searchedForText = cachedPointers[i][0] + ":";
+
+                            console.log("[DEBUG] Hovering over: \"" + hoveredOverVariableText + "\", searching for: \"" + searchedForText + "\"");
+                            if (hoveredOverVariableText.includes(searchedForText)) {
+                                markPointee(cachedPointers[i][1]);
+                            }
+                        }
+                    }
                 }
             }
             requestRenderAll();
@@ -102,6 +126,16 @@ export class myFabricDrawingModule {
                     //opt.target._objects[0].set('fill', previousObjectColor);
                     opt.target._objects[0].set('fill', previousObjectColor);
                     previousObjectColor = "";
+
+                    //Resetting the state of the pointee variable (if changed)
+                    if (cachedPointeeObject[1] !== "")
+                    {
+                        //Resetting the pointee's previous color
+                        cachedPointeeObject[0].set("fill", cachedPointeeObject[1]);
+                        //Clearing the cached pointee
+                        cachedPointeeObject[0] = new fabric.Object();
+                        cachedPointeeObject[1] = "";
+                    }
                 }
             }
             requestRenderAll();
@@ -146,36 +180,7 @@ export class myFabricDrawingModule {
         });
     }
 
-    drawProgramStack(programStackToDraw: myDataModelStructures.myProgramStack, startPosX = 10, startPosY = 10, maxStackSlotWidth? : number) {
-        let shortenText = false;
-        let stackSlotHeight = 30;
-        let textFontSize = stackSlotHeight - stackSlotHeight / 3;
-        let textLeftOffset = textFontSize / 5;
-        let textRightOffset = textLeftOffset * 2;
-        let calculatedMaxTextWidth = this.calculateMaxTextWidth(programStackToDraw, textFontSize);
-
-        //If maximum stack slot width is set
-        if (typeof maxStackSlotWidth !== "undefined") {
-            //Checking if we'll need to shorten the variable text (if all variable texts are shorter than the desired stackSlotWidth)
-            shortenText = maxStackSlotWidth < calculatedMaxTextWidth;
-        }
-        
-        //Drawing all the stackframes present
-        for (let key in programStackToDraw.stackFrames) {
-            let value = programStackToDraw.stackFrames[key];
-            
-            if (value != null) {
-                //Chaging the starting position with each drawn stackframe
-                if(shortenText) {
-                    startPosY = this.drawStackFrame(value, startPosX, startPosY, stackSlotHeight, maxStackSlotWidth, shortenText);
-                }
-                else {
-                    startPosY = this.drawStackFrame(value, startPosX, startPosY, stackSlotHeight, calculatedMaxTextWidth + textRightOffset, shortenText);
-                }
-            }
-        }
-    }
-
+    //Helper function used to calculate max text width in a provided program stack (used to determine neccessary slot width)
     calculateMaxTextWidth(programStackToDraw: myDataModelStructures.myProgramStack, textFontSize : number) : number {
         let maxTotalTextWidth = 0;
         let allVariableTexts = new Array<string>();
@@ -220,6 +225,114 @@ export class myFabricDrawingModule {
         }
         
         return maxTotalTextWidth;
+    }
+
+    //Helper function checking for pointer variables in a provided program stack (assigns values to the this.cachedPointers in a [pointerVariable, pointingTo] format)
+    checkForPointers(programStackToDraw: myDataModelStructures.myProgramStack) {
+        this.cachedPointers.splice(0, this.cachedPointers.length);  //Emptying the array
+
+        //Going through all stackframes present (and noting their parameter's and variable's text)
+        for (let stackFrameKey in programStackToDraw.stackFrames) {
+            let currentStackFrame = programStackToDraw.stackFrames[stackFrameKey];
+            
+            if (currentStackFrame != null) {
+                //Going through function parameters
+                for (let functionParameterKey in currentStackFrame.functionParameters) {
+                    let currentFunctionParameter = currentStackFrame.functionParameters[functionParameterKey];
+                    if (currentFunctionParameter != null) {
+                        if (currentFunctionParameter.isPointer == true) {
+                            //Check the value pointed to
+                            let valuePointedTo;
+                            if(currentFunctionParameter.value != null) {
+                                valuePointedTo = currentFunctionParameter.value;
+                            }
+                            else {
+                                valuePointedTo = currentFunctionParameter.valueString;
+                            }
+
+                            this.cachedPointers.push([currentFunctionParameter.variableName, valuePointedTo]);
+                        }
+                    }
+                }
+
+                //Going through function variables
+                for (let functionVariableKey in currentStackFrame.functionVariables) {
+                    let currentFunctionVariable = currentStackFrame.functionVariables[functionVariableKey];
+                    if (currentFunctionVariable != null) {
+                        if (currentFunctionVariable.isPointer == true) {
+                            //Check the value pointed to
+                            let valuePointedTo;
+                            if(currentFunctionVariable.value != null) {
+                                valuePointedTo = currentFunctionVariable.value;
+                            }
+                            else {
+                                valuePointedTo = currentFunctionVariable.valueString;
+                            }
+
+                            this.cachedPointers.push([currentFunctionVariable.variableName, valuePointedTo]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //Helper function to mark the pointee variable (with a different color)
+    markPointee(variableId : string) {
+        let allCanvasObjects = this.canvas.getObjects();
+        for (let i = 0; i < allCanvasObjects.length; i++) {
+            //If the canvas object is a group
+            if("_objects" in allCanvasObjects[i])
+            {
+                //If the found value is the value pointed to
+                let currentCanvasObjectText = allCanvasObjects[i]._objects[1].text;
+                let searchedForText = variableId + ":";
+                console.log("[DEBUG] Testing if \"" + currentCanvasObjectText + "\" matches \"" + searchedForText + "\"");
+                if (currentCanvasObjectText.includes(searchedForText))
+                {
+                    console.log("[DEBUG] Pointee found!")
+
+                    //Saving the previous state of the pointee
+                    this.cachedPointeeObject[0] = allCanvasObjects[i]._objects[0]
+                    this.cachedPointeeObject[1] = allCanvasObjects[i]._objects[0].get("fill");  
+                    //Changing the pointee's color
+                    allCanvasObjects[i]._objects[0].set("fill", "red");
+                }
+            }
+        }
+    }
+
+    drawProgramStack(programStackToDraw: myDataModelStructures.myProgramStack, startPosX = 10, startPosY = 10, maxStackSlotWidth? : number) {
+        let shortenText = false;
+        let stackSlotHeight = 30;
+        let textFontSize = stackSlotHeight - stackSlotHeight / 3;
+        let textLeftOffset = textFontSize / 5;
+        let textRightOffset = textLeftOffset * 2;
+        let calculatedMaxTextWidth = this.calculateMaxTextWidth(programStackToDraw, textFontSize);
+
+        //Caching the pointers in the program stack
+        this.checkForPointers(programStackToDraw);
+
+        //If maximum stack slot width is set
+        if (typeof maxStackSlotWidth !== "undefined") {
+            //Checking if we'll need to shorten the variable text (if all variable texts are shorter than the desired stackSlotWidth)
+            shortenText = maxStackSlotWidth < calculatedMaxTextWidth;
+        }
+        
+        //Drawing all the stackframes present
+        for (let key in programStackToDraw.stackFrames) {
+            let value = programStackToDraw.stackFrames[key];
+            
+            if (value != null) {
+                //Chaging the starting position with each drawn stackframe
+                if(shortenText) {
+                    startPosY = this.drawStackFrame(value, startPosX, startPosY, stackSlotHeight, maxStackSlotWidth, shortenText);
+                }
+                else {
+                    startPosY = this.drawStackFrame(value, startPosX, startPosY, stackSlotHeight, calculatedMaxTextWidth + textRightOffset, shortenText);
+                }
+            }
+        }
     }
 
     drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10, stackSlotHeight = 30, stackSlotWidth = 300, shortenText = false): number {

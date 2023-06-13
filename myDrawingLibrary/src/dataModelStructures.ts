@@ -44,6 +44,7 @@ export class myVariable {
     variableName: string;
     dataTypeEnum: myDataType;
     dataTypeString: string;
+    isPointer: boolean;                 //if true, value / valueString is the "id" of the value pointed to / address pointed to
     value: any;                         //TODO: Consider changing to a different type (I'm not yet sure, if there'll be a better type)
     valueString: string;
 }
@@ -52,7 +53,6 @@ export class myVariable {
 export class myDataType {
     dataTypeEnum: myDataTypeEnum;
     dataTypeString: string;
-    isPointer: boolean;
 }
 
 //myStruct
