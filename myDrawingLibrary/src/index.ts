@@ -8,6 +8,7 @@ var myDrawingModule = new myFabricDrawingModule('myCanvas');
 let testStackFrame1 = new myDataModelStructures.myStackFrame();
 testStackFrame1.frameId = 1;
 testStackFrame1.functionName = "TestFunction1";
+testStackFrame1.isCollapsed = false;
 //Function variables 1
 let stackFrame1TestVar1 = new myDataModelStructures.myVariable();
 stackFrame1TestVar1.variableName = "stackFrame1TestVar1";
@@ -46,6 +47,7 @@ testStackFrame1.functionParameters[stackFrame1TestParam2.variableName] = stackFr
 let testStackFrame2 = new myDataModelStructures.myStackFrame();
 testStackFrame2.frameId = 2;
 testStackFrame2.functionName = "TestFunction2";
+testStackFrame2.isCollapsed = false;
 //Function variables 2
 let stackFrame2TestVar1 = new myDataModelStructures.myVariable();
 stackFrame2TestVar1.variableName = "stackFrame2TestVar1";

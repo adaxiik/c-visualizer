@@ -26,6 +26,7 @@ export class myStackFrame {
     functionName: string;
     functionVariables: { [id: string] : myVariable } = {};      //Using a dictionary for faster usage when searching 
     functionParameters: { [id: string] : myVariable } = {};     //Using a dictionary for faster usage when searching
+    isCollapsed: boolean;
 }
 
 //myArray

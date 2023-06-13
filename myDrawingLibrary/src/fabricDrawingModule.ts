@@ -7,6 +7,7 @@ export class myFabricDrawingModule {
     cachedObjectColor: string;
     cachedPointeeObject: [fabric.Object, string];   //[backgroundRectangleObject, previousColor]
     cachedPointers: Array<[any, any]>;              //in a [pointerVariable, pointingTo] format
+    cachedDrawProgramStackArguments?: [myDataModelStructures.myProgramStack, number, number, number?];
 
     constructor(canvasName: string) {
         this.canvas = new fabric.Canvas(canvasName);
@@ -17,6 +18,7 @@ export class myFabricDrawingModule {
         this.cachedObjectColor = "";
         this.cachedPointeeObject = [new fabric.Object, ""];
         this.cachedPointers = new Array<[any, any]>();
+        this.cachedDrawProgramStackArguments = undefined;
 
         this.initPanning();
         this.initZooming();
@@ -29,11 +31,49 @@ export class myFabricDrawingModule {
     }
 
     initPanning() {
-        //Author: Unknown (Fabric.js)
-        //Date: 15.10.2022
-        //Availability: http://fabricjs.com/fabric-intro-part-5
-        //Citation start
+        let drawingModuleThis = this;
+
         this.canvas.on('mouse:down', function (opt) {
+            //Checking if the desired action was just to click (and not drag)
+            if(opt.target !== undefined && opt.target !== null)
+            {
+                //If we clicked on an object (stackframe slot)
+                if("_objects" in opt.target)
+                {
+                    let hoveredOverObjectText = opt.target._objects[1].text;
+                    //If the clicked on object is a stackFrame header (function name without ":")
+                    if (!hoveredOverObjectText.includes(":")) {
+                        //Set the corresponding stackframe as collapsed / uncollapsed
+                        console.log(drawingModuleThis.cachedDrawProgramStackArguments);
+                        if (drawingModuleThis.cachedDrawProgramStackArguments != undefined && drawingModuleThis.cachedDrawProgramStackArguments != null)
+                        {
+                            for (let key in drawingModuleThis.cachedDrawProgramStackArguments[0].stackFrames) {
+                                let value = drawingModuleThis.cachedDrawProgramStackArguments[0].stackFrames[key];
+                                
+                                if (value != null)
+                                {
+                                    if (value.functionName == hoveredOverObjectText)
+                                    {
+                                        value.isCollapsed = !value.isCollapsed;
+                                    }
+                                }
+                            }
+                            //Redraw the canvas
+                            drawingModuleThis.clearCanvas();
+                            drawingModuleThis.drawProgramStack(...drawingModuleThis.cachedDrawProgramStackArguments);
+                        }
+                    }
+                    //Preventing the mouse going to selection mode and returning (to skip the dragging logic)
+                    this.selection = false;
+                    return;
+                }
+            }
+
+            //Author: Unknown (Fabric.js)
+            //Date: 15.10.2022
+            //Availability: http://fabricjs.com/fabric-intro-part-5
+            //Citation start
+            //Handling the dragging behavior
             var evt = opt.e;
 
             this.isDragging = true;
@@ -82,63 +122,67 @@ export class myFabricDrawingModule {
     initHoverOver() {
         const requestRenderAll = this.canvas.requestRenderAll.bind(this.canvas);
         const calculateNewHex = this.calculateLighterDarkerHex;
-        let previousObjectColor = this.cachedObjectColor;
-        let cachedPointers = this.cachedPointers;
         const markPointee = this.markPointee.bind(this);
-        let cachedPointeeObject = this.cachedPointeeObject;
+        let drawingModuleThis = this;
 
         this.canvas.on('mouse:over', function(opt) {
             console.log("[DEBUG] mouse:over event - target: " + opt.target);
-            if(opt.target !== undefined && opt.target !== null)
+            if(!this.isDragging)
             {
-                if("_objects" in opt.target)
+                if(opt.target !== undefined && opt.target !== null)
                 {
-                    //Changing the color of the variable (over which we're hovering)
-                    previousObjectColor = opt.target._objects[0].get('fill');
-                    opt.target._objects[0].set('fill', calculateNewHex(previousObjectColor, -20));
-
-
-                    //Checking if the hovered over variable is a pointer
-                    if(typeof cachedPointers !== "undefined")
+                    if("_objects" in opt.target)
                     {
-                        for (let i = 0; i < cachedPointers.length; i++)
+                        //Changing the color of the variable (over which we're hovering)
+                        drawingModuleThis.cachedObjectColor = opt.target._objects[0].get('fill');
+                        opt.target._objects[0].set('fill', calculateNewHex(drawingModuleThis.cachedObjectColor, -20));
+    
+    
+                        //Checking if the hovered over variable is a pointer
+                        if(typeof drawingModuleThis.cachedPointers !== "undefined")
                         {
-                            let hoveredOverVariableText = opt.target._objects[1].text; 
-                            let searchedForText = cachedPointers[i][0] + ":";
-
-                            console.log("[DEBUG] Hovering over: \"" + hoveredOverVariableText + "\", searching for: \"" + searchedForText + "\"");
-                            if (hoveredOverVariableText.includes(searchedForText)) {
-                                markPointee(cachedPointers[i][1]);
+                            for (let i = 0; i < drawingModuleThis.cachedPointers.length; i++)
+                            {
+                                let hoveredOverVariableText = opt.target._objects[1].text; 
+                                let searchedForText = drawingModuleThis.cachedPointers[i][0] + ":";
+    
+                                console.log("[DEBUG] Hovering over: \"" + hoveredOverVariableText + "\", searching for: \"" + searchedForText + "\"");
+                                if (hoveredOverVariableText.includes(searchedForText)) {
+                                    markPointee(drawingModuleThis.cachedPointers[i][1]);
+                                }
                             }
                         }
                     }
                 }
+                requestRenderAll();
             }
-            requestRenderAll();
         });
         
         this.canvas.on('mouse:out', function(opt) {
             console.log("[DEBUG] mouse:out event - target: " + opt.target);
-            if(opt.target !== undefined && opt.target !== null)
+            if(!this.isDragging)
             {
-                if("_objects" in opt.target)
+                if(opt.target !== undefined && opt.target !== null)
                 {
-                    //opt.target._objects[0].set('fill', previousObjectColor);
-                    opt.target._objects[0].set('fill', previousObjectColor);
-                    previousObjectColor = "";
-
-                    //Resetting the state of the pointee variable (if changed)
-                    if (cachedPointeeObject[1] !== "")
+                    if("_objects" in opt.target)
                     {
-                        //Resetting the pointee's previous color
-                        cachedPointeeObject[0].set("fill", cachedPointeeObject[1]);
-                        //Clearing the cached pointee
-                        cachedPointeeObject[0] = new fabric.Object();
-                        cachedPointeeObject[1] = "";
+                        //opt.target._objects[0].set('fill', previousObjectColor);
+                        opt.target._objects[0].set('fill', drawingModuleThis.cachedObjectColor);
+                        drawingModuleThis.cachedObjectColor = "";
+    
+                        //Resetting the state of the pointee variable (if changed)
+                        if (drawingModuleThis.cachedPointeeObject[1] !== "")
+                        {
+                            //Resetting the pointee's previous color
+                            drawingModuleThis.cachedPointeeObject[0].set("fill", drawingModuleThis.cachedPointeeObject[1]);
+                            //Clearing the cached pointee
+                            drawingModuleThis.cachedPointeeObject[0] = new fabric.Object();
+                            drawingModuleThis.cachedPointeeObject[1] = "";
+                        }
                     }
                 }
+                requestRenderAll();
             }
-            requestRenderAll();
         });
     }
 
@@ -310,6 +354,9 @@ export class myFabricDrawingModule {
         let textRightOffset = textLeftOffset * 2;
         let calculatedMaxTextWidth = this.calculateMaxTextWidth(programStackToDraw, textFontSize);
 
+        //Saving the now drawn program stack state (and the arguments of the last call)
+        this.cachedDrawProgramStackArguments = [programStackToDraw, startPosX, startPosY, maxStackSlotWidth];
+
         //Caching the pointers in the program stack
         this.checkForPointers(programStackToDraw);
 
@@ -404,7 +451,7 @@ export class myFabricDrawingModule {
         //Function name
         retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
         //Function variables
-        if (stackFrameToDraw.functionVariables != null)
+        if (stackFrameToDraw.functionVariables != null && !stackFrameToDraw.isCollapsed)
         {
             for (let key in stackFrameToDraw.functionVariables) {
                 let value = stackFrameToDraw.functionVariables[key];
@@ -416,7 +463,7 @@ export class myFabricDrawingModule {
             }
         }
         //Function parameters
-        if (stackFrameToDraw.functionParameters != null)
+        if (stackFrameToDraw.functionParameters != null && !stackFrameToDraw.isCollapsed)
         {
             for (let key in stackFrameToDraw.functionParameters) {
                 let value = stackFrameToDraw.functionParameters[key];
