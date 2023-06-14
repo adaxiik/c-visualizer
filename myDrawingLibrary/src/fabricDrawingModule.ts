@@ -133,12 +133,7 @@ export class myFabricDrawingModule {
                     if("_objects" in opt.target)
                     {
                         //Changing the color of the variable (over which we're hovering)
-                        drawingModuleThis.cachedObjectColor = opt.target._objects[0].get('fill');
-                        if (drawingModuleThis.cachedObjectColor != "")
-                        {
-                            console.log("[DEBUG] Setting \"" + opt.target._objects[1].text + "\" to color \"" + drawingModuleThis.cachedObjectColor + "\"");
-                            opt.target._objects[0].set('fill', calculateNewHex(drawingModuleThis.cachedObjectColor, -20));
-                        }
+                        drawingModuleThis.setObjectColor(opt.target, calculateNewHex(opt.target._objects[0].get('fill'), -20), true, false);
     
                         //Checking if the hovered over variable is a pointer
                         if(drawingModuleThis.cachedPointers != undefined)
@@ -168,12 +163,7 @@ export class myFabricDrawingModule {
                 {
                     if("_objects" in opt.target)
                     {
-                        if(drawingModuleThis.cachedObjectColor != "")
-                        {
-                            console.log("[DEBUG] Setting \"" + opt.target._objects[1].text + "\" to color \"" + drawingModuleThis.cachedObjectColor + "\"");
-                            opt.target._objects[0].set('fill', drawingModuleThis.cachedObjectColor);
-                            drawingModuleThis.cachedObjectColor = "";
-                        }
+                        drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cachedObjectColor, false, true);
     
                         //Resetting the state of the pointee variable (if changed)
                         if (drawingModuleThis.cachedPointeeObject[1] !== "")
@@ -189,6 +179,32 @@ export class myFabricDrawingModule {
                 }
             }
         });
+    }
+
+    //Helper function to change a color of an object (stack slot) - after the change, there must be a call to "requestRenderAll()" afterwards
+    setObjectColor(affectedObject : fabric.Object, newObjectColor : string, savePreviousColor : boolean, clearColorCache : boolean) {
+        if(affectedObject !== undefined && affectedObject !== null)
+        {
+            if("_objects" in affectedObject)
+            {
+                if(newObjectColor != "")
+                {
+                    if(savePreviousColor && clearColorCache)
+                        console.log("[DEBUG] Error - tried to save previous color and clear cache at the same time");
+                    else if(savePreviousColor)
+                        this.cachedObjectColor = affectedObject._objects[0].get("fill");
+                    else if(clearColorCache)
+                        this.cachedObjectColor = "";
+
+                    console.log("[DEBUG] Setting \"" + affectedObject._objects[1].text + "\" to color \"" + newObjectColor + "\"");
+                    affectedObject._objects[0].set('fill', newObjectColor);
+                }
+                else
+                {
+                    console.log("[DEBUG] Error - tried to set \"" + affectedObject._objects[1].text + "to empty color");
+                }
+            }
+        }
     }
 
     //Helper function (for mouse:over events, etc.)
