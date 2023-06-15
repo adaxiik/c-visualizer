@@ -6,6 +6,7 @@ export class myFabricDrawingModule {
     canvas: fabric.Canvas;
     cachedObjectColor: string;
     cachedPointeeObject: [fabric.Object, string];   //[backgroundRectangleObject, previousColor]
+    cachedPointerArrowObject : fabric.Object | undefined;   //Fabric object representing the arrow between variables (presuming there is only one arrow object temporarily present)
     cachedPointers: Array<[any, any]>;              //in a [pointerVariable, pointingTo] format
     cachedDrawProgramStackArguments?: [myDataModelStructures.myProgramStack, number, number, number?];
 
@@ -17,6 +18,7 @@ export class myFabricDrawingModule {
         this.canvas.setHeight(screen.height);
         this.cachedObjectColor = "";
         this.cachedPointeeObject = [new fabric.Object, ""];
+        this.cachedPointerArrowObject = undefined;
         this.cachedPointers = new Array<[any, any]>();
         this.cachedDrawProgramStackArguments = undefined;
 
@@ -140,12 +142,23 @@ export class myFabricDrawingModule {
                         {
                             for (let i = 0; i < drawingModuleThis.cachedPointers.length; i++)
                             {
-                                let hoveredOverVariableText = opt.target._objects[1].text; 
-                                let searchedForText = drawingModuleThis.cachedPointers[i][0] + ":";
-    
-                                console.log("[DEBUG] Hovering over: \"" + hoveredOverVariableText + "\", searching for: \"" + searchedForText + "\"");
-                                if (hoveredOverVariableText.includes(searchedForText)) {
-                                    markPointee(drawingModuleThis.cachedPointers[i][1]);
+                                if("text" in opt.target._objects[1])
+                                {
+                                    let hoveredOverVariableText = opt.target._objects[1].text; 
+                                    let searchedForText = drawingModuleThis.cachedPointers[i][0] + ":";
+        
+                                    console.log("[DEBUG] Hovering over: \"" + hoveredOverVariableText + "\", searching for: \"" + searchedForText + "\"");
+                                    //If the hovered over variable is of pointer type
+                                    if (hoveredOverVariableText.includes(searchedForText)) {
+                                        markPointee(drawingModuleThis.cachedPointers[i][1]);
+                                        
+                                        let fromVariableObject = drawingModuleThis.findObjectByText(hoveredOverVariableText);
+                                        let toVariableObject = drawingModuleThis.findObjectByText(drawingModuleThis.cachedPointers[i][1]);
+                                        if (fromVariableObject == undefined || toVariableObject == undefined)
+                                            console.log("[DEBUG] Error - FROM variable or TO variable are undefined");
+                                        else
+                                            drawingModuleThis.drawArrowBetweenVariables(fromVariableObject, toVariableObject);
+                                    }
                                 }
                             }
                         }
@@ -173,12 +186,40 @@ export class myFabricDrawingModule {
                             //Clearing the cached pointee
                             drawingModuleThis.cachedPointeeObject[0] = new fabric.Object();
                             drawingModuleThis.cachedPointeeObject[1] = "";
+
+                            //Deleting the arrow object from canvas (if present)
+                            if(drawingModuleThis.cachedPointerArrowObject != undefined)
+                            {
+                                drawingModuleThis.canvas.remove(drawingModuleThis.cachedPointerArrowObject);
+                                drawingModuleThis.cachedPointerArrowObject = undefined;
+                            }
                         }
                         requestRenderAll();
                     }
                 }
             }
         });
+    }
+
+    //Helper function to return the object with the searched for text
+    findObjectByText(searchedForText : string) : fabric.Object | undefined {
+        let allCanvasObjects = this.canvas.getObjects();
+        for (let i = 0; i < allCanvasObjects.length; i++)
+        {
+            //If the canvas object is a group
+            if("_objects" in allCanvasObjects[i])
+            {
+                console.log("[DEBUG] Testing if \"" + allCanvasObjects[i]._objects[1].text + "\" matches \"" + searchedForText + "\"");
+                //If the text object's text matches the searched for value
+                if (allCanvasObjects[i]._objects[1].text.includes(searchedForText))
+                {
+                    console.log("[DEBUG] Text match found!");
+                    return allCanvasObjects[i];
+                }
+            }
+        }
+        console.log("[DEBUG] Text match not found!");
+        return undefined;
     }
 
     //Helper function to change a color of an object (stack slot) - after the change, there must be a call to "requestRenderAll()" afterwards
@@ -344,26 +385,65 @@ export class myFabricDrawingModule {
 
     //Helper function to mark the pointee variable (with a different color)
     markPointee(variableId : string) {
-        let allCanvasObjects = this.canvas.getObjects();
-        for (let i = 0; i < allCanvasObjects.length; i++) {
-            //If the canvas object is a group
-            if("_objects" in allCanvasObjects[i])
-            {
-                //If the found value is the value pointed to
-                let currentCanvasObjectText = allCanvasObjects[i]._objects[1].text;
-                let searchedForText = variableId + ":";
-                console.log("[DEBUG] Testing if \"" + currentCanvasObjectText + "\" matches \"" + searchedForText + "\"");
-                if (currentCanvasObjectText.includes(searchedForText))
-                {
-                    console.log("[DEBUG] Pointee found!")
+        let searchedForText = variableId + ":";
+        let searchedForVariableObject = this.findObjectByText(searchedForText);
+                
+        if (searchedForVariableObject != undefined)
+        {
+            console.log("[DEBUG] Pointee found!")
 
-                    //Saving the previous state of the pointee
-                    this.cachedPointeeObject[0] = allCanvasObjects[i]._objects[0];
-                    this.cachedPointeeObject[1] = allCanvasObjects[i]._objects[0].get("fill");  
-                    //Changing the pointee's color
-                    allCanvasObjects[i]._objects[0].set("fill", "red");
-                }
-            }
+            //Saving the previous state of the pointee
+            this.cachedPointeeObject[0] = searchedForVariableObject._objects[0];
+            this.cachedPointeeObject[1] = searchedForVariableObject._objects[0].get("fill");  
+            //Changing the pointee's color
+            searchedForVariableObject._objects[0].set("fill", "red");
+        }
+    }
+
+    //Helper function to draw an arrow between two slots (used for pointers) - arrowOffset changes how far the arrow stretches sideways
+    drawArrowBetweenVariables(fromVariableObject : fabric.Object, toVariableObject : fabric.Object, arrowOffset = 1) {
+        let arrowColor = "black";
+        let arrowEndTriangleWidth = 10;
+        let arrowEndTriangleHeight = 15;
+
+        if("_objects" in fromVariableObject && "_objects" in toVariableObject)
+        {
+            console.log("[DEBUG] Drawing an arrow between \"" + fromVariableObject._objects[1].text + "\" and \"" + toVariableObject._objects[1].text);
+            let fromVariableObjectPosition = fromVariableObject.getCoords(true);    //Neccessary to get the absolute coordinates
+            let toVariableObjectPosition = toVariableObject.getCoords(true);        //Neccessary to get the absolute coordinates
+            let fromVarRightMiddlePoint =   [fromVariableObjectPosition[1].x,   fromVariableObjectPosition[1].y + (fromVariableObjectPosition[2].y  - fromVariableObjectPosition[1].y)  / 2];
+            let toVarRightMiddlePoint =     [toVariableObjectPosition[1].x,     toVariableObjectPosition[1].y   + (toVariableObjectPosition[2].y    - toVariableObjectPosition[1].y)    / 2];
+
+            //Drawing an arrow from the variable objects right X and middle points (Y)
+            var lineStart = new fabric.Line([fromVarRightMiddlePoint[0] + arrowOffset * 50 + 1, fromVarRightMiddlePoint[1], fromVarRightMiddlePoint[0], fromVarRightMiddlePoint[1]], {
+                stroke: arrowColor
+            });
+
+            var lineMiddle = new fabric.Line([fromVarRightMiddlePoint[0] + arrowOffset * 50, fromVarRightMiddlePoint[1], toVarRightMiddlePoint[0] + arrowOffset * 50, toVarRightMiddlePoint[1]], {
+                stroke: arrowColor
+            });
+            
+            var lineEnd = new fabric.Line([toVarRightMiddlePoint[0] + arrowOffset * 50, toVarRightMiddlePoint[1], toVarRightMiddlePoint[0] + arrowEndTriangleWidth, toVarRightMiddlePoint[1]], {
+                stroke: arrowColor
+            });
+
+
+            var endTriangle = new fabric.Triangle({
+                width: arrowEndTriangleWidth, 
+                height: arrowEndTriangleHeight, 
+                fill: arrowColor, 
+                left: toVarRightMiddlePoint[0], 
+                top: toVarRightMiddlePoint[1] + arrowEndTriangleHeight / 2 - 1,
+                angle: 270
+            });
+
+            var arrowObjectGroup = new fabric.Group([lineStart, lineMiddle, lineEnd, endTriangle]);
+            this.cachedPointerArrowObject = arrowObjectGroup;   //Saving the reference (for later deletion - presuming the arrow object is just one)
+            this.canvas.add(arrowObjectGroup);
+        }
+        else
+        {
+            console.log("[DEBUG] FROM or TO variable object doesn't have an \"_objects\" property");
         }
     }
 
