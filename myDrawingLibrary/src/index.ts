@@ -88,7 +88,7 @@ testProgramStack.stackFrames[testStackFrame2.frameId] = testStackFrame2;
 console.log("[DEBUG] Drawing the full program stack");
 myDrawingModule.drawProgramStack(testProgramStack);                 //Unlimited in length
 //myDrawingModule.drawProgramStack(testProgramStack, 10, 10, 150);    //Limited in length
-*/
+
 
 
 //Testing variables
@@ -100,7 +100,7 @@ testString.valueString = "I am a testing string.";
 
 console.log("[DEBUG] Drawing the testing string");
 myDrawingModule.drawVariable(testString);
-/*
+
 //Example char
 let testChar = new myDataModelStructures.Variable();
 testChar.variableName = "testCharVariable";
@@ -118,7 +118,7 @@ testInt.valueString = "846151";
 
 console.log("[DEBUG] Drawing the testing int");
 myDrawingModule.drawVariable(testInt);
-
+*/
 //Example bool
 let testBool = new myDataModelStructures.Variable();
 testBool.variableName = "testBoolVariable";
@@ -127,4 +127,4 @@ testBool.valueString = "1";
 
 console.log("[DEBUG] Drawing the testing bool");
 myDrawingModule.drawVariable(testBool);
-*/
+//*/

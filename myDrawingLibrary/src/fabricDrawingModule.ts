@@ -75,6 +75,175 @@ class StringWidget implements Widget {
     }
 }
 
+class CharWidget implements Widget {
+    canvas: CustomCanvas;
+    dataModelObject: DataModelStructures.Variable;
+    fabricObject: fabric.Group;
+    startPos: {x: number, y: number};
+    children: Array<Widget>;
+
+    constructor(variableToDraw: DataModelStructures.Variable, drawToCanvas: CustomCanvas, setStartPosX = 10, setStartPosY = 10) {
+        this.canvas = drawToCanvas;
+        this.dataModelObject = variableToDraw;
+        this.fabricObject = new fabric.Group();
+        this.startPos = {x: setStartPosX, y: setStartPosY};
+        this.children = new Array<Widget>();
+    }
+
+    get width(): number | undefined {
+        let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
+
+        return coords[0].x - coords[1].x;
+    }
+
+    get height(): number | undefined {
+        let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
+
+        return coords[0].y - coords[3].y;
+    }
+
+    draw() {
+        //Checking if the variable is really a char
+        if (this.dataModelObject.dataTypeString != "char")
+            return;
+    
+        //Default values
+        let textFill = "black";
+    
+        //Drawing the slot's text
+        let finalString = this.dataModelObject.variableName + " : \'" + this.dataModelObject.valueString + "\'";
+        let fabricSlotText = new fabric.Text(finalString, {
+            left: this.startPos.x,
+            top: this.startPos.y,
+            fill: textFill,
+            fontSize: 20
+        });
+    
+        //Creating the result
+        this.fabricObject = new fabric.Group([fabricSlotText]);
+    
+        //Adding the result group to the canvas
+        this.canvas.add(this.fabricObject);
+    
+        //Locking the movement of the items
+        this.canvas.lockAllItems();
+    }
+}
+
+class NumberWidget implements Widget {
+    canvas: CustomCanvas;
+    dataModelObject: DataModelStructures.Variable;
+    fabricObject: fabric.Group;
+    startPos: {x: number, y: number};
+    children: Array<Widget>;
+
+    constructor(variableToDraw: DataModelStructures.Variable, drawToCanvas: CustomCanvas, setStartPosX = 10, setStartPosY = 10) {
+        this.canvas = drawToCanvas;
+        this.dataModelObject = variableToDraw;
+        this.fabricObject = new fabric.Group();
+        this.startPos = {x: setStartPosX, y: setStartPosY};
+        this.children = new Array<Widget>();
+    }
+
+    get width(): number | undefined {
+        let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
+
+        return coords[0].x - coords[1].x;
+    }
+
+    get height(): number | undefined {
+        let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
+
+        return coords[0].y - coords[3].y;
+    }
+
+    draw() {
+        //Checking if the variable is really a number
+        if (this.dataModelObject.dataTypeString != "number" &&
+            this.dataModelObject.dataTypeString != "int" &&
+            this.dataModelObject.dataTypeString != "float")
+            return;
+
+        //Default values
+        let textFill = "black";
+
+        //Drawing the slot's text
+        let finalString = this.dataModelObject.variableName + " : " + this.dataModelObject.valueString;
+        let fabricSlotText = new fabric.Text(finalString, {
+            left: this.startPos.x,
+            top: this.startPos.y,
+            fill: textFill,
+            fontSize: 20
+        });
+
+        //Creating the result
+        this.fabricObject = new fabric.Group([fabricSlotText]);
+
+        //Adding the result group to the canvas
+        this.canvas.add(this.fabricObject);
+
+        //Locking the movement of the items
+        this.canvas.lockAllItems();
+    }
+}
+
+class BooleanWidget implements Widget {
+    canvas: CustomCanvas;
+    dataModelObject: DataModelStructures.Variable;
+    fabricObject: fabric.Group;
+    startPos: {x: number, y: number};
+    children: Array<Widget>;
+
+    constructor(variableToDraw: DataModelStructures.Variable, drawToCanvas: CustomCanvas, setStartPosX = 10, setStartPosY = 10) {
+        this.canvas = drawToCanvas;
+        this.dataModelObject = variableToDraw;
+        this.fabricObject = new fabric.Group();
+        this.startPos = {x: setStartPosX, y: setStartPosY};
+        this.children = new Array<Widget>();
+    }
+
+    get width(): number | undefined {
+        let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
+
+        return coords[0].x - coords[1].x;
+    }
+
+    get height(): number | undefined {
+        let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
+
+        return coords[0].y - coords[3].y;
+    }
+
+    draw() {
+        //Checking if the variable is really a number
+        if (this.dataModelObject.dataTypeString != "bool" &&
+            this.dataModelObject.dataTypeString != "boolean")
+            return;
+
+        //Default values
+        let textFill = "black";
+
+        //Drawing the slot's text
+        let tempValueString = this.dataModelObject.valueString = "1" ? "true" : "false";
+        let finalString = this.dataModelObject.variableName + " : " + tempValueString;
+        let fabricSlotText = new fabric.Text(finalString, {
+            left: this.startPos.x,
+            top: this.startPos.y,
+            fill: textFill,
+            fontSize: 20
+        });
+
+        //Creating the result
+        this.fabricObject = new fabric.Group([fabricSlotText]);
+
+        //Adding the result group to the canvas
+        this.canvas.add(this.fabricObject);
+
+        //Locking the movement of the items
+        this.canvas.lockAllItems();
+    }
+}
+
 class CustomCanvas extends fabric.Canvas {
     lockAllItems()
     {
@@ -671,127 +840,15 @@ export class FabricDrawingModule {
         if (variableToDraw.dataTypeString == "string")
             new StringWidget(variableToDraw, this.canvas, startPosX, startPosY).draw();
         else if (variableToDraw.dataTypeString == "char")
-            this.drawChar(variableToDraw, startPosX, startPosY);
+            new CharWidget(variableToDraw, this.canvas, startPosX, startPosY).draw();
         else if (variableToDraw.dataTypeString == "number" ||
             variableToDraw.dataTypeString == "int" ||
             variableToDraw.dataTypeString == "float")
-            this.drawNumber(variableToDraw, startPosX, startPosY);
+            new NumberWidget(variableToDraw, this.canvas, startPosX, startPosY).draw();
         else if (variableToDraw.dataTypeString == "bool" ||
             variableToDraw.dataTypeString == "boolean")
-            this.drawBool(variableToDraw, startPosX, startPosY)
+            new BooleanWidget(variableToDraw, this.canvas, startPosX, startPosY).draw();
         else
             return;
-    }
-
-    drawString(stringToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
-        //Checking if the variable is really a string
-        if (stringToDraw.dataTypeString != "string")
-            return;
-
-        //Default values
-        let textFill = "black";
-
-        //Drawing the slot's text
-        let finalString = stringToDraw.variableName + " : \"" + stringToDraw.valueString + "\"";
-        let fabricSlotText = new fabric.Text(finalString, {
-            left: startPosX,
-            top: startPosY,
-            fill: textFill,
-            fontSize: 20
-        });
-
-        //Creating the result
-        let resultFabricGroup = new fabric.Group([fabricSlotText]);
-
-        //Adding the result group to the canvas
-        this.canvas.add(resultFabricGroup);
-
-        //Locking the movement of the items
-        this.canvas.lockAllItems();
-    }
-
-    drawChar(charToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
-        //Checking if the variable is really a char
-        if (charToDraw.dataTypeString != "char")
-            return;
-
-        //Default values
-        let textFill = "black";
-
-        //Drawing the slot's text
-        let finalString = charToDraw.variableName + " : \'" + charToDraw.valueString + "\'";
-        let fabricSlotText = new fabric.Text(finalString, {
-            left: startPosX,
-            top: startPosY,
-            fill: textFill,
-            fontSize: 20
-        });
-
-        //Creating the result
-        let resultFabricGroup = new fabric.Group([fabricSlotText]);
-
-        //Adding the result group to the canvas
-        this.canvas.add(resultFabricGroup);
-
-        //Locking the movement of the items
-        this.canvas.lockAllItems();
-    }
-
-    drawNumber(numberToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
-        //Checking if the variable is really a number
-        if (numberToDraw.dataTypeString != "number" &&
-            numberToDraw.dataTypeString != "int" &&
-            numberToDraw.dataTypeString != "float")
-            return;
-
-        //Default values
-        let textFill = "black";
-
-        //Drawing the slot's text
-        let finalString = numberToDraw.variableName + " : " + numberToDraw.valueString;
-        let fabricSlotText = new fabric.Text(finalString, {
-            left: startPosX,
-            top: startPosY,
-            fill: textFill,
-            fontSize: 20
-        });
-
-        //Creating the result
-        let resultFabricGroup = new fabric.Group([fabricSlotText]);
-
-        //Adding the result group to the canvas
-        this.canvas.add(resultFabricGroup);
-
-        //Locking the movement of the items
-        this.canvas.lockAllItems();
-    }
-
-    drawBool(boolToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
-        //Checking if the variable is really a number
-        if (boolToDraw.dataTypeString != "bool" &&
-            boolToDraw.dataTypeString != "boolean")
-            return;
-
-        //Default values
-        let textFill = "black";
-
-        //Drawing the slot's text
-        let tempValueString = boolToDraw.valueString = "1" ? "true" : "false";
-        let finalString = boolToDraw.variableName + " : " + tempValueString;
-        let fabricSlotText = new fabric.Text(finalString, {
-            left: startPosX,
-            top: startPosY,
-            fill: textFill,
-            fontSize: 20
-        });
-
-        //Creating the result
-        let resultFabricGroup = new fabric.Group([fabricSlotText]);
-
-        //Adding the result group to the canvas
-        this.canvas.add(resultFabricGroup);
-
-        //Locking the movement of the items
-        this.canvas.lockAllItems();
     }
 }
