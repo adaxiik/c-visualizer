@@ -295,9 +295,11 @@ export class FabricDrawingModule {
             if(opt.target !== undefined && opt.target !== null)
             {
                 //If we clicked on an object (stackframe slot)
-                if("_objects" in opt.target)
+                if(opt.target instanceof fabric.Group)
                 {
-                    let hoveredOverObjectText = opt.target._objects[1].text;
+                    let hoveredOverObjectText;
+                    if(opt.target._objects[1] instanceof fabric.Text)
+                        hoveredOverObjectText = opt.target._objects[1].text;
                     //If the clicked on object is a stackFrame header (function name without ":")
                     if (!hoveredOverObjectText.includes(":")) {
                         //Set the corresponding stackframe as collapsed / uncollapsed
@@ -387,10 +389,14 @@ export class FabricDrawingModule {
             {
                 if(opt.target !== undefined && opt.target !== null)
                 {
-                    if("_objects" in opt.target)
+                    if(opt.target instanceof fabric.Group)
                     {
                         //Changing the color of the variable (over which we're hovering)
-                        drawingModuleThis.setObjectColor(opt.target, calculateNewHex(opt.target._objects[0].get('fill'), -20), true, false);
+                        let previousObjectColor = opt.target._objects[0].get('fill')?.toString();
+                        if (previousObjectColor != undefined)
+                            drawingModuleThis.setObjectColor(opt.target, calculateNewHex(previousObjectColor, -20), true, false);
+                        else
+                            console.log("[DEBUG] Error - previousObjectColor was undefined");
     
                         //Checking if the hovered over variable is a pointer
                         if(drawingModuleThis.cachedPointers != undefined)
@@ -399,7 +405,9 @@ export class FabricDrawingModule {
                             {
                                 if("text" in opt.target._objects[1])
                                 {
-                                    let hoveredOverVariableText = opt.target._objects[1].text; 
+                                    let hoveredOverVariableText;
+                                    if(opt.target._objects[1] instanceof fabric.Text)
+                                        hoveredOverVariableText = opt.target._objects[1].text;
                                     let searchedForText = drawingModuleThis.cachedPointers[i][0] + ":";
         
                                     console.log("[DEBUG] Hovering over: \"" + hoveredOverVariableText + "\", searching for: \"" + searchedForText + "\"");
@@ -429,7 +437,7 @@ export class FabricDrawingModule {
             {
                 if(opt.target !== undefined && opt.target !== null)
                 {
-                    if("_objects" in opt.target)
+                    if(opt.target instanceof fabric.Group)
                     {
                         drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cachedObjectColor, false, true);
     
@@ -461,15 +469,27 @@ export class FabricDrawingModule {
         let allCanvasObjects = this.canvas.getObjects();
         for (let i = 0; i < allCanvasObjects.length; i++)
         {
+            let currentObject = allCanvasObjects[i];
             //If the canvas object is a group
-            if("_objects" in allCanvasObjects[i])
+            if(currentObject instanceof fabric.Group)
             {
-                console.log("[DEBUG] Testing if \"" + allCanvasObjects[i]._objects[1].text + "\" matches \"" + searchedForText + "\"");
-                //If the text object's text matches the searched for value
-                if (allCanvasObjects[i]._objects[1].text.includes(searchedForText))
+                if(currentObject._objects[1] instanceof fabric.Text)
                 {
-                    console.log("[DEBUG] Text match found!");
-                    return allCanvasObjects[i];
+                    console.log("[DEBUG] Testing if \"" + currentObject._objects[1].text + "\" matches \"" + searchedForText + "\"");
+                    //If the text object's text matches the searched for value
+                    if (currentObject._objects[1].text != undefined && currentObject._objects[1].text.includes(searchedForText))
+                    {
+                        console.log("[DEBUG] Text match found!");
+                        return currentObject;
+                    }
+                    else
+                    {
+                        console.log("[DEBUG] Error - currentObject._objects[1].text was undefined");
+                    }
+                }
+                else
+                {
+                    console.log("[DEBUG] Error - currentObject doesn't contain text (not at the [1] position)");
                 }
             }
         }
@@ -481,23 +501,38 @@ export class FabricDrawingModule {
     setObjectColor(affectedObject : fabric.Object, newObjectColor : string, savePreviousColor : boolean, clearColorCache : boolean) {
         if(affectedObject !== undefined && affectedObject !== null)
         {
-            if("_objects" in affectedObject)
+            if(affectedObject instanceof fabric.Group)
             {
                 if(newObjectColor != "")
                 {
                     if(savePreviousColor && clearColorCache)
+                    {
                         console.log("[DEBUG] Error - tried to save previous color and clear cache at the same time");
+                    }
                     else if(savePreviousColor)
-                        this.cachedObjectColor = affectedObject._objects[0].get("fill");
+                    {
+                        let previousObjectColor = affectedObject._objects[0].get("fill")?.toString(); 
+                        if(previousObjectColor != undefined)
+                            this.cachedObjectColor = previousObjectColor;
+                    }
                     else if(clearColorCache)
+                    {
                         this.cachedObjectColor = "";
+                    }
 
-                    console.log("[DEBUG] Setting \"" + affectedObject._objects[1].text + "\" to color \"" + newObjectColor + "\"");
+                    if(affectedObject._objects[1] instanceof fabric.Text)
+                        console.log("[DEBUG] Setting \"" + affectedObject._objects[1].text + "\" to color \"" + newObjectColor + "\"");
+                    else
+                        console.log("[DEBUG] Error - affectedObject doesn't contain text (not at the [1] position)");
+                    
                     affectedObject._objects[0].set('fill', newObjectColor);
                 }
                 else
                 {
-                    console.log("[DEBUG] Error - tried to set \"" + affectedObject._objects[1].text + "to empty color");
+                    if(affectedObject._objects[1] instanceof fabric.Text)
+                        console.log("[DEBUG] Error - tried to set \"" + affectedObject._objects[1].text + "to empty color");
+                    else
+                        console.log("[DEBUG] Error - affectedObject doesn't contain text (not at the [1] position)");
                 }
             }
         }
@@ -633,13 +668,17 @@ export class FabricDrawingModule {
         let searchedForText = variableId + ":";
         let searchedForVariableObject = this.findObjectByText(searchedForText);
                 
-        if (searchedForVariableObject != undefined)
+        if (searchedForVariableObject instanceof fabric.Group)
         {
             console.log("[DEBUG] Pointee found!")
 
             //Saving the previous state of the pointee
             this.cachedPointeeObject[0] = searchedForVariableObject._objects[0];
-            this.cachedPointeeObject[1] = searchedForVariableObject._objects[0].get("fill");  
+            let previousColor = searchedForVariableObject._objects[0].get("fill")?.toString();
+            if (previousColor != undefined)
+                this.cachedPointeeObject[1] = previousColor;  
+            else
+                console.log("[DEBUG] Error - previous pointee color is undefined");
             //Changing the pointee's color
             searchedForVariableObject._objects[0].set("fill", "red");
         }
@@ -651,9 +690,12 @@ export class FabricDrawingModule {
         let arrowEndTriangleWidth = 10;
         let arrowEndTriangleHeight = 15;
 
-        if("_objects" in fromVariableObject && "_objects" in toVariableObject)
+        if(fromVariableObject instanceof fabric.Group && toVariableObject instanceof fabric.Group)
         {
-            console.log("[DEBUG] Drawing an arrow between \"" + fromVariableObject._objects[1].text + "\" and \"" + toVariableObject._objects[1].text);
+            if (fromVariableObject._objects[1] instanceof fabric.Text && toVariableObject._objects[1] instanceof fabric.Text)
+                console.log("[DEBUG] Drawing an arrow between \"" + fromVariableObject._objects[1].text + "\" and \"" + toVariableObject._objects[1].text);
+            else
+                console.log("[DEBUG] Error - fromVariableObject or toVariableObject doesn't contain text (not at the [1] position)");
             let fromVariableObjectPosition = fromVariableObject.getCoords(true);    //Neccessary to get the absolute coordinates
             let toVariableObjectPosition = toVariableObject.getCoords(true);        //Neccessary to get the absolute coordinates
             let fromVarRightMiddlePoint =   [fromVariableObjectPosition[1].x,   fromVariableObjectPosition[1].y + (fromVariableObjectPosition[2].y  - fromVariableObjectPosition[1].y)  / 2];
