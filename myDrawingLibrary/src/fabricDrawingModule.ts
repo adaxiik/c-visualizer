@@ -1,8 +1,95 @@
 import { fabric } from "fabric";
 import * as DataModelStructures from "./dataModelStructures";
 
+interface Widget {
+    canvas: CustomCanvas;
+    dataModelObject:    DataModelStructures.Array
+                    | DataModelStructures.DataType
+                    | DataModelStructures.Memory
+                    | DataModelStructures.ProgramStack 
+                    | DataModelStructures.StackFrame 
+                    | DataModelStructures.Struct 
+                    | DataModelStructures.Variable;
+    fabricObject: fabric.Group; //Maybe "| fabric.Object" can be added - depending on usage
+    startPos: {x: number, y: number};
+    children: Array<Widget>;
+    get width(): number | undefined;
+    get height(): number | undefined;
+
+    draw(): void;
+}
+
+class StringWidget implements Widget {
+    canvas: CustomCanvas;
+    dataModelObject: DataModelStructures.Variable;
+    fabricObject: fabric.Group;
+    startPos: {x: number, y: number};
+    children: Array<Widget>;
+
+    constructor(variableToDraw: DataModelStructures.Variable, drawToCanvas: CustomCanvas, setStartPosX = 10, setStartPosY = 10) {
+        this.canvas = drawToCanvas;
+        this.dataModelObject = variableToDraw;
+        this.fabricObject = new fabric.Group();
+        this.startPos = {x: setStartPosX, y: setStartPosY};
+        this.children = new Array<Widget>();
+    }
+
+    get width(): number | undefined {
+        let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
+
+        return coords[0].x - coords[1].x;
+    }
+
+    get height(): number | undefined {
+        let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
+
+        return coords[0].y - coords[3].y;
+    }
+
+    draw()
+    {
+        //Checking if the variable is really a string
+        if (this.dataModelObject.dataTypeString != "string")
+            return;
+
+        //Default values
+        let textFill = "black";
+
+        //Drawing the slot's text
+        let finalString = this.dataModelObject.variableName + " : \"" + this.dataModelObject.valueString + "\"";
+        let fabricSlotText = new fabric.Text(finalString, {
+            left: this.startPos.x,
+            top: this.startPos.y,
+            fill: textFill,
+            fontSize: 20
+        });
+
+        //Creating the result
+        this.fabricObject = new fabric.Group([fabricSlotText]);
+
+        //Adding the result group to the canvas
+        this.canvas.add(this.fabricObject);
+
+        //Locking the movement of the items
+        this.canvas.lockAllItems();
+    }
+}
+
+class CustomCanvas extends fabric.Canvas {
+    lockAllItems()
+    {
+        let allFabricItems = this.getObjects();
+
+        allFabricItems.forEach(fabricObject => {
+            fabricObject.selectable = false;
+            fabricObject.hoverCursor = "default";
+            fabricObject.evented = true;
+        });
+    }
+}
+
 export class FabricDrawingModule {
-    canvas: fabric.Canvas;
+    canvas: CustomCanvas;
     cachedObjectColor: string;
     cachedPointeeObject: [fabric.Object, string];   //[backgroundRectangleObject, previousColor]
     cachedPointerArrowObject : fabric.Object | undefined;   //Fabric object representing the arrow between variables (presuming there is only one arrow object temporarily present)
@@ -10,7 +97,7 @@ export class FabricDrawingModule {
     cachedDrawProgramStackArguments?: [DataModelStructures.ProgramStack, number, number, number?];
 
     constructor(canvasName: string) {
-        this.canvas = new fabric.Canvas(canvasName);
+        this.canvas = new CustomCanvas(canvasName);
         //To have it a bit larger (not yet exact sizing)
         //TODO: Think the sizing through and adjust accordingly
         this.canvas.setWidth(screen.width);
@@ -275,16 +362,6 @@ export class FabricDrawingModule {
         return "#" + toTwoDigitHex(newR) + toTwoDigitHex(newG) + toTwoDigitHex(newB);
     }
 
-    lockAllItems() {
-        let allFabricItems = this.canvas.getObjects();
-
-        allFabricItems.forEach(fabricObject => {
-            fabricObject.selectable = false;
-            fabricObject.hoverCursor = "default";
-            fabricObject.evented = true;
-        });
-    }
-
     //Helper function used to calculate max text width in a provided program stack (used to determine neccessary slot width)
     calculateMaxTextWidth(programStackToDraw: DataModelStructures.ProgramStack, textFontSize : number) : number {
         let maxTotalTextWidth = 0;
@@ -444,6 +521,9 @@ export class FabricDrawingModule {
         {
             console.log("[DEBUG] FROM or TO variable object doesn't have an \"_objects\" property");
         }
+
+        //Locking the movement of the items
+        this.canvas.lockAllItems();
     }
 
     drawProgramStack(programStackToDraw: DataModelStructures.ProgramStack, startPosX = 10, startPosY = 10, maxStackSlotWidth? : number) {
@@ -580,7 +660,7 @@ export class FabricDrawingModule {
         });
 
         //Locking the movement of the items
-        this.lockAllItems();
+        this.canvas.lockAllItems();
 
         //Returning the future start position (for easy drawing of other stackframes under this one)
         return startPosY;
@@ -589,7 +669,7 @@ export class FabricDrawingModule {
     //More general method that prevents the user from misusing the drawing methods
     drawVariable(variableToDraw: DataModelStructures.Variable, startPosX?: number, startPosY?: number) {
         if (variableToDraw.dataTypeString == "string")
-            this.drawString(variableToDraw, startPosX, startPosY);
+            new StringWidget(variableToDraw, this.canvas, startPosX, startPosY).draw();
         else if (variableToDraw.dataTypeString == "char")
             this.drawChar(variableToDraw, startPosX, startPosY);
         else if (variableToDraw.dataTypeString == "number" ||
@@ -627,7 +707,7 @@ export class FabricDrawingModule {
         this.canvas.add(resultFabricGroup);
 
         //Locking the movement of the items
-        this.lockAllItems();
+        this.canvas.lockAllItems();
     }
 
     drawChar(charToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
@@ -654,7 +734,7 @@ export class FabricDrawingModule {
         this.canvas.add(resultFabricGroup);
 
         //Locking the movement of the items
-        this.lockAllItems();
+        this.canvas.lockAllItems();
     }
 
     drawNumber(numberToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
@@ -683,7 +763,7 @@ export class FabricDrawingModule {
         this.canvas.add(resultFabricGroup);
 
         //Locking the movement of the items
-        this.lockAllItems();
+        this.canvas.lockAllItems();
     }
 
     drawBool(boolToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
@@ -712,6 +792,6 @@ export class FabricDrawingModule {
         this.canvas.add(resultFabricGroup);
 
         //Locking the movement of the items
-        this.lockAllItems();
+        this.canvas.lockAllItems();
     }
 }
