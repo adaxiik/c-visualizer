@@ -1,12 +1,12 @@
 import { fabric } from "fabric";
-import { myFabricDrawingModule } from "./fabricDrawingModule";
-import * as myDataModelStructures from "./dataModelStructures";
+import { FabricDrawingModule } from "./fabricDrawingModule";
+import * as DataModelStructures from "./dataModelStructures";
 
 function clearCanvas() {
   //Clearing the canvas
   myDrawingModule.clearCanvas();
   //Reset the current program stack
-  currentProgramStack = new myDataModelStructures.myProgramStack();
+  currentProgramStack = new DataModelStructures.ProgramStack();
 }
 
 function redrawCanvas() {
@@ -19,7 +19,7 @@ function drawVariablesJSON(message: any){
   message.variables.forEach(messageVariable => {
     console.log("Processing variable named: \"" + messageVariable.name + "\"");
 
-    var tempVar = new myDataModelStructures.myVariable();
+    var tempVar = new DataModelStructures.Variable();
     tempVar.variableName = messageVariable.name;
     //tempVar.dataTypeEnum = ;  //Not used
     tempVar.dataTypeString = messageVariable.type;
@@ -39,7 +39,7 @@ function drawProgramStackJSON(messageBody: any){
   messageBody.stackFrames.forEach(currentStackFrame => {
     console.log("Processing stackframe from a function named: \"" + currentStackFrame.name + "\" (id: " + currentStackFrame.id + ")");
 
-    var tempStackFrameVar = new myDataModelStructures.myStackFrame();
+    var tempStackFrameVar = new DataModelStructures.StackFrame();
     tempStackFrameVar.frameId = currentStackFrame.id;
     tempStackFrameVar.functionName = currentStackFrame.name;
     //TODO: Remove - probably not needed anymore
@@ -62,11 +62,11 @@ function drawProgramStackJSON(messageBody: any){
 }
 
 
-var myDrawingModule = new myFabricDrawingModule('myCanvas');
+var myDrawingModule = new FabricDrawingModule('drawLibCanvas');
 const vscode = acquireVsCodeApi();  //Getting the VS Code Api (to communicate with the extension)
 
-var currentProgramStack = new myDataModelStructures.myProgramStack();
-currentProgramStack.stackFrames = new Array<myDataModelStructures.myStackFrame>();
+var currentProgramStack = new DataModelStructures.ProgramStack();
+currentProgramStack.stackFrames = new Array<DataModelStructures.StackFrame>();
 var currentProgramStackMessage = {};
 
 //Getting a test message from the external TypeScript

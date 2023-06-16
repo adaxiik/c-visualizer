@@ -107,19 +107,19 @@ function getWebviewContent(webview: vscode.Webview, context: any) {
 	let retHtml: string = ``;
 
 	//Preparing the paths
-	const myScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'lib', 'myDrawlib.js'));
+	const drawLibScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'lib', 'myDrawlib.js'));
 	const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'lib', 'sourceHtmlFile.html'));
 
 	//Loading the resources
 	retHtml = fs.readFileSync(rawHtml.fsPath, 'utf8');
 
 	//Replacing the key sequences
-	retHtml = retHtml.replace("${myScript}", myScript.toString(true));
+	retHtml = retHtml.replace("${drawLibScript}", drawLibScript.toString(true));
 
 	return retHtml;
 }
 
-//My DAP call function
+//DAP call function
 async function callStackTrace(callThreadId: number): Promise<any> {
 	const session = vscode.debug.activeDebugSession;
 	if (session == undefined)
@@ -130,7 +130,7 @@ async function callStackTrace(callThreadId: number): Promise<any> {
 	return await session.customRequest('stackTrace', { threadId: callThreadId, format: {includeAll : true} });
 }
 
-//My DAP call function
+//DAP call function
 async function callScopes(callFrameId: number): Promise<any> {
 	const session = vscode.debug.activeDebugSession;
 	if (session == undefined)
@@ -141,7 +141,7 @@ async function callScopes(callFrameId: number): Promise<any> {
 	return await session.customRequest('scopes', { frameId: callFrameId });
 }
 
-//My DAP call function
+//DAP call function
 async function callVariables(callVariablesReference: number): Promise<any> {
 	const session = vscode.debug.activeDebugSession;
 	if (session == undefined)
@@ -155,7 +155,7 @@ async function callVariables(callVariablesReference: number): Promise<any> {
 async function getProgramState(stoppedThreadId: number) {
 	//Getting stackframes of the current thread
 	let mainStackTraceMessageBody = await callStackTrace(stoppedThreadId);
-	let myCustomStackTraceMessageBody = {...mainStackTraceMessageBody};	//Copying the main message (this version will be edited and passed to the glue code - after adding variable data)
+	let customizedStackTraceMessageBody = {...mainStackTraceMessageBody};	//Copying the main message (this version will be edited and passed to the glue code - after adding variable data)
 	//For each stackFrame call scope request
 	for (let i = 0; i < mainStackTraceMessageBody.totalFrames; i++) {
 		const elementStackFrame = mainStackTraceMessageBody.stackFrames[i];
@@ -169,7 +169,7 @@ async function getProgramState(stoppedThreadId: number) {
 			//Skipping registers (TODO: If we want to add register support, differentiate the scopes and don't skip the registers)
 			if (elementScope.name != "Registers")
 			{
-				myCustomStackTraceMessageBody.stackFrames[i].variables = [...currentScopeVariables.variables];	//Adding the variable data to the custom message
+				customizedStackTraceMessageBody.stackFrames[i].variables = [...currentScopeVariables.variables];	//Adding the variable data to the custom message
 
 				//DEBUG: Outputting the variable data
 				for (let k = 0; k < currentScopeVariables.variables.length; k++) {
@@ -188,7 +188,7 @@ async function getProgramState(stoppedThreadId: number) {
 	}
 	else
 	{
-		currentPanel.webview.postMessage({ command: 'drawProgramStack', body: myCustomStackTraceMessageBody }); //Passing the customized message
+		currentPanel.webview.postMessage({ command: 'drawProgramStack', body: customizedStackTraceMessageBody }); //Passing the customized message
 		return;
 	}
 }

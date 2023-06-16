@@ -1,14 +1,13 @@
 import { fabric } from "fabric";
-import * as myDataModelStructures from "./dataModelStructures";
-import { myStackFrame } from "./dataModelStructures";
+import * as DataModelStructures from "./dataModelStructures";
 
-export class myFabricDrawingModule {
+export class FabricDrawingModule {
     canvas: fabric.Canvas;
     cachedObjectColor: string;
     cachedPointeeObject: [fabric.Object, string];   //[backgroundRectangleObject, previousColor]
     cachedPointerArrowObject : fabric.Object | undefined;   //Fabric object representing the arrow between variables (presuming there is only one arrow object temporarily present)
     cachedPointers: Array<[any, any]>;              //in a [pointerVariable, pointingTo] format
-    cachedDrawProgramStackArguments?: [myDataModelStructures.myProgramStack, number, number, number?];
+    cachedDrawProgramStackArguments?: [DataModelStructures.ProgramStack, number, number, number?];
 
     constructor(canvasName: string) {
         this.canvas = new fabric.Canvas(canvasName);
@@ -287,7 +286,7 @@ export class myFabricDrawingModule {
     }
 
     //Helper function used to calculate max text width in a provided program stack (used to determine neccessary slot width)
-    calculateMaxTextWidth(programStackToDraw: myDataModelStructures.myProgramStack, textFontSize : number) : number {
+    calculateMaxTextWidth(programStackToDraw: DataModelStructures.ProgramStack, textFontSize : number) : number {
         let maxTotalTextWidth = 0;
         let allVariableTexts = new Array<string>();
         
@@ -334,7 +333,7 @@ export class myFabricDrawingModule {
     }
 
     //Helper function checking for pointer variables in a provided program stack (assigns values to the this.cachedPointers in a [pointerVariable, pointingTo] format)
-    checkForPointers(programStackToDraw: myDataModelStructures.myProgramStack) {
+    checkForPointers(programStackToDraw: DataModelStructures.ProgramStack) {
         this.cachedPointers.splice(0, this.cachedPointers.length);  //Emptying the array
 
         //Going through all stackframes present (and noting their parameter's and variable's text)
@@ -447,7 +446,7 @@ export class myFabricDrawingModule {
         }
     }
 
-    drawProgramStack(programStackToDraw: myDataModelStructures.myProgramStack, startPosX = 10, startPosY = 10, maxStackSlotWidth? : number) {
+    drawProgramStack(programStackToDraw: DataModelStructures.ProgramStack, startPosX = 10, startPosY = 10, maxStackSlotWidth? : number) {
         let shortenText = false;
         let stackSlotHeight = 30;
         let textFontSize = stackSlotHeight - stackSlotHeight / 3;
@@ -483,7 +482,7 @@ export class myFabricDrawingModule {
         }
     }
 
-    drawStackFrame(stackFrameToDraw: myDataModelStructures.myStackFrame, startPosX = 10, startPosY = 10, stackSlotHeight = 30, stackSlotWidth = 300, shortenText = false): number {
+    drawStackFrame(stackFrameToDraw: DataModelStructures.StackFrame, startPosX = 10, startPosY = 10, stackSlotHeight = 30, stackSlotWidth = 300, shortenText = false): number {
         //Default values
         let backgroundColorBlue = '#33ccff';
         let backgroundColorGrey = '#8f8f8f';
@@ -588,7 +587,7 @@ export class myFabricDrawingModule {
     }
 
     //More general method that prevents the user from misusing the drawing methods
-    drawVariable(variableToDraw: myDataModelStructures.myVariable, startPosX?: number, startPosY?: number) {
+    drawVariable(variableToDraw: DataModelStructures.Variable, startPosX?: number, startPosY?: number) {
         if (variableToDraw.dataTypeString == "string")
             this.drawString(variableToDraw, startPosX, startPosY);
         else if (variableToDraw.dataTypeString == "char")
@@ -604,7 +603,7 @@ export class myFabricDrawingModule {
             return;
     }
 
-    drawString(stringToDraw: myDataModelStructures.myVariable, startPosX = 10, startPosY = 10) {
+    drawString(stringToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a string
         if (stringToDraw.dataTypeString != "string")
             return;
@@ -631,7 +630,7 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 
-    drawChar(charToDraw: myDataModelStructures.myVariable, startPosX = 10, startPosY = 10) {
+    drawChar(charToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a char
         if (charToDraw.dataTypeString != "char")
             return;
@@ -658,7 +657,7 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 
-    drawNumber(numberToDraw: myDataModelStructures.myVariable, startPosX = 10, startPosY = 10) {
+    drawNumber(numberToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a number
         if (numberToDraw.dataTypeString != "number" &&
             numberToDraw.dataTypeString != "int" &&
@@ -687,7 +686,7 @@ export class myFabricDrawingModule {
         this.lockAllItems();
     }
 
-    drawBool(boolToDraw: myDataModelStructures.myVariable, startPosX = 10, startPosY = 10) {
+    drawBool(boolToDraw: DataModelStructures.Variable, startPosX = 10, startPosY = 10) {
         //Checking if the variable is really a number
         if (boolToDraw.dataTypeString != "bool" &&
             boolToDraw.dataTypeString != "boolean")

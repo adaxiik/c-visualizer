@@ -563,7 +563,7 @@ function clearCanvas() {
     //Clearing the canvas
     myDrawingModule.clearCanvas();
     //Reset the current program stack
-    currentProgramStack = new _dataModelStructures.myProgramStack();
+    currentProgramStack = new _dataModelStructures.ProgramStack();
 }
 function redrawCanvas() {
     myDrawingModule.clearCanvas();
@@ -573,7 +573,7 @@ function redrawCanvas() {
 function drawVariablesJSON(message) {
     message.variables.forEach((messageVariable)=>{
         console.log('Processing variable named: "' + messageVariable.name + '"');
-        var tempVar = new _dataModelStructures.myVariable();
+        var tempVar = new _dataModelStructures.Variable();
         tempVar.variableName = messageVariable.name;
         //tempVar.dataTypeEnum = ;  //Not used
         tempVar.dataTypeString = messageVariable.type;
@@ -589,7 +589,7 @@ function drawProgramStackJSON(messageBody) {
     //Processing all the stackframes
     messageBody.stackFrames.forEach((currentStackFrame)=>{
         console.log('Processing stackframe from a function named: "' + currentStackFrame.name + '" (id: ' + currentStackFrame.id + ")");
-        var tempStackFrameVar = new _dataModelStructures.myStackFrame();
+        var tempStackFrameVar = new _dataModelStructures.StackFrame();
         tempStackFrameVar.frameId = currentStackFrame.id;
         tempStackFrameVar.functionName = currentStackFrame.name;
         //TODO: Remove - probably not needed anymore
@@ -609,9 +609,9 @@ function drawProgramStackJSON(messageBody) {
     //Drawing the full program stack
     myDrawingModule.drawProgramStack(currentProgramStack);
 }
-var myDrawingModule = new (0, _fabricDrawingModule.myFabricDrawingModule)("myCanvas");
+var myDrawingModule = new (0, _fabricDrawingModule.FabricDrawingModule)("drawLibCanvas");
 const vscode = acquireVsCodeApi(); //Getting the VS Code Api (to communicate with the extension)
-var currentProgramStack = new _dataModelStructures.myProgramStack();
+var currentProgramStack = new _dataModelStructures.ProgramStack();
 currentProgramStack.stackFrames = new Array();
 var currentProgramStackMessage = {};
 //Getting a test message from the external TypeScript
@@ -658,9 +658,9 @@ window.addEventListener("message", (event)=>{
 },{"./fabricDrawingModule":"cCY4o","./dataModelStructures":"gh9Dt"}],"cCY4o":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "myFabricDrawingModule", ()=>myFabricDrawingModule);
+parcelHelpers.export(exports, "FabricDrawingModule", ()=>FabricDrawingModule);
 var _fabric = require("fabric");
-class myFabricDrawingModule {
+class FabricDrawingModule {
     constructor(canvasName){
         this.canvas = new (0, _fabric.fabric).Canvas(canvasName);
         //To have it a bit larger (not yet exact sizing)
@@ -672,6 +672,7 @@ class myFabricDrawingModule {
             new (0, _fabric.fabric).Object,
             ""
         ];
+        this.cachedPointerArrowObject = undefined;
         this.cachedPointers = new Array();
         this.cachedDrawProgramStackArguments = undefined;
         this.initPanning();
@@ -771,17 +772,22 @@ class myFabricDrawingModule {
                 if (opt.target !== undefined && opt.target !== null) {
                     if ("_objects" in opt.target) {
                         //Changing the color of the variable (over which we're hovering)
-                        drawingModuleThis.cachedObjectColor = opt.target._objects[0].get("fill");
-                        if (drawingModuleThis.cachedObjectColor != "") {
-                            console.log('[DEBUG] Setting "' + opt.target._objects[1].text + '" to color "' + drawingModuleThis.cachedObjectColor + '"');
-                            opt.target._objects[0].set("fill", calculateNewHex(drawingModuleThis.cachedObjectColor, -20));
-                        }
+                        drawingModuleThis.setObjectColor(opt.target, calculateNewHex(opt.target._objects[0].get("fill"), -20), true, false);
                         //Checking if the hovered over variable is a pointer
-                        if (drawingModuleThis.cachedPointers != undefined) for(let i = 0; i < drawingModuleThis.cachedPointers.length; i++){
-                            let hoveredOverVariableText = opt.target._objects[1].text;
-                            let searchedForText = drawingModuleThis.cachedPointers[i][0] + ":";
-                            console.log('[DEBUG] Hovering over: "' + hoveredOverVariableText + '", searching for: "' + searchedForText + '"');
-                            if (hoveredOverVariableText.includes(searchedForText)) markPointee(drawingModuleThis.cachedPointers[i][1]);
+                        if (drawingModuleThis.cachedPointers != undefined) {
+                            for(let i = 0; i < drawingModuleThis.cachedPointers.length; i++)if ("text" in opt.target._objects[1]) {
+                                let hoveredOverVariableText = opt.target._objects[1].text;
+                                let searchedForText = drawingModuleThis.cachedPointers[i][0] + ":";
+                                console.log('[DEBUG] Hovering over: "' + hoveredOverVariableText + '", searching for: "' + searchedForText + '"');
+                                //If the hovered over variable is of pointer type
+                                if (hoveredOverVariableText.includes(searchedForText)) {
+                                    markPointee(drawingModuleThis.cachedPointers[i][1]);
+                                    let fromVariableObject = drawingModuleThis.findObjectByText(hoveredOverVariableText);
+                                    let toVariableObject = drawingModuleThis.findObjectByText(drawingModuleThis.cachedPointers[i][1]);
+                                    if (fromVariableObject == undefined || toVariableObject == undefined) console.log("[DEBUG] Error - FROM variable or TO variable are undefined");
+                                    else drawingModuleThis.drawArrowBetweenVariables(fromVariableObject, toVariableObject);
+                                }
+                            }
                         }
                         requestRenderAll();
                     }
@@ -793,11 +799,7 @@ class myFabricDrawingModule {
             if (!this.isDragging) {
                 if (opt.target !== undefined && opt.target !== null) {
                     if ("_objects" in opt.target) {
-                        if (drawingModuleThis.cachedObjectColor != "") {
-                            console.log('[DEBUG] Setting "' + opt.target._objects[1].text + '" to color "' + drawingModuleThis.cachedObjectColor + '"');
-                            opt.target._objects[0].set("fill", drawingModuleThis.cachedObjectColor);
-                            drawingModuleThis.cachedObjectColor = "";
-                        }
+                        drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cachedObjectColor, false, true);
                         //Resetting the state of the pointee variable (if changed)
                         if (drawingModuleThis.cachedPointeeObject[1] !== "") {
                             //Resetting the pointee's previous color
@@ -805,12 +807,46 @@ class myFabricDrawingModule {
                             //Clearing the cached pointee
                             drawingModuleThis.cachedPointeeObject[0] = new (0, _fabric.fabric).Object();
                             drawingModuleThis.cachedPointeeObject[1] = "";
+                            //Deleting the arrow object from canvas (if present)
+                            if (drawingModuleThis.cachedPointerArrowObject != undefined) {
+                                drawingModuleThis.canvas.remove(drawingModuleThis.cachedPointerArrowObject);
+                                drawingModuleThis.cachedPointerArrowObject = undefined;
+                            }
                         }
                         requestRenderAll();
                     }
                 }
             }
         });
+    }
+    //Helper function to return the object with the searched for text
+    findObjectByText(searchedForText) {
+        let allCanvasObjects = this.canvas.getObjects();
+        for(let i = 0; i < allCanvasObjects.length; i++)//If the canvas object is a group
+        if ("_objects" in allCanvasObjects[i]) {
+            console.log('[DEBUG] Testing if "' + allCanvasObjects[i]._objects[1].text + '" matches "' + searchedForText + '"');
+            //If the text object's text matches the searched for value
+            if (allCanvasObjects[i]._objects[1].text.includes(searchedForText)) {
+                console.log("[DEBUG] Text match found!");
+                return allCanvasObjects[i];
+            }
+        }
+        console.log("[DEBUG] Text match not found!");
+        return undefined;
+    }
+    //Helper function to change a color of an object (stack slot) - after the change, there must be a call to "requestRenderAll()" afterwards
+    setObjectColor(affectedObject, newObjectColor, savePreviousColor, clearColorCache) {
+        if (affectedObject !== undefined && affectedObject !== null) {
+            if ("_objects" in affectedObject) {
+                if (newObjectColor != "") {
+                    if (savePreviousColor && clearColorCache) console.log("[DEBUG] Error - tried to save previous color and clear cache at the same time");
+                    else if (savePreviousColor) this.cachedObjectColor = affectedObject._objects[0].get("fill");
+                    else if (clearColorCache) this.cachedObjectColor = "";
+                    console.log('[DEBUG] Setting "' + affectedObject._objects[1].text + '" to color "' + newObjectColor + '"');
+                    affectedObject._objects[0].set("fill", newObjectColor);
+                } else console.log('[DEBUG] Error - tried to set "' + affectedObject._objects[1].text + "to empty color");
+            }
+        }
     }
     //Helper function (for mouse:over events, etc.)
     calculateLighterDarkerHex(inputHex, percentage) {
@@ -926,22 +962,76 @@ class myFabricDrawingModule {
     }
     //Helper function to mark the pointee variable (with a different color)
     markPointee(variableId) {
-        let allCanvasObjects = this.canvas.getObjects();
-        for(let i = 0; i < allCanvasObjects.length; i++)//If the canvas object is a group
-        if ("_objects" in allCanvasObjects[i]) {
-            //If the found value is the value pointed to
-            let currentCanvasObjectText = allCanvasObjects[i]._objects[1].text;
-            let searchedForText = variableId + ":";
-            console.log('[DEBUG] Testing if "' + currentCanvasObjectText + '" matches "' + searchedForText + '"');
-            if (currentCanvasObjectText.includes(searchedForText)) {
-                console.log("[DEBUG] Pointee found!");
-                //Saving the previous state of the pointee
-                this.cachedPointeeObject[0] = allCanvasObjects[i]._objects[0];
-                this.cachedPointeeObject[1] = allCanvasObjects[i]._objects[0].get("fill");
-                //Changing the pointee's color
-                allCanvasObjects[i]._objects[0].set("fill", "red");
-            }
+        let searchedForText = variableId + ":";
+        let searchedForVariableObject = this.findObjectByText(searchedForText);
+        if (searchedForVariableObject != undefined) {
+            console.log("[DEBUG] Pointee found!");
+            //Saving the previous state of the pointee
+            this.cachedPointeeObject[0] = searchedForVariableObject._objects[0];
+            this.cachedPointeeObject[1] = searchedForVariableObject._objects[0].get("fill");
+            //Changing the pointee's color
+            searchedForVariableObject._objects[0].set("fill", "red");
         }
+    }
+    //Helper function to draw an arrow between two slots (used for pointers) - arrowOffset changes how far the arrow stretches sideways
+    drawArrowBetweenVariables(fromVariableObject, toVariableObject, arrowOffset = 1) {
+        let arrowColor = "black";
+        let arrowEndTriangleWidth = 10;
+        let arrowEndTriangleHeight = 15;
+        if ("_objects" in fromVariableObject && "_objects" in toVariableObject) {
+            console.log('[DEBUG] Drawing an arrow between "' + fromVariableObject._objects[1].text + '" and "' + toVariableObject._objects[1].text);
+            let fromVariableObjectPosition = fromVariableObject.getCoords(true); //Neccessary to get the absolute coordinates
+            let toVariableObjectPosition = toVariableObject.getCoords(true); //Neccessary to get the absolute coordinates
+            let fromVarRightMiddlePoint = [
+                fromVariableObjectPosition[1].x,
+                fromVariableObjectPosition[1].y + (fromVariableObjectPosition[2].y - fromVariableObjectPosition[1].y) / 2
+            ];
+            let toVarRightMiddlePoint = [
+                toVariableObjectPosition[1].x,
+                toVariableObjectPosition[1].y + (toVariableObjectPosition[2].y - toVariableObjectPosition[1].y) / 2
+            ];
+            //Drawing an arrow from the variable objects right X and middle points (Y)
+            var lineStart = new (0, _fabric.fabric).Line([
+                fromVarRightMiddlePoint[0] + arrowOffset * 50 + 1,
+                fromVarRightMiddlePoint[1],
+                fromVarRightMiddlePoint[0],
+                fromVarRightMiddlePoint[1]
+            ], {
+                stroke: arrowColor
+            });
+            var lineMiddle = new (0, _fabric.fabric).Line([
+                fromVarRightMiddlePoint[0] + arrowOffset * 50,
+                fromVarRightMiddlePoint[1],
+                toVarRightMiddlePoint[0] + arrowOffset * 50,
+                toVarRightMiddlePoint[1]
+            ], {
+                stroke: arrowColor
+            });
+            var lineEnd = new (0, _fabric.fabric).Line([
+                toVarRightMiddlePoint[0] + arrowOffset * 50,
+                toVarRightMiddlePoint[1],
+                toVarRightMiddlePoint[0] + arrowEndTriangleWidth,
+                toVarRightMiddlePoint[1]
+            ], {
+                stroke: arrowColor
+            });
+            var endTriangle = new (0, _fabric.fabric).Triangle({
+                width: arrowEndTriangleWidth,
+                height: arrowEndTriangleHeight,
+                fill: arrowColor,
+                left: toVarRightMiddlePoint[0],
+                top: toVarRightMiddlePoint[1] + arrowEndTriangleHeight / 2 - 1,
+                angle: 270
+            });
+            var arrowObjectGroup = new (0, _fabric.fabric).Group([
+                lineStart,
+                lineMiddle,
+                lineEnd,
+                endTriangle
+            ]);
+            this.cachedPointerArrowObject = arrowObjectGroup; //Saving the reference (for later deletion - presuming the arrow object is just one)
+            this.canvas.add(arrowObjectGroup);
+        } else console.log('[DEBUG] FROM or TO variable object doesn\'t have an "_objects" property');
     }
     drawProgramStack(programStackToDraw, startPosX = 10, startPosY = 10, maxStackSlotWidth) {
         let shortenText = false;
@@ -25414,54 +25504,54 @@ exports.export = function(dest, destName, get) {
 };
 
 },{}],"gh9Dt":[function(require,module,exports) {
-/*  ENUMS       */ //myMemoryTypeEnum
+/*  ENUMS       */ //MemoryTypeEnum
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "myMemoryTypeEnum", ()=>myMemoryTypeEnum);
-parcelHelpers.export(exports, "myDataTypeEnum", ()=>myDataTypeEnum);
+parcelHelpers.export(exports, "MemoryTypeEnum", ()=>MemoryTypeEnum);
+parcelHelpers.export(exports, "DataTypeEnum", ()=>DataTypeEnum);
 /*  CLASSES     */ //ProgramStack
-parcelHelpers.export(exports, "myProgramStack", ()=>myProgramStack);
+parcelHelpers.export(exports, "ProgramStack", ()=>ProgramStack);
 //StackFrame
-parcelHelpers.export(exports, "myStackFrame", ()=>myStackFrame);
-//myArray
-parcelHelpers.export(exports, "myArray", ()=>myArray);
-//myVariable
-parcelHelpers.export(exports, "myVariable", ()=>myVariable);
-//myDataType
-parcelHelpers.export(exports, "myDataType", ()=>myDataType);
-//myStruct
-parcelHelpers.export(exports, "myStruct", ()=>myStruct);
-//myMemory
-parcelHelpers.export(exports, "myMemory", ()=>myMemory);
-let myMemoryTypeEnum;
-(function(myMemoryTypeEnum) {
-    myMemoryTypeEnum["dynamic"] = "dynamic";
-    myMemoryTypeEnum["static"] = "static";
-    myMemoryTypeEnum["global"] = "global";
-})(myMemoryTypeEnum || (myMemoryTypeEnum = {}));
-let myDataTypeEnum;
-(function(myDataTypeEnum) {
-    myDataTypeEnum["int"] = "int";
-    myDataTypeEnum["char"] = "char";
-    myDataTypeEnum["float"] = "float";
-    myDataTypeEnum["bool"] = "bool";
-})(myDataTypeEnum || (myDataTypeEnum = {}));
-class myProgramStack {
+parcelHelpers.export(exports, "StackFrame", ()=>StackFrame);
+//Array
+parcelHelpers.export(exports, "Array", ()=>Array);
+//Variable
+parcelHelpers.export(exports, "Variable", ()=>Variable);
+//DataType
+parcelHelpers.export(exports, "DataType", ()=>DataType);
+//Struct
+parcelHelpers.export(exports, "Struct", ()=>Struct);
+//Memory
+parcelHelpers.export(exports, "Memory", ()=>Memory);
+let MemoryTypeEnum;
+(function(MemoryTypeEnum) {
+    MemoryTypeEnum["dynamic"] = "dynamic";
+    MemoryTypeEnum["static"] = "static";
+    MemoryTypeEnum["global"] = "global";
+})(MemoryTypeEnum || (MemoryTypeEnum = {}));
+let DataTypeEnum;
+(function(DataTypeEnum) {
+    DataTypeEnum["int"] = "int";
+    DataTypeEnum["char"] = "char";
+    DataTypeEnum["float"] = "float";
+    DataTypeEnum["bool"] = "bool";
+})(DataTypeEnum || (DataTypeEnum = {}));
+class ProgramStack {
     stackFrames = {};
 }
-class myStackFrame {
+class StackFrame {
     functionVariables = {};
     functionParameters = {};
 }
-class myArray {
+class Array {
 }
-class myVariable {
+class Variable {
 }
-class myDataType {
+class DataType {
 }
-class myStruct {
+class Struct {
 }
-class myMemory {
+class Memory {
 }
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"le3sx"}]},["ebgtl","9lXWx"], "9lXWx", "parcelRequiredd7b")

@@ -1,13 +1,13 @@
 /*  ENUMS       */
-//myMemoryTypeEnum
-export enum myMemoryTypeEnum {
+//MemoryTypeEnum
+export enum MemoryTypeEnum {
     dynamic = "dynamic",
     static = "static",
     global = "global"
 }
 
-//myDataTypeEnum
-export enum myDataTypeEnum {
+//DataTypeEnum
+export enum DataTypeEnum {
     int = "int",
     char = "char",
     float = "float",
@@ -16,58 +16,58 @@ export enum myDataTypeEnum {
 
 /*  CLASSES     */
 //ProgramStack
-export class myProgramStack {
-    stackFrames: { [id: number] : myStackFrame } = {};          //To easily avoid duplicates (differentiate by ID)
+export class ProgramStack {
+    stackFrames: { [id: number] : StackFrame } = {};          //To easily avoid duplicates (differentiate by ID)
 }
 
 //StackFrame
-export class myStackFrame {
+export class StackFrame {
     frameId: number;
     functionName: string;
-    functionVariables: { [id: string] : myVariable } = {};      //Using a dictionary for faster usage when searching 
-    functionParameters: { [id: string] : myVariable } = {};     //Using a dictionary for faster usage when searching
+    functionVariables: { [id: string] : Variable } = {};      //Using a dictionary for faster usage when searching 
+    functionParameters: { [id: string] : Variable } = {};     //Using a dictionary for faster usage when searching
     isCollapsed: boolean;
 }
 
-//myArray
-export class myArray {
-    dataTypeEnum: myDataType;
+//Array
+export class Array {
+    dataTypeEnum: DataType;
     dataTypeString: string;
     dimensionCount: number;
     isAllocated: boolean;
     arrayPointerAddress: string;
     size: number;                       //If the array is already allocated (if this.isAllocated == true)
-    arrayElements: myVariable[];
+    arrayElements: Variable[];
 }
 
-//myVariable
-export class myVariable {
+//Variable
+export class Variable {
     variableName: string;
-    dataTypeEnum: myDataType;
+    dataTypeEnum: DataType;
     dataTypeString: string;
     isPointer: boolean;                 //if true, value / valueString is the "id" of the value pointed to / address pointed to
     value: any;                         //TODO: Consider changing to a different type (I'm not yet sure, if there'll be a better type)
     valueString: string;
 }
 
-//myDataType
-export class myDataType {
-    dataTypeEnum: myDataTypeEnum;
+//DataType
+export class DataType {
+    dataTypeEnum: DataTypeEnum;
     dataTypeString: string;
 }
 
-//myStruct
-export class myStruct {
+//Struct
+export class Struct {
     name: string;
-    structElements: myVariable[];
-    memory: myMemory;
+    structElements: Variable[];
+    memory: Memory;
 }
 
-//myMemory
-export class myMemory {
+//Memory
+export class Memory {
     isAllocated: boolean;
     size: number;                       //If the memory is already allocated (if this.isAllocated == true)
-    memoryType: myMemoryTypeEnum;
-    pointer: string;                    //Present if the memory is dynamic (if this.memoryType == myMemoryTypeEnum.dynamic) - otherwise it probably doesn't have much sense
-    memoryElements: myVariable[];       //TODO: Maybe change the implementation of this (it will be difficult to track fragmented memory / memory that isn't completely filled, etc.)
+    memoryType: MemoryTypeEnum;
+    pointer: string;                    //Present if the memory is dynamic (if this.memoryType == MemoryTypeEnum.dynamic) - otherwise it probably doesn't have much sense
+    memoryElements: Variable[];       //TODO: Maybe change the implementation of this (it will be difficult to track fragmented memory / memory that isn't completely filled, etc.)
 }
