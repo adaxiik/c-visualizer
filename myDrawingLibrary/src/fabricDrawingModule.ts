@@ -244,6 +244,115 @@ class BooleanWidget implements Widget {
     }
 }
 
+//Class to limit number of variables needed for the StackframeSlotWidget constructor call
+class StackframeSlotWidgetConfig {
+    slotWidth: number;
+    slotHeight: number;
+    slotColor: string;
+    textColor: string;
+    textFontSize: number;
+    textLeftOffset: number;
+    textRightOffset: number;
+    shortenText: boolean;
+}
+
+class StackframeSlotWidget implements Widget {
+    canvas: CustomCanvas;
+    dataModelObject: DataModelStructures.Variable | DataModelStructures.StackFrame;
+    fabricObject: fabric.Group;
+    startPos: {x: number, y: number};
+    children: Array<Widget>;
+    //Added variables specific for a stackframe slot widget
+    slotConfig: StackframeSlotWidgetConfig;
+
+    constructor(objectToDraw: DataModelStructures.Variable | DataModelStructures.StackFrame, drawToCanvas: CustomCanvas, setStartPosX = 10, setStartPosY = 10, setConfig: StackframeSlotWidgetConfig) {
+        this.canvas = drawToCanvas;
+        this.dataModelObject = objectToDraw;
+        this.fabricObject = new fabric.Group();
+        this.startPos = {x: setStartPosX, y: setStartPosY};
+        this.children = new Array<Widget>();
+        //Added variables specific for a stackframe slot widget
+        this.slotConfig = setConfig;
+    }
+
+    get width(): number | undefined {
+        let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
+
+        return coords[0].x - coords[1].x;
+    }
+
+    get height(): number | undefined {
+        let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
+
+        return coords[0].y - coords[3].y;
+    }
+
+    draw() {
+        //Drawing the slot's background
+        let fabricSlotBackground = new fabric.Rect({
+            left: this.startPos.x,
+            top: this.startPos.y,
+            width: this.slotConfig.slotWidth,
+            height: this.slotConfig.slotHeight,
+            fill: this.slotConfig.slotColor,
+
+            //Default values
+            padding: this.slotConfig.textFontSize / 2.5,
+            stroke: "#000000",
+            strokeWidth: this.slotConfig.textFontSize / 10
+        });
+        //Drawing the slot's text
+        let slotText = "";
+        if(this.dataModelObject instanceof DataModelStructures.StackFrame)
+        {
+            slotText = this.dataModelObject.functionName;
+        }
+        else
+        {
+            slotText = this.dataModelObject.variableName + ": " + this.dataModelObject.dataTypeString + " (" + this.dataModelObject.valueString + ")";
+        }
+        let fabricSlotText = new fabric.Text(slotText, {
+            left: this.startPos.x + this.slotConfig.textLeftOffset,
+            top: this.startPos.y - 2 + (this.slotConfig.slotHeight - this.slotConfig.textFontSize) / 2,
+            fill: this.slotConfig.textColor,
+            fontSize: this.slotConfig.textFontSize
+        });
+
+        if (this.slotConfig.shortenText) {
+            //Checking if the text is longer than maximum
+            let maxTextLength = this.slotConfig.slotWidth - this.slotConfig.textLeftOffset - this.slotConfig.textRightOffset;
+            if(fabricSlotText.getScaledWidth() > maxTextLength) {
+                //Calculating how much to shorten the text
+                let averageCharLength = fabricSlotText.getScaledWidth() / slotText.length;
+                let overflowInWidth = fabricSlotText.getScaledWidth() - maxTextLength;
+                let overflowInChars = overflowInWidth / averageCharLength + 1;  //+1 to account for the space of "..."
+                let newSlotText = slotText.substring(0, slotText.length - 1 - overflowInChars) + "...";
+
+                //Making a shortened version of the text
+                fabricSlotText = new fabric.Text(newSlotText, {
+                    left: this.startPos.x + this.slotConfig.textLeftOffset,
+                    top: this.startPos.y - 2 + (this.slotConfig.slotHeight - this.slotConfig.textFontSize) / 2,
+                    fill: this.slotConfig.textColor,
+                    fontSize: this.slotConfig.textFontSize
+                });
+            }
+        }
+
+        //Creating the result
+        this.fabricObject = new fabric.Group([fabricSlotBackground, fabricSlotText]);
+
+        //TODO: DELETE - will be handled by the stackframe widget
+        //Moving the starting position for the next stackframe
+        //startPosY += stackSlotHeight;
+
+        //Adding the group to the canvas
+        this.canvas.add(this.fabricObject);
+
+        //Locking the movement of the items
+        this.canvas.lockAllItems();
+    }
+}
+
 class CustomCanvas extends fabric.Canvas {
     lockAllItems()
     {
@@ -254,6 +363,11 @@ class CustomCanvas extends fabric.Canvas {
             fabricObject.hoverCursor = "default";
             fabricObject.evented = true;
         });
+    }
+
+    clearCanvas() {
+        console.log("[DEBUG] Clearing the canvas");
+        this.clear();
     }
 }
 
@@ -280,11 +394,6 @@ export class FabricDrawingModule {
         this.initPanning();
         this.initZooming();
         this.initHoverOver();
-    }
-
-    clearCanvas() {
-        console.log("[DEBUG] Clearing the canvas");
-        this.canvas.clear();
     }
 
     initPanning() {
@@ -317,7 +426,7 @@ export class FabricDrawingModule {
                                 }
                             }
                             //Redraw the canvas
-                            drawingModuleThis.clearCanvas();
+                            drawingModuleThis.canvas.clearCanvas();
                             drawingModuleThis.drawProgramStack(...drawingModuleThis.cachedDrawProgramStackArguments);
                         }
                     }
@@ -702,20 +811,20 @@ export class FabricDrawingModule {
             let toVarRightMiddlePoint =     [toVariableObjectPosition[1].x,     toVariableObjectPosition[1].y   + (toVariableObjectPosition[2].y    - toVariableObjectPosition[1].y)    / 2];
 
             //Drawing an arrow from the variable objects right X and middle points (Y)
-            var lineStart = new fabric.Line([fromVarRightMiddlePoint[0] + arrowOffset * 50 + 1, fromVarRightMiddlePoint[1], fromVarRightMiddlePoint[0], fromVarRightMiddlePoint[1]], {
+            let lineStart = new fabric.Line([fromVarRightMiddlePoint[0] + arrowOffset * 50 + 1, fromVarRightMiddlePoint[1], fromVarRightMiddlePoint[0], fromVarRightMiddlePoint[1]], {
                 stroke: arrowColor
             });
 
-            var lineMiddle = new fabric.Line([fromVarRightMiddlePoint[0] + arrowOffset * 50, fromVarRightMiddlePoint[1], toVarRightMiddlePoint[0] + arrowOffset * 50, toVarRightMiddlePoint[1]], {
+            let lineMiddle = new fabric.Line([fromVarRightMiddlePoint[0] + arrowOffset * 50, fromVarRightMiddlePoint[1], toVarRightMiddlePoint[0] + arrowOffset * 50, toVarRightMiddlePoint[1]], {
                 stroke: arrowColor
             });
             
-            var lineEnd = new fabric.Line([toVarRightMiddlePoint[0] + arrowOffset * 50, toVarRightMiddlePoint[1], toVarRightMiddlePoint[0] + arrowEndTriangleWidth, toVarRightMiddlePoint[1]], {
+            let lineEnd = new fabric.Line([toVarRightMiddlePoint[0] + arrowOffset * 50, toVarRightMiddlePoint[1], toVarRightMiddlePoint[0] + arrowEndTriangleWidth, toVarRightMiddlePoint[1]], {
                 stroke: arrowColor
             });
 
 
-            var endTriangle = new fabric.Triangle({
+            let endTriangle = new fabric.Triangle({
                 width: arrowEndTriangleWidth, 
                 height: arrowEndTriangleHeight, 
                 fill: arrowColor, 
@@ -724,7 +833,7 @@ export class FabricDrawingModule {
                 angle: 270
             });
 
-            var arrowObjectGroup = new fabric.Group([lineStart, lineMiddle, lineEnd, endTriangle]);
+            let arrowObjectGroup = new fabric.Group([lineStart, lineMiddle, lineEnd, endTriangle]);
             this.cachedPointerArrowObject = arrowObjectGroup;   //Saving the reference (for later deletion - presuming the arrow object is just one)
             this.canvas.add(arrowObjectGroup);
         }
@@ -777,7 +886,6 @@ export class FabricDrawingModule {
         //Default values
         let backgroundColorBlue = '#33ccff';
         let backgroundColorGrey = '#8f8f8f';
-        let backgroundColorRed = '#ff0000';
         let backgroundColorGreen = '#00ff04';
         let textFill = "black";
         //Note: Text and frame rectangle variables are dynamically adjusted by the stackSlotHeight variable
@@ -785,62 +893,24 @@ export class FabricDrawingModule {
         let textLeftOffset = textFontSize / 5;
         let textRightOffset = textLeftOffset * 2;
 
-        //Function to create a single slot in the stackframe
-        let myCreateSlotFunction = function (mySlotText: string, slotBackgroundColor: string): fabric.Group {
-            //Drawing the slot's background
-            let fabricSlotBackground = new fabric.Rect({
-                left: startPosX,
-                top: startPosY,
-                width: stackSlotWidth,
-                height: stackSlotHeight,
-                fill: slotBackgroundColor,
-
-                //Default values
-                padding: textFontSize / 2.5,
-                stroke: "#000000",
-                strokeWidth: textFontSize / 10
-            });
-            //Drawing the slot's text
-            let fabricSlotText = new fabric.Text(mySlotText, {
-                left: startPosX + textLeftOffset,
-                top: startPosY - 2 + (stackSlotHeight - textFontSize) / 2,
-                fill: textFill,
-                fontSize: textFontSize
-            });
-
-            if (shortenText) {
-                //Checking if the text is longer than maximum
-                let maxTextLength = stackSlotWidth - textLeftOffset - textRightOffset;
-                if(fabricSlotText.getScaledWidth() > maxTextLength) {
-                    //Calculating how much to shorten the text
-                    let averageCharLength = fabricSlotText.getScaledWidth() / mySlotText.length;
-                    let overflowInWidth = fabricSlotText.getScaledWidth() - maxTextLength;
-                    let overflowInChars = overflowInWidth / averageCharLength + 1;  //+1 to account for the space of "..."
-                    let newSlotText = mySlotText.substring(0, mySlotText.length - 1 - overflowInChars) + "...";
-
-                    //Making a shortened version of the text
-                    fabricSlotText = new fabric.Text(newSlotText, {
-                        left: startPosX + textLeftOffset,
-                        top: startPosY - 2 + (stackSlotHeight - textFontSize) / 2,
-                        fill: textFill,
-                        fontSize: textFontSize
-                    });
-                }
-            }
-
-            //Creating the result
-            let resultFabricGroup = new fabric.Group([fabricSlotBackground, fabricSlotText]);
-
-            //Moving the starting position for the next stackframe
-            startPosY += stackSlotHeight;
-
-            return resultFabricGroup;
-        };
-
         //Creating the slots
-        let retAllSlots = new Array<fabric.Group>();
+        function createSlotConfig(setSlotColor: string) : StackframeSlotWidgetConfig{
+            let retSlotConfig = new StackframeSlotWidgetConfig();
+            retSlotConfig.slotWidth = stackSlotWidth;
+            retSlotConfig.slotHeight = stackSlotHeight;
+            retSlotConfig.slotColor = setSlotColor;
+            retSlotConfig.textColor = textFill;
+            retSlotConfig.textFontSize = textFontSize;
+            retSlotConfig.textLeftOffset = textLeftOffset;
+            retSlotConfig.textRightOffset = textRightOffset;
+            retSlotConfig.shortenText = shortenText;
+            return retSlotConfig;
+        }
+
         //Function name
-        retAllSlots.push(myCreateSlotFunction(stackFrameToDraw.functionName, backgroundColorBlue));
+        let headerStackSlotConfig = createSlotConfig(backgroundColorBlue);
+        new StackframeSlotWidget(stackFrameToDraw, this.canvas, startPosX, startPosY, headerStackSlotConfig).draw();
+        startPosY += headerStackSlotConfig.slotHeight;
         //Function variables
         if (stackFrameToDraw.functionVariables != null && !stackFrameToDraw.isCollapsed)
         {
@@ -848,8 +918,9 @@ export class FabricDrawingModule {
                 let value = stackFrameToDraw.functionVariables[key];
                 
                 if (value != null) {
-                    let variableText = value.variableName + ": " + value.dataTypeString + " (" + value.valueString + ")";
-                    retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGrey));
+                    let stackSlotConfig = createSlotConfig(backgroundColorGrey);
+                    new StackframeSlotWidget(value, this.canvas, startPosX, startPosY, stackSlotConfig).draw();
+                    startPosY += stackSlotConfig.slotHeight;
                 }
             }
         }
@@ -860,18 +931,12 @@ export class FabricDrawingModule {
                 let value = stackFrameToDraw.functionParameters[key];
                 
                 if (value != null) {
-                    let variableText = value.variableName + ": " + value.dataTypeString + " (" + value.valueString + ")";
-                    retAllSlots.push(myCreateSlotFunction(variableText, backgroundColorGreen));
+                    let stackSlotConfig = createSlotConfig(backgroundColorGreen);
+                    new StackframeSlotWidget(value, this.canvas, startPosX, startPosY, stackSlotConfig).draw();
+                    startPosY += stackSlotConfig.slotHeight;
                 }
             }
         }
-        //Adding the result group to the canvas
-        retAllSlots.forEach(stackFrameSlot => {
-            this.canvas.add(stackFrameSlot);
-        });
-
-        //Locking the movement of the items
-        this.canvas.lockAllItems();
 
         //Returning the future start position (for easy drawing of other stackframes under this one)
         return startPosY;

@@ -3,7 +3,7 @@ import * as myDataModelStructures from "./dataModelStructures";
 
 console.log("[DEBUG] Initialzing Fabric");
 var myDrawingModule = new FabricDrawingModule('drawLibCanvas');
-/*
+
 //Example stackframe 1
 let testStackFrame1 = new myDataModelStructures.StackFrame();
 testStackFrame1.frameId = 1;
@@ -90,7 +90,7 @@ myDrawingModule.drawProgramStack(testProgramStack);                 //Unlimited 
 //myDrawingModule.drawProgramStack(testProgramStack, 10, 10, 150);    //Limited in length
 
 
-
+/*
 //Testing variables
 //Example string
 let testString = new myDataModelStructures.Variable();
@@ -118,7 +118,7 @@ testInt.valueString = "846151";
 
 console.log("[DEBUG] Drawing the testing int");
 myDrawingModule.drawVariable(testInt);
-*/
+
 //Example bool
 let testBool = new myDataModelStructures.Variable();
 testBool.variableName = "testBoolVariable";
@@ -127,4 +127,4 @@ testBool.valueString = "1";
 
 console.log("[DEBUG] Drawing the testing bool");
 myDrawingModule.drawVariable(testBool);
-//*/
+*/
