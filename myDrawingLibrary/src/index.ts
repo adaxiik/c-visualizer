@@ -5,126 +5,156 @@ console.log("[DEBUG] Initialzing Fabric");
 var myDrawingModule = new FabricDrawingModule('drawLibCanvas');
 
 //Example stackframe 1
-let testStackFrame1 = new myDataModelStructures.StackFrame();
-testStackFrame1.frameId = 1;
-testStackFrame1.functionName = "TestFunction1";
-testStackFrame1.isCollapsed = false;
+let stackFrame1 = new myDataModelStructures.StackFrame();
+stackFrame1.frameId = 1;
+stackFrame1.functionName = "Function1";
+stackFrame1.isCollapsed = false;
 //Function variables 1
-let stackFrame1TestVar1 = new myDataModelStructures.Variable();
-stackFrame1TestVar1.variableName = "stackFrame1TestVar1";
-stackFrame1TestVar1.dataTypeString = "bool";
-stackFrame1TestVar1.valueString = "true";
-let stackFrame1TestVar2 = new myDataModelStructures.Variable();
-stackFrame1TestVar2.variableName = "stackFrame1TestVar2";
-stackFrame1TestVar2.dataTypeString = "int";
-stackFrame1TestVar2.valueString = "17";
-let stackFrame1TestVar3 = new myDataModelStructures.Variable();
-stackFrame1TestVar3.variableName = "stackFrame1TestVar3";
-stackFrame1TestVar3.dataTypeString = "float";
-stackFrame1TestVar3.valueString = "3.28";
-let stackFrame1TestPointerVar1 = new myDataModelStructures.Variable();
-stackFrame1TestPointerVar1.variableName = "stackFrame1TestPointerVar1";
-stackFrame1TestPointerVar1.dataTypeString = "int *";
-stackFrame1TestPointerVar1.valueString = "stackFrame1TestVar2";
-stackFrame1TestPointerVar1.isPointer = true;
-testStackFrame1.functionVariables[stackFrame1TestVar1.variableName] = stackFrame1TestVar1;
-testStackFrame1.functionVariables[stackFrame1TestVar2.variableName] = stackFrame1TestVar2;
-testStackFrame1.functionVariables[stackFrame1TestVar3.variableName] = stackFrame1TestVar3;
-testStackFrame1.functionVariables[stackFrame1TestPointerVar1.variableName] = stackFrame1TestPointerVar1;
+let stackFrame1Var1 = new myDataModelStructures.Variable();
+stackFrame1Var1.variableName = "stackFrame1Var1";
+stackFrame1Var1.dataTypeString = "bool";
+stackFrame1Var1.valueString = "true";
+let stackFrame1Var2 = new myDataModelStructures.Variable();
+stackFrame1Var2.variableName = "stackFrame1Var2";
+stackFrame1Var2.dataTypeString = "int";
+stackFrame1Var2.valueString = "17";
+let stackFrame1Var3 = new myDataModelStructures.Variable();
+stackFrame1Var3.variableName = "stackFrame1Var3";
+stackFrame1Var3.dataTypeString = "float";
+stackFrame1Var3.valueString = "3.28";
+let stackFrame1PointerVar1 = new myDataModelStructures.Variable();          //Pointer variable
+stackFrame1PointerVar1.variableName = "stackFrame1PointerVar1";
+stackFrame1PointerVar1.dataTypeString = "int *";
+stackFrame1PointerVar1.valueString = "stackFrame1Var2";
+stackFrame1PointerVar1.isPointer = true;
+let stackFrame1StructVar1 = new myDataModelStructures.Struct();             //Struct variable
+stackFrame1StructVar1.variableName = "stackFrame1StructVar1";
+stackFrame1StructVar1.elements = new Array<myDataModelStructures.Variable>();
+stackFrame1StructVar1.dataTypeString = "testStruct1";
+let stackFrame1StructMember1 = new myDataModelStructures.Variable();
+stackFrame1StructMember1.variableName = "stackFrame1StructMember1";
+stackFrame1StructMember1.dataTypeString = "int";
+stackFrame1StructMember1.valueString = "26";
+let stackFrame1StructMember2 = new myDataModelStructures.Variable();
+stackFrame1StructMember2.variableName = "stackFrame1StructMember2";
+stackFrame1StructMember2.dataTypeString = "bool";
+stackFrame1StructMember2.valueString = "false";
+let stackFrame1StructMemberStruct1 = new myDataModelStructures.Struct();    //Member struct variable
+stackFrame1StructMemberStruct1.variableName = "stackFrame1StructMemberStruct1";
+stackFrame1StructMemberStruct1.elements = new Array<myDataModelStructures.Variable>();
+stackFrame1StructMemberStruct1.dataTypeString = "testStruct2";
+let stackFrame1StructMember4 = new myDataModelStructures.Variable();
+stackFrame1StructMember4.variableName = "stackFrame1StructMember4";
+stackFrame1StructMember4.dataTypeString = "int";
+stackFrame1StructMember4.valueString = "73";
+let stackFrame1StructMember5 = new myDataModelStructures.Variable();
+stackFrame1StructMember5.variableName = "stackFrame1StructMember5";
+stackFrame1StructMember5.dataTypeString = "int";
+stackFrame1StructMember5.valueString = "128";
+stackFrame1StructVar1.elements.push(stackFrame1StructMember1);
+stackFrame1StructVar1.elements.push(stackFrame1StructMember2);
+stackFrame1StructVar1.elements.push(stackFrame1StructMemberStruct1);
+stackFrame1StructMemberStruct1.elements.push(stackFrame1StructMember4);
+stackFrame1StructMemberStruct1.elements.push(stackFrame1StructMember5);
+stackFrame1.functionVariables[stackFrame1Var1.variableName] = stackFrame1Var1;
+stackFrame1.functionVariables[stackFrame1Var2.variableName] = stackFrame1Var2;
+stackFrame1.functionVariables[stackFrame1Var3.variableName] = stackFrame1Var3;
+stackFrame1.functionVariables[stackFrame1StructVar1.variableName] = stackFrame1StructVar1;
+stackFrame1.functionVariables[stackFrame1PointerVar1.variableName] = stackFrame1PointerVar1;
 //Function parameters 1
-let stackFrame1TestParam1 = new myDataModelStructures.Variable();
-stackFrame1TestParam1.variableName = "stackFrame1TestParam1";
-stackFrame1TestParam1.dataTypeString = "int";
-stackFrame1TestParam1.valueString = "273";
-let stackFrame1TestParam2 = new myDataModelStructures.Variable();
-stackFrame1TestParam2.variableName = "stackFrame1TestParam2";
-stackFrame1TestParam2.dataTypeString = "double";
-stackFrame1TestParam2.valueString = "15.893";
-testStackFrame1.functionParameters[stackFrame1TestParam1.variableName] = stackFrame1TestParam1;
-testStackFrame1.functionParameters[stackFrame1TestParam2.variableName] = stackFrame1TestParam2;
+let stackFrame1Param1 = new myDataModelStructures.Variable();
+stackFrame1Param1.variableName = "stackFrame1Param1";
+stackFrame1Param1.dataTypeString = "int";
+stackFrame1Param1.valueString = "273";
+let stackFrame1Param2 = new myDataModelStructures.Variable();
+stackFrame1Param2.variableName = "stackFrame1Param2";
+stackFrame1Param2.dataTypeString = "double";
+stackFrame1Param2.valueString = "15.893";
+stackFrame1.functionParameters[stackFrame1Param1.variableName] = stackFrame1Param1;
+stackFrame1.functionParameters[stackFrame1Param2.variableName] = stackFrame1Param2;
 
 //Example stackframe 2
-let testStackFrame2 = new myDataModelStructures.StackFrame();
-testStackFrame2.frameId = 2;
-testStackFrame2.functionName = "TestFunction2";
-testStackFrame2.isCollapsed = false;
+let stackFrame2 = new myDataModelStructures.StackFrame();
+stackFrame2.frameId = 2;
+stackFrame2.functionName = "Function2";
+stackFrame2.isCollapsed = false;
 //Function variables 2
-let stackFrame2TestVar1 = new myDataModelStructures.Variable();
-stackFrame2TestVar1.variableName = "stackFrame2TestVar1";
-stackFrame2TestVar1.dataTypeString = "bool";
-stackFrame2TestVar1.valueString = "true";
-let stackFrame2TestVar2 = new myDataModelStructures.Variable();
-stackFrame2TestVar2.variableName = "stackFrame2TestVar2";
-stackFrame2TestVar2.dataTypeString = "int";
-stackFrame2TestVar2.valueString = "17";
-let stackFrame2TestVar3 = new myDataModelStructures.Variable();
-stackFrame2TestVar3.variableName = "stackFrame2TestVar3";
-stackFrame2TestVar3.dataTypeString = "float";
-stackFrame2TestVar3.valueString = "3.28";
-testStackFrame2.functionVariables[stackFrame2TestVar1.variableName] = stackFrame2TestVar1;
-testStackFrame2.functionVariables[stackFrame2TestVar2.variableName] = stackFrame2TestVar2;
-testStackFrame2.functionVariables[stackFrame2TestVar3.variableName] = stackFrame2TestVar3;
+let stackFrame2Var1 = new myDataModelStructures.Variable();
+stackFrame2Var1.variableName = "stackFrame2Var1";
+stackFrame2Var1.dataTypeString = "bool";
+stackFrame2Var1.valueString = "true";
+let stackFrame2Var2 = new myDataModelStructures.Variable();
+stackFrame2Var2.variableName = "stackFrame2Var2";
+stackFrame2Var2.dataTypeString = "int";
+stackFrame2Var2.valueString = "17";
+let stackFrame2Var3 = new myDataModelStructures.Variable();
+stackFrame2Var3.variableName = "stackFrame2Var3";
+stackFrame2Var3.dataTypeString = "float";
+stackFrame2Var3.valueString = "3.28";
+stackFrame2.functionVariables[stackFrame2Var1.variableName] = stackFrame2Var1;
+stackFrame2.functionVariables[stackFrame2Var2.variableName] = stackFrame2Var2;
+stackFrame2.functionVariables[stackFrame2Var3.variableName] = stackFrame2Var3;
 //Function parameters 2
-let stackFrame2TestParam1 = new myDataModelStructures.Variable();
-stackFrame2TestParam1.variableName = "stackFrame2TestParam1";
-stackFrame2TestParam1.dataTypeString = "int";
-stackFrame2TestParam1.valueString = "273";
-let stackFrame2TestParam2 = new myDataModelStructures.Variable();
-stackFrame2TestParam2.variableName = "stackFrame2TestParam2";
-stackFrame2TestParam2.dataTypeString = "double";
-stackFrame2TestParam2.valueString = "15.893";
-testStackFrame2.functionParameters[stackFrame2TestParam1.variableName] = stackFrame2TestParam1;
-testStackFrame2.functionParameters[stackFrame2TestParam2.variableName] = stackFrame2TestParam2;
+let stackFrame2Param1 = new myDataModelStructures.Variable();
+stackFrame2Param1.variableName = "stackFrame2Param1";
+stackFrame2Param1.dataTypeString = "int";
+stackFrame2Param1.valueString = "273";
+let stackFrame2Param2 = new myDataModelStructures.Variable();
+stackFrame2Param2.variableName = "stackFrame2Param2";
+stackFrame2Param2.dataTypeString = "double";
+stackFrame2Param2.valueString = "15.893";
+stackFrame2.functionParameters[stackFrame2Param1.variableName] = stackFrame2Param1;
+stackFrame2.functionParameters[stackFrame2Param2.variableName] = stackFrame2Param2;
 
 //Creating the program stack
-let testProgramStack = new myDataModelStructures.ProgramStack();
-testProgramStack.stackFrames = new Array<myDataModelStructures.StackFrame>();
+let programStack = new myDataModelStructures.ProgramStack();
+programStack.stackFrames = new Array<myDataModelStructures.StackFrame>();
 
 //Adding the stackframes
-testProgramStack.stackFrames[testStackFrame1.frameId] = testStackFrame1;
-testProgramStack.stackFrames[testStackFrame2.frameId] = testStackFrame2;
+programStack.stackFrames[stackFrame1.frameId] = stackFrame1;
+programStack.stackFrames[stackFrame2.frameId] = stackFrame2;
 
 //Drawing the program stack
 console.log("[DEBUG] Drawing the full program stack");
-myDrawingModule.drawProgramStack(testProgramStack);                 //Unlimited in length
-//myDrawingModule.drawProgramStack(testProgramStack, 10, 10, 150);    //Limited in length
+myDrawingModule.drawProgramStack(programStack);                 //Unlimited in length
+//myDrawingModule.drawProgramStack(ProgramStack, 10, 10, 150);    //Limited in length
 
 
 /*
-//Testing variables
+//ing variables
 //Example string
-let testString = new myDataModelStructures.Variable();
-testString.variableName = "testStringVariable";
-testString.dataTypeString = "string";
-testString.valueString = "I am a testing string.";
+let String = new myDataModelStructures.Variable();
+String.variableName = "StringVariable";
+String.dataTypeString = "string";
+String.valueString = "I am a ing string.";
 
-console.log("[DEBUG] Drawing the testing string");
-myDrawingModule.drawVariable(testString);
+console.log("[DEBUG] Drawing the ing string");
+myDrawingModule.drawVariable(String);
 
 //Example char
-let testChar = new myDataModelStructures.Variable();
-testChar.variableName = "testCharVariable";
-testChar.dataTypeString = "char";
-testChar.valueString = "e";
+let Char = new myDataModelStructures.Variable();
+Char.variableName = "CharVariable";
+Char.dataTypeString = "char";
+Char.valueString = "e";
 
-console.log("[DEBUG] Drawing the testing char");
-myDrawingModule.drawVariable(testChar);
+console.log("[DEBUG] Drawing the ing char");
+myDrawingModule.drawVariable(Char);
 
 //Example number (int)
-let testInt = new myDataModelStructures.Variable();
-testInt.variableName = "testIntVariable";
-testInt.dataTypeString = "int";
-testInt.valueString = "846151";
+let Int = new myDataModelStructures.Variable();
+Int.variableName = "IntVariable";
+Int.dataTypeString = "int";
+Int.valueString = "846151";
 
-console.log("[DEBUG] Drawing the testing int");
-myDrawingModule.drawVariable(testInt);
+console.log("[DEBUG] Drawing the ing int");
+myDrawingModule.drawVariable(Int);
 
 //Example bool
-let testBool = new myDataModelStructures.Variable();
-testBool.variableName = "testBoolVariable";
-testBool.dataTypeString = "bool";
-testBool.valueString = "1";
+let Bool = new myDataModelStructures.Variable();
+Bool.variableName = "BoolVariable";
+Bool.dataTypeString = "bool";
+Bool.valueString = "1";
 
-console.log("[DEBUG] Drawing the testing bool");
-myDrawingModule.drawVariable(testBool);
+console.log("[DEBUG] Drawing the ing bool");
+myDrawingModule.drawVariable(Bool);
 */

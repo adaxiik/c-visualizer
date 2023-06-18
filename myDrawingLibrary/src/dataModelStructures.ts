@@ -29,17 +29,6 @@ export class StackFrame {
     isCollapsed: boolean;
 }
 
-//Array
-export class Array {
-    dataTypeEnum: DataType;
-    dataTypeString: string;
-    dimensionCount: number;
-    isAllocated: boolean;
-    arrayPointerAddress: string;
-    size: number;                       //If the array is already allocated (if this.isAllocated == true)
-    arrayElements: Variable[];
-}
-
 //Variable
 export class Variable {
     variableName: string;
@@ -50,17 +39,26 @@ export class Variable {
     valueString: string;
 }
 
+//Struct
+export class Struct extends Variable {
+    elements: Variable[];
+    memory: Memory;
+}
+
+//Array
+export class Array extends Variable {
+    dimensionCount: number;
+    isAllocated: boolean;
+    arrayPointerAddress: string;
+    size: number;                       //If the array is already allocated (if this.isAllocated == true)
+    elements: Variable[];
+    memory: Memory;
+}
+
 //DataType
 export class DataType {
     dataTypeEnum: DataTypeEnum;
     dataTypeString: string;
-}
-
-//Struct
-export class Struct {
-    name: string;
-    structElements: Variable[];
-    memory: Memory;
 }
 
 //Memory
