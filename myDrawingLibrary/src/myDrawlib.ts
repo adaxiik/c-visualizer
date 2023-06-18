@@ -4,13 +4,13 @@ import * as DataModelStructures from "./dataModelStructures";
 
 function clearCanvas() {
   //Clearing the canvas
-  myDrawingModule.clearCanvas();
+  myDrawingModule.canvas.clearCanvas();
   //Reset the current program stack
   currentProgramStack = new DataModelStructures.ProgramStack();
 }
 
 function redrawCanvas() {
-  myDrawingModule.clearCanvas();
+  myDrawingModule.canvas.clearCanvas();
   //Drawing the program full stack
   myDrawingModule.drawProgramStack(currentProgramStack);
 }

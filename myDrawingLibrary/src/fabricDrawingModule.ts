@@ -1,6 +1,41 @@
 import { fabric } from "fabric";
 import * as DataModelStructures from "./dataModelStructures";
 
+class CustomCanvas extends fabric.Canvas {
+    lockAllItems()
+    {
+        let allFabricItems = this.getObjects();
+
+        allFabricItems.forEach(fabricObject => {
+            fabricObject.selectable = false;
+            fabricObject.hoverCursor = "default";
+            fabricObject.evented = true;
+        });
+    }
+
+    clearCanvas() {
+        console.log("[DEBUG] Clearing the canvas");
+        this.clear();
+    }
+}
+
+//Class for temporary storage of data for the FabricDrawingModule
+class FabricDrawingModuleCache {
+    objectColor: string;
+    pointeeObject: [fabric.Object, string];             //[backgroundRectangleObject, previousColor]
+    pointerArrowObject : fabric.Object | undefined;     //Fabric object representing the arrow between variables (presuming there is only one arrow object temporarily present)
+    pointers: Array<[any, any]>;                        //in a [pointerVariable, pointingTo] format
+    drawProgramStackArguments?: [DataModelStructures.ProgramStack, number, number, number?];
+
+    constructor() {
+        this.objectColor = "";
+        this.pointeeObject = [new fabric.Object, ""];
+        this.pointerArrowObject = undefined;
+        this.pointers = new Array<[any, any]>();
+        this.drawProgramStackArguments = undefined;
+    }
+}
+
 interface Widget {
     canvas: CustomCanvas;
     dataModelObject:    DataModelStructures.Array
@@ -17,6 +52,28 @@ interface Widget {
     get height(): number | undefined;
 
     draw(): void;
+}
+
+//Class to limit number of variables needed for the ProgramStackWidget constructor call
+class ProgramStackWidgetConfig {
+    fabricDrawingModuleCache: FabricDrawingModuleCache;
+    maxStackSlotWidth: number | undefined;
+}
+
+//Class to limit number of variables needed for the StackframeWidget constructor call
+class StackframeWidgetConfig {
+    slotWidth: number;
+    slotHeight: number;
+    textColor: string;
+    shortenText: boolean;
+}
+
+//Class to limit number of variables needed for the StackframeSlotWidget constructor call
+class StackframeSlotWidgetConfig extends StackframeWidgetConfig {
+    slotColor: string;          //Specific for a single slot
+    textFontSize: number;       //Calculated in a stackframe widget and passed
+    textLeftOffset: number;     //Calculated in a stackframe widget and passed
+    textRightOffset: number;    //Calculated in a stackframe widget and passed
 }
 
 class StringWidget implements Widget {
@@ -242,22 +299,6 @@ class BooleanWidget implements Widget {
         //Locking the movement of the items
         this.canvas.lockAllItems();
     }
-}
-
-//Class to limit number of variables needed for the StackframeWidget constructor call
-class StackframeWidgetConfig {
-    slotWidth: number;
-    slotHeight: number;
-    textColor: string;
-    shortenText: boolean;
-}
-
-//Class to limit number of variables needed for the StackframeSlotWidget constructor call
-class StackframeSlotWidgetConfig extends StackframeWidgetConfig {
-    slotColor: string;          //Specific for a single slot
-    textFontSize: number;       //Calculated in a stackframe widget and passed
-    textLeftOffset: number;     //Calculated in a stackframe widget and passed
-    textRightOffset: number;    //Calculated in a stackframe widget and passed
 }
 
 class StackframeSlotWidget implements Widget {
@@ -494,31 +535,231 @@ class StackframeWidget implements Widget {
     }
 }
 
-class CustomCanvas extends fabric.Canvas {
-    lockAllItems()
-    {
-        let allFabricItems = this.getObjects();
+class ProgramStackWidget implements Widget {
+    canvas: CustomCanvas;
+    dataModelObject: DataModelStructures.ProgramStack;
+    fabricObject: fabric.Group;
+    startPos: {x: number, y: number};
+    children: Array<Widget>;
+    //Added variables specific for a program stack widget
+    programStackConfig: ProgramStackWidgetConfig;
 
-        allFabricItems.forEach(fabricObject => {
-            fabricObject.selectable = false;
-            fabricObject.hoverCursor = "default";
-            fabricObject.evented = true;
-        });
+    constructor(programStackToDraw: DataModelStructures.ProgramStack, drawToCanvas: CustomCanvas, setStartPosX = 10, setStartPosY = 10, setConfig: ProgramStackWidgetConfig) {
+        this.canvas = drawToCanvas;
+        this.dataModelObject = programStackToDraw;
+        this.fabricObject = new fabric.Group();
+        this.startPos = {x: setStartPosX, y: setStartPosY};
+        this.children = new Array<Widget>();
+        //Added variables specific for a program stack widget
+        this.programStackConfig = setConfig;
     }
 
-    clearCanvas() {
-        console.log("[DEBUG] Clearing the canvas");
-        this.clear();
+    get width(): number | undefined {
+        if(this.children.length < 1)
+        {
+            return undefined;
+        }
+
+        //Finding the widest stackframe (due to the stackframes having the same starting X position)
+        let maxWidth = 0;
+        for(let i = 0; i < this.children.length; i++)
+        {
+            let currentChildsWidth = this.children[i].width;
+            if(currentChildsWidth != undefined)
+                maxWidth = Math.max(currentChildsWidth, maxWidth);
+        }
+
+        return maxWidth;
+    }
+
+    get height(): number | undefined {
+        if(this.children.length < 1)
+        {
+            return undefined;
+        }
+
+        let heightSum = 0;
+        for(let i = 0; i < this.children.length; i++)
+        {
+            let currentChild = this.children[i];
+            if(currentChild instanceof StackframeWidget)
+            {
+                let currentChildsHeight = currentChild.height;
+                if(currentChildsHeight != undefined) 
+                    heightSum += currentChildsHeight;   //Adding the stackframe's height
+
+                //In case there are more than 1 stackframe, accounting for the rectangle stroke width
+                if(i > 1)
+                {
+                    let currentChildsFirstSlot = currentChild.children[0];
+                    if(currentChildsFirstSlot instanceof StackframeSlotWidget)
+                        heightSum -= currentChildsFirstSlot.slotConfig.textFontSize / 10;
+                }
+            }
+        }
+
+        return heightSum;
+    }
+
+    draw() {
+        let shortenText = false;
+        let stackSlotHeight = 30;
+        let textColor = "black";
+        let textFontSize = stackSlotHeight - stackSlotHeight / 3;
+        let textLeftOffset = textFontSize / 5;
+        let textRightOffset = textLeftOffset * 2;
+        let calculatedMaxTextWidth = this.calculateMaxTextWidth(textFontSize);
+        let tempStartPosX = this.startPos.x;
+        let tempStartPosY = this.startPos.y;
+
+        //Saving the now drawn program stack state (and the arguments of the last call)
+        this.programStackConfig.fabricDrawingModuleCache.drawProgramStackArguments = [this.dataModelObject, this.startPos.x, this.startPos.y, this.programStackConfig.maxStackSlotWidth];
+
+        //Caching the pointers in the program stack
+        this.checkForPointers();
+
+        //If maximum stack slot width is set
+        if (typeof this.programStackConfig.maxStackSlotWidth !== "undefined") {
+            //Checking if we'll need to shorten the variable text (if all variable texts are shorter than the desired stackSlotWidth)
+            shortenText = this.programStackConfig.maxStackSlotWidth < calculatedMaxTextWidth;
+        }
+
+        //To prepare the slot's shared config
+        function createConfig() : StackframeWidgetConfig{
+            let retSlotConfig = new StackframeWidgetConfig();
+            if(shortenText && this.programStackConfig.maxStackSlotWidth != undefined)
+                retSlotConfig.slotWidth = this.programStackConfig.maxStackSlotWidth;
+            else
+                retSlotConfig.slotWidth = calculatedMaxTextWidth + textRightOffset;
+            retSlotConfig.slotHeight = stackSlotHeight;
+            retSlotConfig.textColor = textColor;
+            retSlotConfig.shortenText = shortenText;
+            return retSlotConfig;
+        }
+        
+        //Drawing all the stackframes present
+        for (let key in this.dataModelObject.stackFrames) {
+            let value = this.dataModelObject.stackFrames[key];
+            
+            if (value != null) {
+                let stackConfig = createConfig();
+                let stackframeWidget = new StackframeWidget(value, this.canvas, tempStartPosX, tempStartPosY, stackConfig);
+                this.children.push(stackframeWidget);       //Adding the stackframe to the children array
+                stackframeWidget.draw();                    //Drawing the stackframe
+                if(stackframeWidget.height != undefined)
+                {
+                    tempStartPosY += stackframeWidget.height;   //Chaging the starting position with each drawn stackframe
+                    if(stackframeWidget.children[0] instanceof StackframeSlotWidget)
+                    {
+                        tempStartPosY -= stackframeWidget.children[0].slotConfig.textFontSize / 10;     //Accounting for the rectangle stroke width
+                    }
+                }
+                    
+            }
+        }
+    }
+
+    //Helper function used to calculate max text width in a provided program stack (used to determine neccessary slot width)
+    calculateMaxTextWidth(textFontSize : number) : number {
+        let maxTotalTextWidth = 0;
+        let allVariableTexts = new Array<string>();
+        
+        //Going through all stackframes present (and noting their parameter's and variable's text)
+        for (let stackFrameKey in this.dataModelObject.stackFrames) {
+            let currentStackFrame = this.dataModelObject.stackFrames[stackFrameKey];
+            
+            if (currentStackFrame != null) {
+                //Going through function parameters
+                for (let functionParameterKey in currentStackFrame.functionParameters) {
+                    let currentFunctionParameter = currentStackFrame.functionParameters[functionParameterKey];
+                    if (currentFunctionParameter != null) {
+                        let variableText = currentFunctionParameter.variableName + ": " + currentFunctionParameter.dataTypeString + " (" + currentFunctionParameter.valueString + ")";
+                        allVariableTexts.push(variableText);
+                    }
+                }
+
+                //Going through function variables
+                for (let functionVariableKey in currentStackFrame.functionVariables) {
+                    let currentFunctionVariable = currentStackFrame.functionVariables[functionVariableKey];
+                    if (currentFunctionVariable != null) {
+                        let variableText = currentFunctionVariable.variableName + ": " + currentFunctionVariable.dataTypeString + " (" + currentFunctionVariable.valueString + ")";
+                        allVariableTexts.push(variableText);
+                    }
+                }
+            }
+        }
+
+        //For all variables found
+        for (let i = 0; i < allVariableTexts.length; i++) {
+            //"Mock" creating Fabric text (to calculate total width properly)
+            let tempFabricSlotText = new fabric.Text(allVariableTexts[i], {
+                left: 0,
+                top: 0,
+                fill: "black",
+                fontSize: textFontSize
+            });
+
+            //Comparing the current variable text's length to the maximum 
+            maxTotalTextWidth = tempFabricSlotText.getScaledWidth() > maxTotalTextWidth ? tempFabricSlotText.getScaledWidth() : maxTotalTextWidth;
+        }
+        
+        return maxTotalTextWidth;
+    }
+
+    //Helper function checking for pointer variables in a provided program stack (assigns values to the this.cache.pointers in a [pointerVariable, pointingTo] format)
+    checkForPointers() {
+        this.programStackConfig.fabricDrawingModuleCache.pointers.splice(0, this.programStackConfig.fabricDrawingModuleCache.pointers.length);  //Emptying the array
+
+        //Going through all stackframes present (and noting their parameter's and variable's text)
+        for (let stackFrameKey in this.dataModelObject.stackFrames) {
+            let currentStackFrame = this.dataModelObject.stackFrames[stackFrameKey];
+            
+            if (currentStackFrame != null) {
+                //Going through function parameters
+                for (let functionParameterKey in currentStackFrame.functionParameters) {
+                    let currentFunctionParameter = currentStackFrame.functionParameters[functionParameterKey];
+                    if (currentFunctionParameter != null) {
+                        if (currentFunctionParameter.isPointer == true) {
+                            //Check the value pointed to
+                            let valuePointedTo;
+                            if(currentFunctionParameter.value != null) {
+                                valuePointedTo = currentFunctionParameter.value;
+                            }
+                            else {
+                                valuePointedTo = currentFunctionParameter.valueString;
+                            }
+
+                            this.programStackConfig.fabricDrawingModuleCache.pointers.push([currentFunctionParameter.variableName, valuePointedTo]);
+                        }
+                    }
+                }
+
+                //Going through function variables
+                for (let functionVariableKey in currentStackFrame.functionVariables) {
+                    let currentFunctionVariable = currentStackFrame.functionVariables[functionVariableKey];
+                    if (currentFunctionVariable != null) {
+                        if (currentFunctionVariable.isPointer == true) {
+                            //Check the value pointed to
+                            let valuePointedTo;
+                            if(currentFunctionVariable.value != null) {
+                                valuePointedTo = currentFunctionVariable.value;
+                            }
+                            else {
+                                valuePointedTo = currentFunctionVariable.valueString;
+                            }
+
+                            this.programStackConfig.fabricDrawingModuleCache.pointers.push([currentFunctionVariable.variableName, valuePointedTo]);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 export class FabricDrawingModule {
     canvas: CustomCanvas;
-    cachedObjectColor: string;
-    cachedPointeeObject: [fabric.Object, string];   //[backgroundRectangleObject, previousColor]
-    cachedPointerArrowObject : fabric.Object | undefined;   //Fabric object representing the arrow between variables (presuming there is only one arrow object temporarily present)
-    cachedPointers: Array<[any, any]>;              //in a [pointerVariable, pointingTo] format
-    cachedDrawProgramStackArguments?: [DataModelStructures.ProgramStack, number, number, number?];
+    cache: FabricDrawingModuleCache;
 
     constructor(canvasName: string) {
         this.canvas = new CustomCanvas(canvasName);
@@ -526,12 +767,8 @@ export class FabricDrawingModule {
         //TODO: Think the sizing through and adjust accordingly
         this.canvas.setWidth(screen.width);
         this.canvas.setHeight(screen.height);
-        this.cachedObjectColor = "";
-        this.cachedPointeeObject = [new fabric.Object, ""];
-        this.cachedPointerArrowObject = undefined;
-        this.cachedPointers = new Array<[any, any]>();
-        this.cachedDrawProgramStackArguments = undefined;
-
+        this.cache = new FabricDrawingModuleCache();
+        
         this.initPanning();
         this.initZooming();
         this.initHoverOver();
@@ -553,10 +790,10 @@ export class FabricDrawingModule {
                     //If the clicked on object is a stackFrame header (function name without ":")
                     if (!hoveredOverObjectText.includes(":")) {
                         //Set the corresponding stackframe as collapsed / uncollapsed
-                        if (drawingModuleThis.cachedDrawProgramStackArguments != undefined && drawingModuleThis.cachedDrawProgramStackArguments != null)
+                        if (drawingModuleThis.cache.drawProgramStackArguments != undefined && drawingModuleThis.cache.drawProgramStackArguments != null)
                         {
-                            for (let key in drawingModuleThis.cachedDrawProgramStackArguments[0].stackFrames) {
-                                let value = drawingModuleThis.cachedDrawProgramStackArguments[0].stackFrames[key];
+                            for (let key in drawingModuleThis.cache.drawProgramStackArguments[0].stackFrames) {
+                                let value = drawingModuleThis.cache.drawProgramStackArguments[0].stackFrames[key];
                                 
                                 if (value != null)
                                 {
@@ -568,7 +805,7 @@ export class FabricDrawingModule {
                             }
                             //Redraw the canvas
                             drawingModuleThis.canvas.clearCanvas();
-                            drawingModuleThis.drawProgramStack(...drawingModuleThis.cachedDrawProgramStackArguments);
+                            drawingModuleThis.drawProgramStack(...drawingModuleThis.cache.drawProgramStackArguments);
                         }
                     }
                     //Preventing the mouse going to selection mode and returning (to skip the dragging logic)
@@ -649,24 +886,24 @@ export class FabricDrawingModule {
                             console.log("[DEBUG] Error - previousObjectColor was undefined");
     
                         //Checking if the hovered over variable is a pointer
-                        if(drawingModuleThis.cachedPointers != undefined)
+                        if(drawingModuleThis.cache.pointers != undefined)
                         {
-                            for (let i = 0; i < drawingModuleThis.cachedPointers.length; i++)
+                            for (let i = 0; i < drawingModuleThis.cache.pointers.length; i++)
                             {
                                 if("text" in opt.target._objects[1])
                                 {
                                     let hoveredOverVariableText;
                                     if(opt.target._objects[1] instanceof fabric.Text)
                                         hoveredOverVariableText = opt.target._objects[1].text;
-                                    let searchedForText = drawingModuleThis.cachedPointers[i][0] + ":";
+                                    let searchedForText = drawingModuleThis.cache.pointers[i][0] + ":";
         
                                     console.log("[DEBUG] Hovering over: \"" + hoveredOverVariableText + "\", searching for: \"" + searchedForText + "\"");
                                     //If the hovered over variable is of pointer type
                                     if (hoveredOverVariableText.includes(searchedForText)) {
-                                        markPointee(drawingModuleThis.cachedPointers[i][1]);
+                                        markPointee(drawingModuleThis.cache.pointers[i][1]);
                                         
                                         let fromVariableObject = drawingModuleThis.findObjectByText(hoveredOverVariableText);
-                                        let toVariableObject = drawingModuleThis.findObjectByText(drawingModuleThis.cachedPointers[i][1]);
+                                        let toVariableObject = drawingModuleThis.findObjectByText(drawingModuleThis.cache.pointers[i][1]);
                                         if (fromVariableObject == undefined || toVariableObject == undefined)
                                             console.log("[DEBUG] Error - FROM variable or TO variable are undefined");
                                         else
@@ -689,22 +926,22 @@ export class FabricDrawingModule {
                 {
                     if(opt.target instanceof fabric.Group)
                     {
-                        drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cachedObjectColor, false, true);
+                        drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cache.objectColor, false, true);
     
                         //Resetting the state of the pointee variable (if changed)
-                        if (drawingModuleThis.cachedPointeeObject[1] !== "")
+                        if (drawingModuleThis.cache.pointeeObject[1] !== "")
                         {
                             //Resetting the pointee's previous color
-                            drawingModuleThis.cachedPointeeObject[0].set("fill", drawingModuleThis.cachedPointeeObject[1]);
+                            drawingModuleThis.cache.pointeeObject[0].set("fill", drawingModuleThis.cache.pointeeObject[1]);
                             //Clearing the cached pointee
-                            drawingModuleThis.cachedPointeeObject[0] = new fabric.Object();
-                            drawingModuleThis.cachedPointeeObject[1] = "";
+                            drawingModuleThis.cache.pointeeObject[0] = new fabric.Object();
+                            drawingModuleThis.cache.pointeeObject[1] = "";
 
                             //Deleting the arrow object from canvas (if present)
-                            if(drawingModuleThis.cachedPointerArrowObject != undefined)
+                            if(drawingModuleThis.cache.pointerArrowObject != undefined)
                             {
-                                drawingModuleThis.canvas.remove(drawingModuleThis.cachedPointerArrowObject);
-                                drawingModuleThis.cachedPointerArrowObject = undefined;
+                                drawingModuleThis.canvas.remove(drawingModuleThis.cache.pointerArrowObject);
+                                drawingModuleThis.cache.pointerArrowObject = undefined;
                             }
                         }
                         requestRenderAll();
@@ -763,11 +1000,11 @@ export class FabricDrawingModule {
                     {
                         let previousObjectColor = affectedObject._objects[0].get("fill")?.toString(); 
                         if(previousObjectColor != undefined)
-                            this.cachedObjectColor = previousObjectColor;
+                            this.cache.objectColor = previousObjectColor;
                     }
                     else if(clearColorCache)
                     {
-                        this.cachedObjectColor = "";
+                        this.cache.objectColor = "";
                     }
 
                     if(affectedObject._objects[1] instanceof fabric.Text)
@@ -816,103 +1053,6 @@ export class FabricDrawingModule {
         return "#" + toTwoDigitHex(newR) + toTwoDigitHex(newG) + toTwoDigitHex(newB);
     }
 
-    //Helper function used to calculate max text width in a provided program stack (used to determine neccessary slot width)
-    calculateMaxTextWidth(programStackToDraw: DataModelStructures.ProgramStack, textFontSize : number) : number {
-        let maxTotalTextWidth = 0;
-        let allVariableTexts = new Array<string>();
-        
-        //Going through all stackframes present (and noting their parameter's and variable's text)
-        for (let stackFrameKey in programStackToDraw.stackFrames) {
-            let currentStackFrame = programStackToDraw.stackFrames[stackFrameKey];
-            
-            if (currentStackFrame != null) {
-                //Going through function parameters
-                for (let functionParameterKey in currentStackFrame.functionParameters) {
-                    let currentFunctionParameter = currentStackFrame.functionParameters[functionParameterKey];
-                    if (currentFunctionParameter != null) {
-                        let variableText = currentFunctionParameter.variableName + ": " + currentFunctionParameter.dataTypeString + " (" + currentFunctionParameter.valueString + ")";
-                        allVariableTexts.push(variableText);
-                    }
-                }
-
-                //Going through function variables
-                for (let functionVariableKey in currentStackFrame.functionVariables) {
-                    let currentFunctionVariable = currentStackFrame.functionVariables[functionVariableKey];
-                    if (currentFunctionVariable != null) {
-                        let variableText = currentFunctionVariable.variableName + ": " + currentFunctionVariable.dataTypeString + " (" + currentFunctionVariable.valueString + ")";
-                        allVariableTexts.push(variableText);
-                    }
-                }
-            }
-        }
-
-        //For all variables found
-        for (let i = 0; i < allVariableTexts.length; i++) {
-            //"Mock" creating Fabric text (to calculate total width properly)
-            let tempFabricSlotText = new fabric.Text(allVariableTexts[i], {
-                left: 0,
-                top: 0,
-                fill: "black",
-                fontSize: textFontSize
-            });
-
-            //Comparing the current variable text's length to the maximum 
-            maxTotalTextWidth = tempFabricSlotText.getScaledWidth() > maxTotalTextWidth ? tempFabricSlotText.getScaledWidth() : maxTotalTextWidth;
-        }
-        
-        return maxTotalTextWidth;
-    }
-
-    //Helper function checking for pointer variables in a provided program stack (assigns values to the this.cachedPointers in a [pointerVariable, pointingTo] format)
-    checkForPointers(programStackToDraw: DataModelStructures.ProgramStack) {
-        this.cachedPointers.splice(0, this.cachedPointers.length);  //Emptying the array
-
-        //Going through all stackframes present (and noting their parameter's and variable's text)
-        for (let stackFrameKey in programStackToDraw.stackFrames) {
-            let currentStackFrame = programStackToDraw.stackFrames[stackFrameKey];
-            
-            if (currentStackFrame != null) {
-                //Going through function parameters
-                for (let functionParameterKey in currentStackFrame.functionParameters) {
-                    let currentFunctionParameter = currentStackFrame.functionParameters[functionParameterKey];
-                    if (currentFunctionParameter != null) {
-                        if (currentFunctionParameter.isPointer == true) {
-                            //Check the value pointed to
-                            let valuePointedTo;
-                            if(currentFunctionParameter.value != null) {
-                                valuePointedTo = currentFunctionParameter.value;
-                            }
-                            else {
-                                valuePointedTo = currentFunctionParameter.valueString;
-                            }
-
-                            this.cachedPointers.push([currentFunctionParameter.variableName, valuePointedTo]);
-                        }
-                    }
-                }
-
-                //Going through function variables
-                for (let functionVariableKey in currentStackFrame.functionVariables) {
-                    let currentFunctionVariable = currentStackFrame.functionVariables[functionVariableKey];
-                    if (currentFunctionVariable != null) {
-                        if (currentFunctionVariable.isPointer == true) {
-                            //Check the value pointed to
-                            let valuePointedTo;
-                            if(currentFunctionVariable.value != null) {
-                                valuePointedTo = currentFunctionVariable.value;
-                            }
-                            else {
-                                valuePointedTo = currentFunctionVariable.valueString;
-                            }
-
-                            this.cachedPointers.push([currentFunctionVariable.variableName, valuePointedTo]);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     //Helper function to mark the pointee variable (with a different color)
     markPointee(variableId : string) {
         let searchedForText = variableId + ":";
@@ -923,10 +1063,10 @@ export class FabricDrawingModule {
             console.log("[DEBUG] Pointee found!")
 
             //Saving the previous state of the pointee
-            this.cachedPointeeObject[0] = searchedForVariableObject._objects[0];
+            this.cache.pointeeObject[0] = searchedForVariableObject._objects[0];
             let previousColor = searchedForVariableObject._objects[0].get("fill")?.toString();
             if (previousColor != undefined)
-                this.cachedPointeeObject[1] = previousColor;  
+                this.cache.pointeeObject[1] = previousColor;  
             else
                 console.log("[DEBUG] Error - previous pointee color is undefined");
             //Changing the pointee's color
@@ -975,7 +1115,7 @@ export class FabricDrawingModule {
             });
 
             let arrowObjectGroup = new fabric.Group([lineStart, lineMiddle, lineEnd, endTriangle]);
-            this.cachedPointerArrowObject = arrowObjectGroup;   //Saving the reference (for later deletion - presuming the arrow object is just one)
+            this.cache.pointerArrowObject = arrowObjectGroup;   //Saving the reference (for later deletion - presuming the arrow object is just one)
             this.canvas.add(arrowObjectGroup);
         }
         else
@@ -988,59 +1128,12 @@ export class FabricDrawingModule {
     }
 
     drawProgramStack(programStackToDraw: DataModelStructures.ProgramStack, startPosX = 10, startPosY = 10, maxStackSlotWidth? : number) {
-        let shortenText = false;
-        let stackSlotHeight = 30;
-        let textColor = "black";
-        let textFontSize = stackSlotHeight - stackSlotHeight / 3;
-        let textLeftOffset = textFontSize / 5;
-        let textRightOffset = textLeftOffset * 2;
-        let calculatedMaxTextWidth = this.calculateMaxTextWidth(programStackToDraw, textFontSize);
+        let programStackConfig = new ProgramStackWidgetConfig();
+        programStackConfig.fabricDrawingModuleCache = this.cache;
+        programStackConfig.maxStackSlotWidth = maxStackSlotWidth;
 
-        //Saving the now drawn program stack state (and the arguments of the last call)
-        this.cachedDrawProgramStackArguments = [programStackToDraw, startPosX, startPosY, maxStackSlotWidth];
-
-        //Caching the pointers in the program stack
-        this.checkForPointers(programStackToDraw);
-
-        //If maximum stack slot width is set
-        if (typeof maxStackSlotWidth !== "undefined") {
-            //Checking if we'll need to shorten the variable text (if all variable texts are shorter than the desired stackSlotWidth)
-            shortenText = maxStackSlotWidth < calculatedMaxTextWidth;
-        }
-
-        //To prepare the slot's shared config
-        function createConfig() : StackframeWidgetConfig{
-            let retSlotConfig = new StackframeWidgetConfig();
-            if(shortenText && maxStackSlotWidth != undefined)
-                retSlotConfig.slotWidth = maxStackSlotWidth
-            else
-                retSlotConfig.slotWidth = calculatedMaxTextWidth + textRightOffset;
-            retSlotConfig.slotHeight = stackSlotHeight;
-            retSlotConfig.textColor = textColor;
-            retSlotConfig.shortenText = shortenText;
-            return retSlotConfig;
-        }
-        
-        //Drawing all the stackframes present
-        for (let key in programStackToDraw.stackFrames) {
-            let value = programStackToDraw.stackFrames[key];
-            
-            if (value != null) {
-                let stackConfig = createConfig();
-                let stackframeWidget = new StackframeWidget(value, this.canvas, startPosX, startPosY, stackConfig);
-                stackframeWidget.draw();                    //Drawing the stackframe
-                if(stackframeWidget.height != undefined)
-                {
-                    console.log("[DEBUG] Stackframe \"" + value.functionName + "\" height is: " + stackframeWidget.height);
-                    startPosY += stackframeWidget.height;   //Chaging the starting position with each drawn stackframe
-                    if(stackframeWidget.children[0] instanceof StackframeSlotWidget)
-                    {
-                        startPosY -= stackframeWidget.children[0].slotConfig.textFontSize / 10;     //Accounting for the rectangle stroke width
-                    }
-                }
-                    
-            }
-        }
+        let programStackWidget = new ProgramStackWidget(programStackToDraw, this.canvas, startPosX, startPosY, programStackConfig);
+        programStackWidget.draw();
     }
 
     //More general method that prevents the user from misusing the drawing methods
