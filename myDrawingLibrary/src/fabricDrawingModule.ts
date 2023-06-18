@@ -37,13 +37,13 @@ class StringWidget implements Widget {
     get width(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
 
-        return coords[0].x - coords[1].x;
+        return Math.abs(coords[0].x - coords[1].x);
     }
 
     get height(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
 
-        return coords[0].y - coords[3].y;
+        return Math.abs(coords[0].y - coords[3].y);
     }
 
     draw()
@@ -93,13 +93,13 @@ class CharWidget implements Widget {
     get width(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
 
-        return coords[0].x - coords[1].x;
+        return Math.abs(coords[0].x - coords[1].x);
     }
 
     get height(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
 
-        return coords[0].y - coords[3].y;
+        return Math.abs(coords[0].y - coords[3].y);
     }
 
     draw() {
@@ -148,13 +148,13 @@ class NumberWidget implements Widget {
     get width(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
 
-        return coords[0].x - coords[1].x;
+        return Math.abs(coords[0].x - coords[1].x);
     }
 
     get height(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
 
-        return coords[0].y - coords[3].y;
+        return Math.abs(coords[0].y - coords[3].y);
     }
 
     draw() {
@@ -205,13 +205,13 @@ class BooleanWidget implements Widget {
     get width(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
 
-        return coords[0].x - coords[1].x;
+        return Math.abs(coords[0].x - coords[1].x);
     }
 
     get height(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
 
-        return coords[0].y - coords[3].y;
+        return Math.abs(coords[0].y - coords[3].y);
     }
 
     draw() {
@@ -244,16 +244,20 @@ class BooleanWidget implements Widget {
     }
 }
 
-//Class to limit number of variables needed for the StackframeSlotWidget constructor call
-class StackframeSlotWidgetConfig {
+//Class to limit number of variables needed for the StackframeWidget constructor call
+class StackframeWidgetConfig {
     slotWidth: number;
     slotHeight: number;
-    slotColor: string;
     textColor: string;
-    textFontSize: number;
-    textLeftOffset: number;
-    textRightOffset: number;
     shortenText: boolean;
+}
+
+//Class to limit number of variables needed for the StackframeSlotWidget constructor call
+class StackframeSlotWidgetConfig extends StackframeWidgetConfig {
+    slotColor: string;          //Specific for a single slot
+    textFontSize: number;       //Calculated in a stackframe widget and passed
+    textLeftOffset: number;     //Calculated in a stackframe widget and passed
+    textRightOffset: number;    //Calculated in a stackframe widget and passed
 }
 
 class StackframeSlotWidget implements Widget {
@@ -278,13 +282,13 @@ class StackframeSlotWidget implements Widget {
     get width(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
 
-        return coords[0].x - coords[1].x;
+        return Math.abs(coords[0].x - coords[1].x);
     }
 
     get height(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
 
-        return coords[0].y - coords[3].y;
+        return Math.abs(coords[0].y - coords[3].y);
     }
 
     draw() {
@@ -341,12 +345,149 @@ class StackframeSlotWidget implements Widget {
         //Creating the result
         this.fabricObject = new fabric.Group([fabricSlotBackground, fabricSlotText]);
 
-        //TODO: DELETE - will be handled by the stackframe widget
-        //Moving the starting position for the next stackframe
-        //startPosY += stackSlotHeight;
-
         //Adding the group to the canvas
         this.canvas.add(this.fabricObject);
+
+        //Locking the movement of the items
+        this.canvas.lockAllItems();
+    }
+}
+
+class StackframeWidget implements Widget {
+    canvas: CustomCanvas;
+    dataModelObject: DataModelStructures.StackFrame;
+    fabricObject: fabric.Group;
+    startPos: {x: number, y: number};
+    children: Array<Widget>;
+    //Added variables specific for a stackframe widget
+    stackframeConfig: StackframeWidgetConfig;
+
+    constructor(stackFrameToDraw: DataModelStructures.StackFrame, drawToCanvas: CustomCanvas, setStartPosX = 10, setStartPosY = 10, setConfig: StackframeWidgetConfig) {
+        this.canvas = drawToCanvas;
+        this.dataModelObject = stackFrameToDraw;
+        this.fabricObject = new fabric.Group();
+        this.startPos = {x: setStartPosX, y: setStartPosY};
+        this.children = new Array<Widget>();
+        //Added variables specific for a stackframe widget
+        this.stackframeConfig = setConfig;
+    }
+
+    get width(): number | undefined {
+        let minX, maxX;
+        if(this.children.length >= 1)
+        {
+            let firstChildsCoords = this.children[0].fabricObject.getCoords(true);   //Getting the object's coordinates in absolute value 
+            minX = Math.min(firstChildsCoords[0].x, firstChildsCoords[1].x, firstChildsCoords[2].x, firstChildsCoords[3].x);
+            maxX = Math.max(firstChildsCoords[0].x, firstChildsCoords[1].x, firstChildsCoords[2].x, firstChildsCoords[3].x);
+        }
+        else
+        {
+            return undefined;
+        }
+
+        //Checking the other child object for lower / higher values
+        for(let i = 1; i < this.children.length; i++)
+        {
+            let currentChildsCoords = this.children[i].fabricObject.getCoords(true);   //Getting the object's coordinates in absolute value 
+            //Calculating the child's min / max values
+            let currentMinX = Math.min(currentChildsCoords[0].x, currentChildsCoords[1].x, currentChildsCoords[2].x, currentChildsCoords[3].x);
+            let currentMaxX = Math.max(currentChildsCoords[0].x, currentChildsCoords[1].x, currentChildsCoords[2].x, currentChildsCoords[3].x);
+            //Comparing those values
+            minX = currentMinX < minX ? currentMinX : minX;
+            maxX = currentMaxX > maxX ? currentMaxX : maxX;
+        }
+
+        return Math.abs(maxX - minX);
+    }
+
+    get height(): number | undefined {
+        let minY, maxY;
+        if(this.children.length >= 1)
+        {
+            let firstChildsCoords = this.children[0].fabricObject.getCoords(true);   //Getting the object's coordinates in absolute value 
+            minY = Math.min(firstChildsCoords[0].y, firstChildsCoords[1].y, firstChildsCoords[2].y, firstChildsCoords[3].y);
+            maxY = Math.max(firstChildsCoords[0].y, firstChildsCoords[1].y, firstChildsCoords[2].y, firstChildsCoords[3].y);
+        }
+        else
+        {
+            return undefined;
+        }
+
+        //Checking the other child object for lower / higher values
+        for(let i = 1; i < this.children.length; i++)
+        {
+            let currentChildsCoords = this.children[i].fabricObject.getCoords(true);   //Getting the object's coordinates in absolute value 
+            //Calculating the child's min / max values
+            let currentMinY = Math.min(currentChildsCoords[0].y, currentChildsCoords[1].y, currentChildsCoords[2].y, currentChildsCoords[3].y);
+            let currentMaxY = Math.max(currentChildsCoords[0].y, currentChildsCoords[1].y, currentChildsCoords[2].y, currentChildsCoords[3].y);
+            //Comparing those values
+            minY = currentMinY < minY ? currentMinY : minY;
+            maxY = currentMaxY > maxY ? currentMaxY : maxY;
+        }
+
+        return Math.abs(maxY - minY);
+    }
+
+    draw() {
+        //Default values
+        let backgroundColorBlue = '#33ccff';
+        let backgroundColorGrey = '#8f8f8f';
+        let backgroundColorGreen = '#00ff04';
+        let tempStartPosX = this.startPos.x;
+        let tempStartPosY = this.startPos.y;
+        //Note: Text and frame rectangle variables are dynamically adjusted by the stackSlotHeight variable
+        let textFontSize = this.stackframeConfig.slotHeight - this.stackframeConfig.slotHeight / 3;
+        let textLeftOffset = textFontSize / 5;
+        let textRightOffset = textLeftOffset * 2;
+
+        //To prepare the slot's shared config
+        function createSlotConfig(setSlotColor: string, stackframeConfig: StackframeWidgetConfig) : StackframeSlotWidgetConfig{
+            let retSlotConfig = new StackframeSlotWidgetConfig();
+            retSlotConfig.slotWidth = stackframeConfig.slotWidth;
+            retSlotConfig.slotHeight = stackframeConfig.slotHeight;
+            retSlotConfig.slotColor = setSlotColor;
+            retSlotConfig.textColor = stackframeConfig.textColor;
+            retSlotConfig.textFontSize = textFontSize;
+            retSlotConfig.textLeftOffset = textLeftOffset;
+            retSlotConfig.textRightOffset = textRightOffset;
+            retSlotConfig.shortenText = stackframeConfig.shortenText;
+            return retSlotConfig;
+        }
+
+        //Function name
+        let headerStackSlotConfig = createSlotConfig(backgroundColorBlue, this.stackframeConfig);
+        this.children.push(new StackframeSlotWidget(this.dataModelObject, this.canvas, tempStartPosX, tempStartPosY, headerStackSlotConfig));
+        tempStartPosY += headerStackSlotConfig.slotHeight;
+        //Function variables
+        if (this.dataModelObject.functionVariables != null && !this.dataModelObject.isCollapsed)
+        {
+            for (let key in this.dataModelObject.functionVariables) {
+                let value = this.dataModelObject.functionVariables[key];
+                
+                if (value != null) {
+                    let stackSlotConfig = createSlotConfig(backgroundColorGrey, this.stackframeConfig);
+                    this.children.push(new StackframeSlotWidget(value, this.canvas, tempStartPosX, tempStartPosY, stackSlotConfig));
+                    tempStartPosY += stackSlotConfig.slotHeight;
+                }
+            }
+        }
+        //Function parameters
+        if (this.dataModelObject.functionParameters != null && !this.dataModelObject.isCollapsed)
+        {
+            for (let key in this.dataModelObject.functionParameters) {
+                let value = this.dataModelObject.functionParameters[key];
+                
+                if (value != null) {
+                    let stackSlotConfig = createSlotConfig(backgroundColorGreen, this.stackframeConfig);
+                    this.children.push(new StackframeSlotWidget(value, this.canvas, tempStartPosX, tempStartPosY, stackSlotConfig));
+                    tempStartPosY += stackSlotConfig.slotHeight;
+                }
+            }
+        }
+
+        //Drawing the stackframe slots
+        for (let i = 0; i < this.children.length; i++)
+            this.children[i].draw();
 
         //Locking the movement of the items
         this.canvas.lockAllItems();
@@ -849,6 +990,7 @@ export class FabricDrawingModule {
     drawProgramStack(programStackToDraw: DataModelStructures.ProgramStack, startPosX = 10, startPosY = 10, maxStackSlotWidth? : number) {
         let shortenText = false;
         let stackSlotHeight = 30;
+        let textColor = "black";
         let textFontSize = stackSlotHeight - stackSlotHeight / 3;
         let textLeftOffset = textFontSize / 5;
         let textRightOffset = textLeftOffset * 2;
@@ -865,81 +1007,40 @@ export class FabricDrawingModule {
             //Checking if we'll need to shorten the variable text (if all variable texts are shorter than the desired stackSlotWidth)
             shortenText = maxStackSlotWidth < calculatedMaxTextWidth;
         }
+
+        //To prepare the slot's shared config
+        function createConfig() : StackframeWidgetConfig{
+            let retSlotConfig = new StackframeWidgetConfig();
+            if(shortenText && maxStackSlotWidth != undefined)
+                retSlotConfig.slotWidth = maxStackSlotWidth
+            else
+                retSlotConfig.slotWidth = calculatedMaxTextWidth + textRightOffset;
+            retSlotConfig.slotHeight = stackSlotHeight;
+            retSlotConfig.textColor = textColor;
+            retSlotConfig.shortenText = shortenText;
+            return retSlotConfig;
+        }
         
         //Drawing all the stackframes present
         for (let key in programStackToDraw.stackFrames) {
             let value = programStackToDraw.stackFrames[key];
             
             if (value != null) {
-                //Chaging the starting position with each drawn stackframe
-                if(shortenText) {
-                    startPosY = this.drawStackFrame(value, startPosX, startPosY, stackSlotHeight, maxStackSlotWidth, shortenText);
+                let stackConfig = createConfig();
+                let stackframeWidget = new StackframeWidget(value, this.canvas, startPosX, startPosY, stackConfig);
+                stackframeWidget.draw();                    //Drawing the stackframe
+                if(stackframeWidget.height != undefined)
+                {
+                    console.log("[DEBUG] Stackframe \"" + value.functionName + "\" height is: " + stackframeWidget.height);
+                    startPosY += stackframeWidget.height;   //Chaging the starting position with each drawn stackframe
+                    if(stackframeWidget.children[0] instanceof StackframeSlotWidget)
+                    {
+                        startPosY -= stackframeWidget.children[0].slotConfig.textFontSize / 10;     //Accounting for the rectangle stroke width
+                    }
                 }
-                else {
-                    startPosY = this.drawStackFrame(value, startPosX, startPosY, stackSlotHeight, calculatedMaxTextWidth + textRightOffset, shortenText);
-                }
+                    
             }
         }
-    }
-
-    drawStackFrame(stackFrameToDraw: DataModelStructures.StackFrame, startPosX = 10, startPosY = 10, stackSlotHeight = 30, stackSlotWidth = 300, shortenText = false): number {
-        //Default values
-        let backgroundColorBlue = '#33ccff';
-        let backgroundColorGrey = '#8f8f8f';
-        let backgroundColorGreen = '#00ff04';
-        let textFill = "black";
-        //Note: Text and frame rectangle variables are dynamically adjusted by the stackSlotHeight variable
-        let textFontSize = stackSlotHeight - stackSlotHeight / 3;
-        let textLeftOffset = textFontSize / 5;
-        let textRightOffset = textLeftOffset * 2;
-
-        //Creating the slots
-        function createSlotConfig(setSlotColor: string) : StackframeSlotWidgetConfig{
-            let retSlotConfig = new StackframeSlotWidgetConfig();
-            retSlotConfig.slotWidth = stackSlotWidth;
-            retSlotConfig.slotHeight = stackSlotHeight;
-            retSlotConfig.slotColor = setSlotColor;
-            retSlotConfig.textColor = textFill;
-            retSlotConfig.textFontSize = textFontSize;
-            retSlotConfig.textLeftOffset = textLeftOffset;
-            retSlotConfig.textRightOffset = textRightOffset;
-            retSlotConfig.shortenText = shortenText;
-            return retSlotConfig;
-        }
-
-        //Function name
-        let headerStackSlotConfig = createSlotConfig(backgroundColorBlue);
-        new StackframeSlotWidget(stackFrameToDraw, this.canvas, startPosX, startPosY, headerStackSlotConfig).draw();
-        startPosY += headerStackSlotConfig.slotHeight;
-        //Function variables
-        if (stackFrameToDraw.functionVariables != null && !stackFrameToDraw.isCollapsed)
-        {
-            for (let key in stackFrameToDraw.functionVariables) {
-                let value = stackFrameToDraw.functionVariables[key];
-                
-                if (value != null) {
-                    let stackSlotConfig = createSlotConfig(backgroundColorGrey);
-                    new StackframeSlotWidget(value, this.canvas, startPosX, startPosY, stackSlotConfig).draw();
-                    startPosY += stackSlotConfig.slotHeight;
-                }
-            }
-        }
-        //Function parameters
-        if (stackFrameToDraw.functionParameters != null && !stackFrameToDraw.isCollapsed)
-        {
-            for (let key in stackFrameToDraw.functionParameters) {
-                let value = stackFrameToDraw.functionParameters[key];
-                
-                if (value != null) {
-                    let stackSlotConfig = createSlotConfig(backgroundColorGreen);
-                    new StackframeSlotWidget(value, this.canvas, startPosX, startPosY, stackSlotConfig).draw();
-                    startPosY += stackSlotConfig.slotHeight;
-                }
-            }
-        }
-
-        //Returning the future start position (for easy drawing of other stackframes under this one)
-        return startPosY;
     }
 
     //More general method that prevents the user from misusing the drawing methods
