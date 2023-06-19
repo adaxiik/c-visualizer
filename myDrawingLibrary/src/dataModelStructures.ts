@@ -43,6 +43,7 @@ export class Variable {
 export class Struct extends Variable {
     elements: Variable[];
     memory: Memory;
+    isCollapsed: boolean;
 }
 
 //Array

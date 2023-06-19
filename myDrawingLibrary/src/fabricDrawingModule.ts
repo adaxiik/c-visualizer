@@ -36,15 +36,18 @@ class FabricDrawingModuleCache {
     }
 }
 
-interface Widget {
-    canvas: CustomCanvas;
-    dataModelObject:    DataModelStructures.Array
+//Type containing all DataModel object types
+type DataModelObject = DataModelStructures.Array
                     | DataModelStructures.DataType
                     | DataModelStructures.Memory
                     | DataModelStructures.ProgramStack 
                     | DataModelStructures.StackFrame 
                     | DataModelStructures.Struct 
                     | DataModelStructures.Variable;
+
+interface Widget {
+    canvas: CustomCanvas;
+    dataModelObject: DataModelObject;
     fabricObject: fabric.Group; //Maybe "| fabric.Object" can be added - depending on usage
     startPos: {x: number, y: number};
     children: Array<Widget>;
@@ -328,29 +331,39 @@ class StackframeSlotWidget implements Widget {
 
     get height(): number | undefined {
         let coords = this.fabricObject.getCoords(true); //Getting the group's coordinates in absolute value
-
+ 
         return Math.abs(coords[0].y - coords[3].y);
     }
 
     draw() {
+        let tempSlotHeight = this.slotConfig.slotHeight;
+        let slotStrokeWidth = this.slotConfig.textFontSize / 10;
+        if(this.dataModelObject instanceof DataModelStructures.Struct && !this.dataModelObject.isCollapsed)
+        {
+            tempSlotHeight *= this.dataModelObject.elements.length + 2;  //*elements for elements, +1 for the variable itself, +1 for extra space for padding
+        }
         //Drawing the slot's background
         let fabricSlotBackground = new fabric.Rect({
             left: this.startPos.x,
             top: this.startPos.y,
             width: this.slotConfig.slotWidth,
-            height: this.slotConfig.slotHeight,
+            height: tempSlotHeight,
             fill: this.slotConfig.slotColor,
 
             //Default values
             padding: this.slotConfig.textFontSize / 2.5,
             stroke: "#000000",
-            strokeWidth: this.slotConfig.textFontSize / 10
+            strokeWidth: slotStrokeWidth
         });
         //Drawing the slot's text
         let slotText = "";
         if(this.dataModelObject instanceof DataModelStructures.StackFrame)
         {
             slotText = this.dataModelObject.functionName;
+        }
+        else if (this.dataModelObject instanceof DataModelStructures.Struct)
+        {
+            slotText = this.dataModelObject.variableName + ": " + this.dataModelObject.dataTypeString + " (...)";   //Custom value text for struct variables
         }
         else
         {
@@ -388,6 +401,35 @@ class StackframeSlotWidget implements Widget {
 
         //Adding the group to the canvas
         this.canvas.add(this.fabricObject);
+
+        //Adding the elements (in case of a struct)
+        if(this.dataModelObject instanceof DataModelStructures.Struct && !this.dataModelObject.isCollapsed)
+        {
+            //Creating the config for the elements
+            let elementsConfig = new StackframeSlotWidgetConfig();
+            elementsConfig.slotWidth = this.slotConfig.slotWidth - this.slotConfig.slotHeight;  //1/2 of slotHeight sized padding on the left, 1/2 of slotHeight sizedPadding on the right
+            elementsConfig.slotHeight = this.slotConfig.slotHeight;
+            elementsConfig.textColor = this.slotConfig.textColor;
+            elementsConfig.shortenText = true;      //Set to true to shorten the text by default - TODO: Add lengthening when extra space if required (or after user grabs the side)
+            elementsConfig.slotColor = this.slotConfig.slotColor;
+            elementsConfig.textFontSize = this.slotConfig.textFontSize;
+            elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
+            elementsConfig.textRightOffset = this.slotConfig.textRightOffset;
+            //Drawing the elements
+            let tempStartPosY = this.startPos.y + this.slotConfig.slotHeight + this.dataModelObject.elements.length * slotStrokeWidth;  //Accounting for the parent variable + all element slot's stroke widths
+            for(let i = 0; i < this.dataModelObject.elements.length; i++)
+            {
+                let currentChild = new StackframeSlotWidget(this.dataModelObject.elements[i], 
+                                                            this.canvas,
+                                                            this.startPos.x + this.slotConfig.slotHeight/2,
+                                                            tempStartPosY,
+                                                            elementsConfig);
+                this.children.push(currentChild);
+                currentChild.draw();
+                let childHeight = currentChild.height;
+                tempStartPosY += childHeight == undefined ? 0 : childHeight - slotStrokeWidth;  //Adjusting the starting position for the next element
+            }
+        }
 
         //Locking the movement of the items
         this.canvas.lockAllItems();
@@ -480,6 +522,7 @@ class StackframeWidget implements Widget {
         let textFontSize = this.stackframeConfig.slotHeight - this.stackframeConfig.slotHeight / 3;
         let textLeftOffset = textFontSize / 5;
         let textRightOffset = textLeftOffset * 2;
+        let backgroundStrokeWidth = textFontSize / 10;
 
         //To prepare the slot's shared config
         function createSlotConfig(setSlotColor: string, stackframeConfig: StackframeWidgetConfig) : StackframeSlotWidgetConfig{
@@ -498,7 +541,9 @@ class StackframeWidget implements Widget {
         //Function name
         let headerStackSlotConfig = createSlotConfig(backgroundColorBlue, this.stackframeConfig);
         this.children.push(new StackframeSlotWidget(this.dataModelObject, this.canvas, tempStartPosX, tempStartPosY, headerStackSlotConfig));
-        tempStartPosY += headerStackSlotConfig.slotHeight;
+        this.children[this.children.length-1].draw();                                                       //Drawing the slot (to have it's height data available)
+        let currentChildHeight = this.children[this.children.length-1].height;                              //Getting the height of the current child
+        tempStartPosY += currentChildHeight == undefined ? 0 : currentChildHeight - backgroundStrokeWidth;  //Accounting for the stroke width
         //Function variables
         if (this.dataModelObject.functionVariables != null && !this.dataModelObject.isCollapsed)
         {
@@ -508,7 +553,9 @@ class StackframeWidget implements Widget {
                 if (value != null) {
                     let stackSlotConfig = createSlotConfig(backgroundColorGrey, this.stackframeConfig);
                     this.children.push(new StackframeSlotWidget(value, this.canvas, tempStartPosX, tempStartPosY, stackSlotConfig));
-                    tempStartPosY += stackSlotConfig.slotHeight;
+                    this.children[this.children.length-1].draw();                                                       //Drawing the slot (to have it's height data available)
+                    currentChildHeight = this.children[this.children.length-1].height;                                  //Getting the height of the current child
+                    tempStartPosY += currentChildHeight == undefined ? 0 : currentChildHeight - backgroundStrokeWidth;  //Accounting for the stroke width
                 }
             }
         }
@@ -521,14 +568,12 @@ class StackframeWidget implements Widget {
                 if (value != null) {
                     let stackSlotConfig = createSlotConfig(backgroundColorGreen, this.stackframeConfig);
                     this.children.push(new StackframeSlotWidget(value, this.canvas, tempStartPosX, tempStartPosY, stackSlotConfig));
-                    tempStartPosY += stackSlotConfig.slotHeight;
+                    this.children[this.children.length-1].draw();                                                       //Drawing the slot (to have it's height data available)
+                    currentChildHeight = this.children[this.children.length-1].height;                                  //Getting the height of the current child
+                    tempStartPosY += currentChildHeight == undefined ? 0 : currentChildHeight - backgroundStrokeWidth;  //Accounting for the stroke width
                 }
             }
         }
-
-        //Drawing the stackframe slots
-        for (let i = 0; i < this.children.length; i++)
-            this.children[i].draw();
 
         //Locking the movement of the items
         this.canvas.lockAllItems();
@@ -787,6 +832,20 @@ export class FabricDrawingModule {
                     let hoveredOverObjectText;
                     if(opt.target._objects[1] instanceof fabric.Text)
                         hoveredOverObjectText = opt.target._objects[1].text;
+                    
+                    let foundMatch = drawingModuleThis.findDataModelObjectByText(hoveredOverObjectText);
+                    if(foundMatch != undefined && (foundMatch instanceof DataModelStructures.StackFrame || foundMatch instanceof DataModelStructures.Struct))
+                    {
+                        foundMatch.isCollapsed = !foundMatch.isCollapsed;
+
+                        //Redraw the canvas
+                        if (drawingModuleThis.cache.drawProgramStackArguments != undefined && drawingModuleThis.cache.drawProgramStackArguments != null)
+                        {
+                            drawingModuleThis.canvas.clearCanvas();
+                            drawingModuleThis.drawProgramStack(...drawingModuleThis.cache.drawProgramStackArguments);
+                        }
+                    }
+                    /*
                     //If the clicked on object is a stackFrame header (function name without ":")
                     if (!hoveredOverObjectText.includes(":")) {
                         //Set the corresponding stackframe as collapsed / uncollapsed
@@ -808,6 +867,7 @@ export class FabricDrawingModule {
                             drawingModuleThis.drawProgramStack(...drawingModuleThis.cache.drawProgramStackArguments);
                         }
                     }
+                    */
                     //Preventing the mouse going to selection mode and returning (to skip the dragging logic)
                     this.selection = false;
                     return;
@@ -902,8 +962,8 @@ export class FabricDrawingModule {
                                     if (hoveredOverVariableText.includes(searchedForText)) {
                                         markPointee(drawingModuleThis.cache.pointers[i][1]);
                                         
-                                        let fromVariableObject = drawingModuleThis.findObjectByText(hoveredOverVariableText);
-                                        let toVariableObject = drawingModuleThis.findObjectByText(drawingModuleThis.cache.pointers[i][1]);
+                                        let fromVariableObject = drawingModuleThis.findFabricObjectByText(hoveredOverVariableText);
+                                        let toVariableObject = drawingModuleThis.findFabricObjectByText(drawingModuleThis.cache.pointers[i][1]);
                                         if (fromVariableObject == undefined || toVariableObject == undefined)
                                             console.log("[DEBUG] Error - FROM variable or TO variable are undefined");
                                         else
@@ -952,7 +1012,7 @@ export class FabricDrawingModule {
     }
 
     //Helper function to return the object with the searched for text
-    findObjectByText(searchedForText : string) : fabric.Object | undefined {
+    findFabricObjectByText(searchedForText : string) : fabric.Object | undefined {
         let allCanvasObjects = this.canvas.getObjects();
         for (let i = 0; i < allCanvasObjects.length; i++)
         {
@@ -977,6 +1037,128 @@ export class FabricDrawingModule {
                 else
                 {
                     console.log("[DEBUG] Error - currentObject doesn't contain text (not at the [1] position)");
+                }
+            }
+        }
+        console.log("[DEBUG] Text match not found!");
+        return undefined;
+    }
+
+    //Helper function to return the object with the searched for text
+    findDataModelObjectByText(searchedForText : string) : DataModelObject | undefined {
+        let mainProgramStack;
+        let shortenedText = searchedForText.endsWith("...");
+        if(shortenedText)
+        {
+            searchedForText = searchedForText.slice(0,searchedForText.length-3);    //Omitting the "..." sequence
+        }
+
+        if(this.cache.drawProgramStackArguments == undefined)
+        {
+            console.log("[DEBUG] Cached ProgramStack is undefined!");
+            return undefined;
+        }
+        else
+        {
+            mainProgramStack = this.cache.drawProgramStackArguments[0];
+        }
+
+        if(!(mainProgramStack instanceof DataModelStructures.ProgramStack))
+        {
+            console.log("[DEBUG] Cached ProgramStack is not an instance of DataModelStructures.ProgramStack!");
+            return undefined;
+        }
+        else
+        {
+            function checkVariableForText(variableToCheck: DataModelStructures.Variable) : DataModelStructures.Variable | undefined {
+                let stackFrameStringRepresentation = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " (" + variableToCheck.valueString + ")";
+                console.log("[DEBUG] Checking variable \"" + variableToCheck.variableName + "\" for text \"" + searchedForText + "\"");
+                if(shortenedText)
+                {
+                    if(variableToCheck.variableName.includes(searchedForText) || stackFrameStringRepresentation.includes(searchedForText))
+                    {
+                        return variableToCheck;
+                    }
+                }
+                else
+                {
+                    if(variableToCheck.variableName == searchedForText || stackFrameStringRepresentation == searchedForText)
+                    {
+                        return variableToCheck;
+                    }
+                }
+                //Structs and arrays
+                if(variableToCheck instanceof DataModelStructures.Struct || variableToCheck instanceof DataModelStructures.Array)
+                {
+                    return checkStructArrayForText(variableToCheck);
+                }
+                return undefined;
+            }
+            function checkStructArrayForText(variableToCheck: DataModelStructures.Struct | DataModelStructures.Array) : DataModelStructures.Variable | undefined {
+                let stackFrameStringRepresentation = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " (...)";
+                if(shortenedText)
+                {
+                    if(variableToCheck.variableName.includes(searchedForText) || stackFrameStringRepresentation.includes(searchedForText))
+                    {
+                        return variableToCheck;
+                    }
+                }
+                else
+                {
+                    if(variableToCheck.variableName == searchedForText || stackFrameStringRepresentation == searchedForText)
+                    {
+                        return variableToCheck;
+                    }
+                }
+                //Elements of structs and arrays
+                for(let i = 0; i < variableToCheck.elements.length; i++)
+                {
+                    let currentElement = variableToCheck.elements[i];
+                    let foundMatch = checkVariableForText(currentElement);
+                    if(foundMatch != undefined)
+                        return foundMatch;
+                }
+                return undefined;
+            }
+
+            //Going through the stackframes
+            for (let key in mainProgramStack.stackFrames)
+            {
+                let currentStackFrame = mainProgramStack.stackFrames[key];
+                if (currentStackFrame != null)
+                {
+                    let currentStackFrame = mainProgramStack.stackFrames[key];
+                    //Checking the function stackframe for a match
+                    if(currentStackFrame.functionName == searchedForText)   
+                    {
+                        return currentStackFrame;
+                    }
+                    //Function parameters
+                    for (let key in currentStackFrame.functionParameters)
+                    {
+                        let currentFunctionParameter = currentStackFrame.functionParameters[key];
+                        if (currentFunctionParameter != null)
+                        {
+                            let foundMatch = checkVariableForText(currentFunctionParameter);
+                            if(foundMatch != undefined)
+                            {
+                                return foundMatch;
+                            }
+                        }
+                    }
+                    //Function variables
+                    for (let key in currentStackFrame.functionVariables)
+                    {
+                        let currentFunctionVariable = currentStackFrame.functionVariables[key];
+                        if (currentFunctionVariable != null)
+                        {
+                            let foundMatch = checkVariableForText(currentFunctionVariable);
+                            if(foundMatch != undefined)
+                            {
+                                return foundMatch;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1056,7 +1238,7 @@ export class FabricDrawingModule {
     //Helper function to mark the pointee variable (with a different color)
     markPointee(variableId : string) {
         let searchedForText = variableId + ":";
-        let searchedForVariableObject = this.findObjectByText(searchedForText);
+        let searchedForVariableObject = this.findFabricObjectByText(searchedForText);
                 
         if (searchedForVariableObject instanceof fabric.Group)
         {
