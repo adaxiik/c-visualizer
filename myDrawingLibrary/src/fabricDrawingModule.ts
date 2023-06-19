@@ -336,12 +336,27 @@ class StackframeSlotWidget implements Widget {
     }
 
     draw() {
-        let tempSlotHeight = this.slotConfig.slotHeight;
+        let startingSlotHeight = this.slotConfig.slotHeight
+        let tempSlotHeight = startingSlotHeight;
         let slotStrokeWidth = this.slotConfig.textFontSize / 10;
-        if(this.dataModelObject instanceof DataModelStructures.Struct && !this.dataModelObject.isCollapsed)
-        {
-            tempSlotHeight *= this.dataModelObject.elements.length + 2;  //*elements for elements, +1 for the variable itself, +1 for extra space for padding
+
+        function checkForUncollapsedStructs(variableToCheck: DataModelStructures.Variable) {
+            if(variableToCheck instanceof DataModelStructures.Struct && !variableToCheck.isCollapsed)
+            {
+                tempSlotHeight += startingSlotHeight * (variableToCheck.elements.length + 1);  //*elements for elements, +1 for the variable itself, +1 for extra space for padding
+                for(let i = 0; i < variableToCheck.elements.length; i++)
+                {
+                    let currentElement = variableToCheck.elements[i];
+                    if(currentElement instanceof DataModelStructures.Struct && !variableToCheck.isCollapsed)
+                        checkForUncollapsedStructs(currentElement);
+                }
+            }
         }
+
+        //Checking for uncollapsed structs (and then increasing the total slot height)
+        if(this.dataModelObject instanceof DataModelStructures.Struct && !this.dataModelObject.isCollapsed)
+            checkForUncollapsedStructs(this.dataModelObject);
+
         //Drawing the slot's background
         let fabricSlotBackground = new fabric.Rect({
             left: this.startPos.x,
@@ -845,29 +860,6 @@ export class FabricDrawingModule {
                             drawingModuleThis.drawProgramStack(...drawingModuleThis.cache.drawProgramStackArguments);
                         }
                     }
-                    /*
-                    //If the clicked on object is a stackFrame header (function name without ":")
-                    if (!hoveredOverObjectText.includes(":")) {
-                        //Set the corresponding stackframe as collapsed / uncollapsed
-                        if (drawingModuleThis.cache.drawProgramStackArguments != undefined && drawingModuleThis.cache.drawProgramStackArguments != null)
-                        {
-                            for (let key in drawingModuleThis.cache.drawProgramStackArguments[0].stackFrames) {
-                                let value = drawingModuleThis.cache.drawProgramStackArguments[0].stackFrames[key];
-                                
-                                if (value != null)
-                                {
-                                    if (value.functionName == hoveredOverObjectText)
-                                    {
-                                        value.isCollapsed = !value.isCollapsed;
-                                    }
-                                }
-                            }
-                            //Redraw the canvas
-                            drawingModuleThis.canvas.clearCanvas();
-                            drawingModuleThis.drawProgramStack(...drawingModuleThis.cache.drawProgramStackArguments);
-                        }
-                    }
-                    */
                     //Preventing the mouse going to selection mode and returning (to skip the dragging logic)
                     this.selection = false;
                     return;
