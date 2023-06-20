@@ -398,7 +398,7 @@ class StackframeSlotWidget implements Widget {
                 //Calculating how much to shorten the text
                 let averageCharLength = fabricSlotText.getScaledWidth() / slotText.length;
                 let overflowInWidth = fabricSlotText.getScaledWidth() - maxTextLength;
-                let overflowInChars = overflowInWidth / averageCharLength + 1;  //+1 to account for the space of "..."
+                let overflowInChars = overflowInWidth / averageCharLength + 2;  //+2 to account for the space of "..."
                 let newSlotText = slotText.substring(0, slotText.length - 1 - overflowInChars) + "...";
 
                 //Making a shortened version of the text
@@ -425,7 +425,7 @@ class StackframeSlotWidget implements Widget {
             elementsConfig.slotWidth = this.slotConfig.slotWidth - this.slotConfig.slotHeight;  //1/2 of slotHeight sized padding on the left, 1/2 of slotHeight sizedPadding on the right
             elementsConfig.slotHeight = this.slotConfig.slotHeight;
             elementsConfig.textColor = this.slotConfig.textColor;
-            elementsConfig.shortenText = true;      //Set to true to shorten the text by default - TODO: Add lengthening when extra space if required (or after user grabs the side)
+            elementsConfig.shortenText = this.slotConfig.shortenText;
             elementsConfig.slotColor = this.slotConfig.slotColor;
             elementsConfig.textFontSize = this.slotConfig.textFontSize;
             elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
@@ -668,7 +668,8 @@ class ProgramStackWidget implements Widget {
         let textFontSize = stackSlotHeight - stackSlotHeight / 3;
         let textLeftOffset = textFontSize / 5;
         let textRightOffset = textLeftOffset * 2;
-        let calculatedMaxTextWidth = this.calculateMaxTextWidth(textFontSize);
+        let structLeftOffset = stackSlotHeight/2;   //X offset of the struct's children (compared to the variable 1 level up)
+        let calculatedMaxTextWidth = this.calculateMaxTextWidth(textFontSize, textLeftOffset, textRightOffset, structLeftOffset);
         let tempStartPosX = this.startPos.x;
         let tempStartPosY = this.startPos.y;
 
@@ -677,18 +678,18 @@ class ProgramStackWidget implements Widget {
 
         //Caching the pointers in the program stack
         this.checkForPointers();
-
+        
         //If maximum stack slot width is set
-        if (typeof this.programStackConfig.maxStackSlotWidth !== "undefined") {
+        if (this.programStackConfig.maxStackSlotWidth != undefined) {
             //Checking if we'll need to shorten the variable text (if all variable texts are shorter than the desired stackSlotWidth)
             shortenText = this.programStackConfig.maxStackSlotWidth < calculatedMaxTextWidth;
         }
 
         //To prepare the slot's shared config
-        function createConfig() : StackframeWidgetConfig{
+        function createConfig(programStackConfig: ProgramStackWidgetConfig) : StackframeWidgetConfig{
             let retSlotConfig = new StackframeWidgetConfig();
-            if(shortenText && this.programStackConfig.maxStackSlotWidth != undefined)
-                retSlotConfig.slotWidth = this.programStackConfig.maxStackSlotWidth;
+            if(shortenText && programStackConfig.maxStackSlotWidth != undefined)
+                retSlotConfig.slotWidth = programStackConfig.maxStackSlotWidth;
             else
                 retSlotConfig.slotWidth = calculatedMaxTextWidth + textRightOffset;
             retSlotConfig.slotHeight = stackSlotHeight;
@@ -702,7 +703,7 @@ class ProgramStackWidget implements Widget {
             let value = this.dataModelObject.stackFrames[key];
             
             if (value != null) {
-                let stackConfig = createConfig();
+                let stackConfig = createConfig(this.programStackConfig);
                 let stackframeWidget = new StackframeWidget(value, this.canvas, tempStartPosX, tempStartPosY, stackConfig);
                 this.children.push(stackframeWidget);       //Adding the stackframe to the children array
                 stackframeWidget.draw();                    //Drawing the stackframe
@@ -720,9 +721,35 @@ class ProgramStackWidget implements Widget {
     }
 
     //Helper function used to calculate max text width in a provided program stack (used to determine neccessary slot width)
-    calculateMaxTextWidth(textFontSize : number) : number {
+    calculateMaxTextWidth(textFontSize: number, textLeftOffset: number, textRightOffset: number, structLeftOffset: number) : number {
         let maxTotalTextWidth = 0;
-        let allVariableTexts = new Array<string>();
+        let allVariableTexts = new Array<{variableText: string, level: number}>();
+
+        function checkVariableText(variableToCheck: DataModelStructures.Variable, currentLevel = 0) {
+            if(variableToCheck instanceof DataModelStructures.Struct)
+            {
+                let currentVariableText = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " (...)";
+                allVariableTexts.push({variableText: currentVariableText, level: currentLevel});
+
+                //If uncollapsed, going through it's members 
+                if(!variableToCheck.isCollapsed)
+                {
+                    for(let i = 0; i < variableToCheck.elements.length; i++)
+                    {
+                        let currentElement = variableToCheck.elements[i];
+                        //Checking the the member variable is an uncollapsed struct as well
+                        //if(currentElement instanceof DataModelStructures.Struct)// && !variableToCheck.isCollapsed)
+                        checkVariableText(currentElement, currentLevel + 1);
+
+                    }
+                }
+            }
+            else
+            {
+                let currentMemberVariableText = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " (" + variableToCheck.valueString + ")";
+                allVariableTexts.push({variableText: currentMemberVariableText, level: currentLevel});
+            }
+        }
         
         //Going through all stackframes present (and noting their parameter's and variable's text)
         for (let stackFrameKey in this.dataModelObject.stackFrames) {
@@ -733,8 +760,7 @@ class ProgramStackWidget implements Widget {
                 for (let functionParameterKey in currentStackFrame.functionParameters) {
                     let currentFunctionParameter = currentStackFrame.functionParameters[functionParameterKey];
                     if (currentFunctionParameter != null) {
-                        let variableText = currentFunctionParameter.variableName + ": " + currentFunctionParameter.dataTypeString + " (" + currentFunctionParameter.valueString + ")";
-                        allVariableTexts.push(variableText);
+                        checkVariableText(currentFunctionParameter, 0);
                     }
                 }
 
@@ -742,8 +768,7 @@ class ProgramStackWidget implements Widget {
                 for (let functionVariableKey in currentStackFrame.functionVariables) {
                     let currentFunctionVariable = currentStackFrame.functionVariables[functionVariableKey];
                     if (currentFunctionVariable != null) {
-                        let variableText = currentFunctionVariable.variableName + ": " + currentFunctionVariable.dataTypeString + " (" + currentFunctionVariable.valueString + ")";
-                        allVariableTexts.push(variableText);
+                        checkVariableText(currentFunctionVariable, 0);
                     }
                 }
             }
@@ -752,17 +777,20 @@ class ProgramStackWidget implements Widget {
         //For all variables found
         for (let i = 0; i < allVariableTexts.length; i++) {
             //"Mock" creating Fabric text (to calculate total width properly)
-            let tempFabricSlotText = new fabric.Text(allVariableTexts[i], {
+            let tempFabricSlotText = new fabric.Text(allVariableTexts[i].variableText, {
                 left: 0,
                 top: 0,
                 fill: "black",
                 fontSize: textFontSize
             });
 
+            let textTotalXOffset = textLeftOffset + allVariableTexts[i].level * (textLeftOffset + structLeftOffset);
+            let textTotalWidth = textTotalXOffset + tempFabricSlotText.getScaledWidth() + textRightOffset; 
+
             //Comparing the current variable text's length to the maximum 
-            maxTotalTextWidth = tempFabricSlotText.getScaledWidth() > maxTotalTextWidth ? tempFabricSlotText.getScaledWidth() : maxTotalTextWidth;
+            maxTotalTextWidth = textTotalWidth > maxTotalTextWidth ? textTotalWidth : maxTotalTextWidth;
         }
-        
+
         return maxTotalTextWidth;
     }
 

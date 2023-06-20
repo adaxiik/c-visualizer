@@ -30,7 +30,7 @@ stackFrame1PointerVar1.isPointer = true;
 let stackFrame1StructVar1 = new myDataModelStructures.Struct();             //Struct variable
 stackFrame1StructVar1.variableName = "stackFrame1StructVar1";
 stackFrame1StructVar1.elements = new Array<myDataModelStructures.Variable>();
-stackFrame1StructVar1.dataTypeString = "testStruct1";
+stackFrame1StructVar1.dataTypeString = "struct1";
 stackFrame1StructVar1.isCollapsed = true;
 let stackFrame1StructMember1 = new myDataModelStructures.Variable();
 stackFrame1StructMember1.variableName = "stackFrame1StructMember1";
@@ -43,7 +43,7 @@ stackFrame1StructMember2.valueString = "false";
 let stackFrame1StructMemberStruct1 = new myDataModelStructures.Struct();    //Member struct variable
 stackFrame1StructMemberStruct1.variableName = "stackFrame1StructMemberStruct1";
 stackFrame1StructMemberStruct1.elements = new Array<myDataModelStructures.Variable>();
-stackFrame1StructMemberStruct1.dataTypeString = "testStruct2";
+stackFrame1StructMemberStruct1.dataTypeString = "struct2";
 stackFrame1StructMemberStruct1.isCollapsed = true;
 let stackFrame1StructMember4 = new myDataModelStructures.Variable();
 stackFrame1StructMember4.variableName = "stackFrame1StructMember4";
@@ -119,7 +119,7 @@ programStack.stackFrames[stackFrame2.frameId] = stackFrame2;
 //Drawing the program stack
 console.log("[DEBUG] Drawing the full program stack");
 myDrawingModule.drawProgramStack(programStack);                 //Unlimited in length
-//myDrawingModule.drawProgramStack(ProgramStack, 10, 10, 150);    //Limited in length
+//myDrawingModule.drawProgramStack(programStack, 10, 10, 150);    //Limited in length
 
 
 /*
