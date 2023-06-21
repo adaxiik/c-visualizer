@@ -365,24 +365,32 @@ class StackframeSlotWidget implements Widget {
         let tempSlotHeight = startingSlotHeight;
         let slotStrokeWidth = this.slotConfig.textFontSize / 10;
 
-        function checkForUncollapsedStructs(variableToCheck: DataModelStructures.Variable) {
+        function checkForUncollapsedStructsOrArrays(variableToCheck: DataModelStructures.Variable) {
             if(variableToCheck instanceof DataModelStructures.Struct && !variableToCheck.isCollapsed)
             {
-                tempSlotHeight += startingSlotHeight * (variableToCheck.elements.length + 1);  //for the variable itself + (elements.length for elements + 1 for extra space for padding)
+                tempSlotHeight += startingSlotHeight * (variableToCheck.elements.length + 1); //for the variable itself + (elements.length for elements + 1 for extra space for padding)
                 for(let i = 0; i < variableToCheck.elements.length; i++)
                 {
                     let currentElement = variableToCheck.elements[i];
-                    if(currentElement instanceof DataModelStructures.Struct && !variableToCheck.isCollapsed)
-                        checkForUncollapsedStructs(currentElement);
+                    if((currentElement instanceof DataModelStructures.Struct || currentElement instanceof DataModelStructures.Array) && !variableToCheck.isCollapsed)
+                        checkForUncollapsedStructsOrArrays(currentElement);
+                }
+            }
+            if(variableToCheck instanceof DataModelStructures.Array && !variableToCheck.isCollapsed)
+            {
+                tempSlotHeight += 2 * startingSlotHeight;  //+1 for elements + 1 for extra space for padding
+                for(let i = 0; i < variableToCheck.size; i++)
+                {
+                    let currentElement = variableToCheck.elements[i];
+                    if(currentElement != undefined && (currentElement instanceof DataModelStructures.Struct || currentElement instanceof DataModelStructures.Array) && !variableToCheck.isCollapsed)
+                        checkForUncollapsedStructsOrArrays(currentElement);
                 }
             }
         }
 
         //Checking for uncollapsed structs / arrays (and then increasing the total slot height)
-        if(this.dataModelObject instanceof DataModelStructures.Struct && !this.dataModelObject.isCollapsed)
-            checkForUncollapsedStructs(this.dataModelObject);
-        else if (this.dataModelObject instanceof DataModelStructures.Array && !this.dataModelObject.isCollapsed)
-            tempSlotHeight *= 3;  //for the variable itself, +1 for elements, +1 for extra space for padding
+        if(this.dataModelObject instanceof DataModelStructures.Variable)
+            checkForUncollapsedStructsOrArrays(this.dataModelObject);
 
         //Drawing the slot's background
         let fabricSlotBackground = new fabric.Rect({
