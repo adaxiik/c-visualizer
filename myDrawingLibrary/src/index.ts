@@ -53,11 +53,22 @@ let stackFrame1StructMember5 = new myDataModelStructures.Variable();
 stackFrame1StructMember5.variableName = "stackFrame1StructMember5";
 stackFrame1StructMember5.dataTypeString = "int";
 stackFrame1StructMember5.valueString = "128";
+let stackFrame1StructMemberStruct2 = new myDataModelStructures.Struct();    //Member struct variable
+stackFrame1StructMemberStruct2.variableName = "stackFrame1StructMemberStruct2";
+stackFrame1StructMemberStruct2.elements = new Array<myDataModelStructures.Variable>();
+stackFrame1StructMemberStruct2.dataTypeString = "struct3";
+stackFrame1StructMemberStruct2.isCollapsed = true;
+let stackFrame1StructMember6 = new myDataModelStructures.Variable();
+stackFrame1StructMember6.variableName = "stackFrame1StructMember6";
+stackFrame1StructMember6.dataTypeString = "int";
+stackFrame1StructMember6.valueString = "423";
 stackFrame1StructVar1.elements.push(stackFrame1StructMember1);
 stackFrame1StructVar1.elements.push(stackFrame1StructMember2);
 stackFrame1StructVar1.elements.push(stackFrame1StructMemberStruct1);
+stackFrame1StructVar1.elements.push(stackFrame1StructMemberStruct2);
 stackFrame1StructMemberStruct1.elements.push(stackFrame1StructMember4);
 stackFrame1StructMemberStruct1.elements.push(stackFrame1StructMember5);
+stackFrame1StructMemberStruct2.elements.push(stackFrame1StructMember6);
 stackFrame1.functionVariables[stackFrame1Var1.variableName] = stackFrame1Var1;
 stackFrame1.functionVariables[stackFrame1Var2.variableName] = stackFrame1Var2;
 stackFrame1.functionVariables[stackFrame1Var3.variableName] = stackFrame1Var3;
@@ -93,9 +104,28 @@ let stackFrame2Var3 = new myDataModelStructures.Variable();
 stackFrame2Var3.variableName = "stackFrame2Var3";
 stackFrame2Var3.dataTypeString = "float";
 stackFrame2Var3.valueString = "3.28";
+let stackFrame2Var4 = new myDataModelStructures.Array();                    //Array variable
+stackFrame2Var4.variableName = "stackFrame2Array1";
+stackFrame2Var4.dataTypeString = "int";
+stackFrame2Var4.isCollapsed = false;    //TODO: Revert to true
+stackFrame2Var4.size = 6;
+let stackFrame2Var4atIdx0 = new myDataModelStructures.Variable();           //Array element
+stackFrame2Var4atIdx0.valueString = "17";
+let stackFrame2Var4atIdx1 = new myDataModelStructures.Variable();           //Array element
+stackFrame2Var4atIdx1.valueString = "18";
+let stackFrame2Var4atIdx2 = new myDataModelStructures.Variable();           //Array element
+stackFrame2Var4atIdx2.valueString = "19";
+let stackFrame2Var4atIdx4 = new myDataModelStructures.Variable();           //Array element
+stackFrame2Var4atIdx4.valueString = "21";
+//stackFrame2Var4.elements = new Array<{index: number, element: myDataModelStructures.Variable}>();
+stackFrame2Var4.elements[0] = stackFrame2Var4atIdx0;
+stackFrame2Var4.elements[1] = stackFrame2Var4atIdx1;
+stackFrame2Var4.elements[2] = stackFrame2Var4atIdx2;
+stackFrame2Var4.elements[4] = stackFrame2Var4atIdx4;
 stackFrame2.functionVariables[stackFrame2Var1.variableName] = stackFrame2Var1;
 stackFrame2.functionVariables[stackFrame2Var2.variableName] = stackFrame2Var2;
 stackFrame2.functionVariables[stackFrame2Var3.variableName] = stackFrame2Var3;
+stackFrame2.functionVariables[stackFrame2Var4.variableName] = stackFrame2Var4;
 //Function parameters 2
 let stackFrame2Param1 = new myDataModelStructures.Variable();
 stackFrame2Param1.variableName = "stackFrame2Param1";

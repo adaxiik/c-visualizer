@@ -52,8 +52,9 @@ export class Array extends Variable {
     isAllocated: boolean;
     arrayPointerAddress: string;
     size: number;                       //If the array is already allocated (if this.isAllocated == true)
-    elements: Variable[];
+    elements: { [index: string] : Variable } = {}; 
     memory: Memory;
+    isCollapsed: boolean;
 }
 
 //DataType
@@ -68,5 +69,5 @@ export class Memory {
     size: number;                       //If the memory is already allocated (if this.isAllocated == true)
     memoryType: MemoryTypeEnum;
     pointer: string;                    //Present if the memory is dynamic (if this.memoryType == MemoryTypeEnum.dynamic) - otherwise it probably doesn't have much sense
-    memoryElements: Variable[];       //TODO: Maybe change the implementation of this (it will be difficult to track fragmented memory / memory that isn't completely filled, etc.)
+    memoryElements: { [index: string] : Variable } = {};      //Indexes to be able to track fragmented memory
 }
