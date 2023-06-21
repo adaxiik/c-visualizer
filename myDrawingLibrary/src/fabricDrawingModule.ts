@@ -403,9 +403,13 @@ class StackframeSlotWidget implements Widget {
         {
             slotText = this.dataModelObject.functionName;
         }
-        else if (this.dataModelObject instanceof DataModelStructures.Struct || this.dataModelObject instanceof DataModelStructures.Array)
+        else if (this.dataModelObject instanceof DataModelStructures.Struct)
         {
-            slotText = this.dataModelObject.variableName + ": " + this.dataModelObject.dataTypeString + " (...)";                           //Custom value text for struct / array variables
+            slotText = this.dataModelObject.variableName + ": " + this.dataModelObject.dataTypeString + " (...)";                                   //Custom value text for struct variables
+        }
+        else if (this.dataModelObject instanceof DataModelStructures.Array)
+        {
+            slotText = this.dataModelObject.variableName + ": " + this.dataModelObject.dataTypeString + " [" + this.dataModelObject.size + "]";     //Custom value text for array variables
         }
         else
         {
@@ -931,7 +935,7 @@ class ProgramStackWidget implements Widget {
             }
             else if(variableToCheck instanceof DataModelStructures.Array)
             {
-                let currentVariableText = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " (...)";
+                let currentVariableText = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " [" + variableToCheck.size + "]";
                 allVariableTexts.push({variableText: currentVariableText, level: currentLevel, arrayElementXOffset: 0});
 
                 //If uncollapsed, going through it's members 
@@ -1319,7 +1323,12 @@ export class FabricDrawingModule {
                 return undefined;
             }
             function checkStructArrayForText(variableToCheck: DataModelStructures.Struct | DataModelStructures.Array) : DataModelStructures.Variable | undefined {
-                let stackFrameStringRepresentation = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " (...)";
+                let stackFrameStringRepresentation;
+                if(variableToCheck instanceof DataModelStructures.Struct)
+                    stackFrameStringRepresentation = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " (...)";
+                else if (variableToCheck instanceof DataModelStructures.Array)
+                    stackFrameStringRepresentation = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " [" + variableToCheck.size + "]";
+                
                 if(shortenedText)
                 {
                     if(variableToCheck.variableName.includes(searchedForText) || stackFrameStringRepresentation.includes(searchedForText))
