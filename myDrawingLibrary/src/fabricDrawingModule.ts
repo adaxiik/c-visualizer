@@ -22,16 +22,16 @@ class CustomCanvas extends fabric.Canvas {
 //Class for temporary storage of data for the FabricDrawingModule
 class FabricDrawingModuleCache {
     objectColor: string;
-    pointeeObject: [fabric.Object, string];             //[backgroundRectangleObject, previousColor]
+    pointeeObject: {bgRectObject: fabric.Object, previousColor: string};             //[backgroundRectangleObject, previousColor]
     pointerArrowObject : fabric.Object | undefined;     //Fabric object representing the arrow between variables (presuming there is only one arrow object temporarily present)
-    pointers: Array<[any, any]>;                        //in a [pointerVariable, pointingTo] format
-    drawProgramStackArguments?: [DataModelStructures.ProgramStack, number, number, number?];
+    pointers: Array<{pointerVariable: any, pointingTo: any}>;
+    drawProgramStackArguments?: [dataModelObject: DataModelStructures.ProgramStack, startPosX: number, startPoxY: number, maxStackSlotWidth?: number];    //[this.dataModelObject, this.startPos.x, this.startPos.y, this.programStackConfig.maxStackSlotWidth]
 
     constructor() {
         this.objectColor = "";
-        this.pointeeObject = [new fabric.Object, ""];
+        this.pointeeObject = {bgRectObject: new fabric.Object,previousColor: ""};
         this.pointerArrowObject = undefined;
-        this.pointers = new Array<[any, any]>();
+        this.pointers = new Array<{pointerVariable: any, pointingTo: any}>();
         this.drawProgramStackArguments = undefined;
     }
 }
@@ -558,7 +558,11 @@ class StackframeSlotWidget implements Widget {
         }
         else if (this.dataModelObject instanceof DataModelStructures.Struct)
         {
-            slotText = this.dataModelObject.variableName + ": " + this.dataModelObject.dataTypeString + " (...)";                                   //Custom value text for struct variables
+            //TODO: Implement a different object search tactic - to prevent issues (then add these commented lines)
+            //if(this.dataModelObject.variableName != undefined)
+                slotText = this.dataModelObject.variableName + ": " + this.dataModelObject.dataTypeString + " (...)";                                   //Custom value text for struct variables
+            //else
+            //    slotText = this.dataModelObject.dataTypeString + " (...)"
         }
         else if (this.dataModelObject instanceof DataModelStructures.Array)
         {
@@ -1039,7 +1043,7 @@ class ProgramStackWidget implements Widget {
         return maxTotalTextWidth;
     }
 
-    //Helper function checking for pointer variables in a provided program stack (assigns values to the this.cache.pointers in a [pointerVariable, pointingTo] format)
+    //Helper function checking for pointer variables in a provided program stack (assigns values to the this.cache.pointers)
     checkForPointers() {
         this.programStackConfig.fabricDrawingModuleCache.pointers.splice(0, this.programStackConfig.fabricDrawingModuleCache.pointers.length);  //Emptying the array
 
@@ -1062,7 +1066,7 @@ class ProgramStackWidget implements Widget {
                                 valuePointedTo = currentFunctionParameter.valueString;
                             }
 
-                            this.programStackConfig.fabricDrawingModuleCache.pointers.push([currentFunctionParameter.variableName, valuePointedTo]);
+                            this.programStackConfig.fabricDrawingModuleCache.pointers.push({pointerVariable: currentFunctionParameter.variableName, pointingTo: valuePointedTo});
                         }
                     }
                 }
@@ -1081,7 +1085,7 @@ class ProgramStackWidget implements Widget {
                                 valuePointedTo = currentFunctionVariable.valueString;
                             }
 
-                            this.programStackConfig.fabricDrawingModuleCache.pointers.push([currentFunctionVariable.variableName, valuePointedTo]);
+                            this.programStackConfig.fabricDrawingModuleCache.pointers.push({pointerVariable: currentFunctionVariable.variableName, pointingTo: valuePointedTo});
                         }
                     }
                 }
@@ -1279,15 +1283,15 @@ export class FabricDrawingModule {
                                     let hoveredOverVariableText;
                                     if(opt.target._objects[1] instanceof fabric.Text)
                                         hoveredOverVariableText = opt.target._objects[1].text;
-                                    let searchedForText = drawingModuleThis.cache.pointers[i][0] + ":";
+                                    let searchedForText = drawingModuleThis.cache.pointers[i].pointerVariable + ":";
         
                                     console.log("[DEBUG] Hovering over: \"" + hoveredOverVariableText + "\", searching for: \"" + searchedForText + "\"");
                                     //If the hovered over variable is of pointer type
                                     if (hoveredOverVariableText.includes(searchedForText)) {
-                                        markPointee(drawingModuleThis.cache.pointers[i][1]);
+                                        markPointee(drawingModuleThis.cache.pointers[i].pointingTo);
                                         
                                         let fromVariableObject = drawingModuleThis.findFabricObjectByText(hoveredOverVariableText);
-                                        let toVariableObject = drawingModuleThis.findFabricObjectByText(drawingModuleThis.cache.pointers[i][1] + ":");
+                                        let toVariableObject = drawingModuleThis.findFabricObjectByText(drawingModuleThis.cache.pointers[i].pointingTo + ":");
                                         if (fromVariableObject == undefined || toVariableObject == undefined)
                                             console.log("[DEBUG] Error - FROM variable or TO variable are undefined");
                                         else
@@ -1313,13 +1317,13 @@ export class FabricDrawingModule {
                         drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cache.objectColor, false, true);
     
                         //Resetting the state of the pointee variable (if changed)
-                        if (drawingModuleThis.cache.pointeeObject[1] !== "")
+                        if (drawingModuleThis.cache.pointeeObject.previousColor !== "")
                         {
                             //Resetting the pointee's previous color
-                            drawingModuleThis.cache.pointeeObject[0].set("fill", drawingModuleThis.cache.pointeeObject[1]);
+                            drawingModuleThis.cache.pointeeObject.bgRectObject.set("fill", drawingModuleThis.cache.pointeeObject.previousColor);
                             //Clearing the cached pointee
-                            drawingModuleThis.cache.pointeeObject[0] = new fabric.Object();
-                            drawingModuleThis.cache.pointeeObject[1] = "";
+                            drawingModuleThis.cache.pointeeObject.bgRectObject = new fabric.Object();
+                            drawingModuleThis.cache.pointeeObject.previousColor = "";
 
                             //Deleting the arrow object from canvas (if present)
                             if(drawingModuleThis.cache.pointerArrowObject != undefined)
@@ -1588,10 +1592,10 @@ export class FabricDrawingModule {
             console.log("[DEBUG] Pointee found!")
 
             //Saving the previous state of the pointee
-            this.cache.pointeeObject[0] = searchedForVariableObject._objects[0];
+            this.cache.pointeeObject.bgRectObject = searchedForVariableObject._objects[0];
             let previousColor = searchedForVariableObject._objects[0].get("fill")?.toString();
             if (previousColor != undefined)
-                this.cache.pointeeObject[1] = previousColor;  
+                this.cache.pointeeObject.previousColor = previousColor;  
             else
                 console.log("[DEBUG] Error - previous pointee color is undefined");
             //Changing the pointee's color
