@@ -493,6 +493,35 @@ class StackframeSlotWidget implements Widget {
         }
     }
 
+    highlightIfChanged() {
+
+        if(this.dataModelObject instanceof DataModelStructures.Variable && this.dataModelObject.valueChanged)
+        {
+            let highlightStrokeWidth = this.slotStrokeWidth / 2;                        //divided by 2 to keep the text readable
+
+            //Getting the absolute coords of the slot's background
+            let backgroundRect = this.fabricObject._objects[0];
+            let bgCoords = backgroundRect.getCoords(true);
+            let bgSize = {width: backgroundRect.width ? backgroundRect.width : 0, height: backgroundRect.height ? backgroundRect.height : 0};
+            //Creating the highlight
+            let fabricSlotHighlight = new fabric.Rect({
+                left: bgCoords[0].x + this.slotStrokeWidth,
+                top: bgCoords[0].y + this.slotStrokeWidth,
+                width: bgSize.width - this.slotStrokeWidth - highlightStrokeWidth,      //to compensate for both of the stroke widths
+                height: bgSize.height - this.slotStrokeWidth - highlightStrokeWidth,    //to compensate for both of the stroke widths
+                fill: "",                                                               //"" to have no fill
+    
+                //Default values
+                padding: this.slotConfig.textFontSize / 2.5,
+                stroke: "yellow",
+                strokeWidth: highlightStrokeWidth
+            });
+
+            //Adding the highlight to the widget's fabric group
+            this.fabricObject._objects.push(fabricSlotHighlight);
+        }
+    }
+
     draw() {
         let startingSlotHeight = this.slotConfig.slotHeight;
         let tempSlotHeight = startingSlotHeight;
@@ -549,7 +578,7 @@ class StackframeSlotWidget implements Widget {
 
             //Default values
             padding: this.slotConfig.textFontSize / 2.5,
-            stroke: "#000000",
+            stroke: "black",
             strokeWidth: this.slotStrokeWidth
         });
         //Drawing the slot's text
@@ -603,6 +632,9 @@ class StackframeSlotWidget implements Widget {
         //Creating the result
         this.fabricObject = new fabric.Group([fabricSlotBackground, fabricSlotText]);
 
+        //In case the value has changed (has it's "valueChanged" flag set to "true"), highlighting it
+        this.highlightIfChanged();
+
         //Adding the group to the canvas
         this.canvas.add(this.fabricObject);
 
@@ -622,6 +654,7 @@ class ArrayVariableWidget implements Widget {
     children: Array<Widget>;
     //Added variables specific for a stackframe slot widget
     slotConfig: StackframeSlotWidgetConfig;
+    slotStrokeWidth: number;
 
     constructor(objectToDraw: DataModelStructures.Variable, drawToCanvas: CustomCanvas, setStartPosX = 10, setStartPosY = 10, setConfig: StackframeSlotWidgetConfig) {
         this.canvas = drawToCanvas;
@@ -631,6 +664,7 @@ class ArrayVariableWidget implements Widget {
         this.children = new Array<Widget>();
         //Added variables specific for a stackframe slot widget
         this.slotConfig = setConfig;
+        this.slotStrokeWidth = this.slotConfig.textFontSize / 10;
     }
 
     get width(): number | undefined {
@@ -645,10 +679,38 @@ class ArrayVariableWidget implements Widget {
         return Math.abs(coords[0].y - coords[3].y);
     }
 
+    highlightIfChanged() {
+
+        if(this.dataModelObject instanceof DataModelStructures.Variable && this.dataModelObject.valueChanged)
+        {
+            let highlightStrokeWidth = this.slotStrokeWidth / 2;                        //divided by 2 to keep the text readable
+
+            //Getting the absolute coords of the slot's background
+            let backgroundRect = this.fabricObject._objects[0];
+            let bgCoords = backgroundRect.getCoords(true);
+            let bgSize = {width: backgroundRect.width ? backgroundRect.width : 0, height: backgroundRect.height ? backgroundRect.height : 0};
+            //Creating the highlight
+            let fabricSlotHighlight = new fabric.Rect({
+                left: bgCoords[0].x + this.slotStrokeWidth,
+                top: bgCoords[0].y + this.slotStrokeWidth,
+                width: bgSize.width - this.slotStrokeWidth - highlightStrokeWidth,      //to compensate for both of the stroke widths
+                height: bgSize.height - this.slotStrokeWidth - highlightStrokeWidth,    //to compensate for both of the stroke widths
+                fill: "",                                                               //"" to have no fill
+    
+                //Default values
+                padding: this.slotConfig.textFontSize / 2.5,
+                stroke: "yellow",
+                strokeWidth: highlightStrokeWidth
+            });
+
+            //Adding the highlight to the widget's fabric group
+            this.fabricObject._objects.push(fabricSlotHighlight);
+        }
+    }
+
     draw() {
         let startingSlotHeight = this.slotConfig.slotHeight;
         let tempSlotHeight = startingSlotHeight;
-        let slotStrokeWidth = this.slotConfig.textFontSize / 10;
 
         //Drawing the slot's background
         let fabricSlotBackground = new fabric.Rect({
@@ -661,7 +723,7 @@ class ArrayVariableWidget implements Widget {
             //Default values
             padding: this.slotConfig.textFontSize / 2.5,
             stroke: "#000000",
-            strokeWidth: slotStrokeWidth
+            strokeWidth: this.slotStrokeWidth
         });
         //Drawing the slot's text
         let slotText = this.dataModelObject.valueString;    //Custom value for array elements
@@ -695,6 +757,9 @@ class ArrayVariableWidget implements Widget {
 
         //Creating the result
         this.fabricObject = new fabric.Group([fabricSlotBackground, fabricSlotText]);
+
+        //In case the value has changed (has it's "valueChanged" flag set to "true"), highlighting it
+        this.highlightIfChanged();
 
         //Adding the group to the canvas
         this.canvas.add(this.fabricObject);

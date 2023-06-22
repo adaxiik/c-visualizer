@@ -37,6 +37,7 @@ export class Variable {
     isPointer: boolean;                 //if true, value / valueString is the "id" of the value pointed to / address pointed to
     value: any;                         //TODO: Consider changing to a different type (I'm not yet sure, if there'll be a better type)
     valueString: string;
+    valueChanged: boolean;              //To be able to show values that changed compared to last breakpoint (when debugging)
 }
 
 //ExpandableVariable
