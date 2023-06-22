@@ -313,6 +313,7 @@ class StackframeSlotWidget implements Widget {
     children: Array<Widget>;
     //Added variables specific for a stackframe slot widget
     slotConfig: StackframeSlotWidgetConfig;
+    slotStrokeWidth: number;
 
     constructor(objectToDraw: DataModelStructures.Variable | DataModelStructures.StackFrame, drawToCanvas: CustomCanvas, setStartPosX = 10, setStartPosY = 10, setConfig: StackframeSlotWidgetConfig) {
         this.canvas = drawToCanvas;
@@ -322,6 +323,7 @@ class StackframeSlotWidget implements Widget {
         this.children = new Array<Widget>();
         //Added variables specific for a stackframe slot widget
         this.slotConfig = setConfig;
+        this.slotStrokeWidth = this.slotConfig.textFontSize / 10;
     }
 
     get width(): number | undefined {
@@ -361,71 +363,130 @@ class StackframeSlotWidget implements Widget {
         return maxTotalArrayMemberTextWidth;
     }
 
-    initAndDrawChildren() {
-        let slotStrokeWidth = this.slotConfig.textFontSize / 10;
+    drawStructVertical(structToDraw: DataModelStructures.Struct) {
+        console.log("[DEBUG] Drawing the struct \"" + structToDraw.variableName + "\" vertically");
+        //Creating the config for the elements
+        let elementsConfig = new StackframeSlotWidgetConfig();
+        elementsConfig.slotWidth = this.slotConfig.slotWidth - this.slotConfig.slotHeight;  //1/2 of slotHeight sized padding on the left, 1/2 of slotHeight sizedPadding on the right
+        elementsConfig.slotHeight = this.slotConfig.slotHeight;
+        elementsConfig.textColor = this.slotConfig.textColor;
+        elementsConfig.shortenText = this.slotConfig.shortenText;
+        elementsConfig.slotColor = this.slotConfig.slotColor;
+        elementsConfig.textFontSize = this.slotConfig.textFontSize;
+        elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
+        elementsConfig.textRightOffset = this.slotConfig.textRightOffset;
+        //Drawing the elements
+        let tempStartPosX = this.startPos.x + this.slotConfig.slotHeight/2;
+        let tempStartPosY = this.startPos.y + this.slotConfig.slotHeight + structToDraw.elements.length * this.slotStrokeWidth;  //Accounting for the parent variable + all element slot's stroke widths
+        //Drawing the elements themselves
+        for(let i = 0; i < structToDraw.elements.length; i++)
+        {
+            let currentChild = new StackframeSlotWidget(structToDraw.elements[i], this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
+            this.children.push(currentChild);
+            currentChild.draw();
+            //Adjusting the starting position for the next element
+            let childHeight = currentChild.height;
+            tempStartPosY += childHeight == undefined ? 0 : childHeight - this.slotStrokeWidth;  
+        }
+    }
 
+    drawArrayVertical(arrayToDraw: DataModelStructures.Array) {
+        console.log("[DEBUG] Drawing the array \"" + arrayToDraw.variableName + "\" vertically");
+        //Creating the config for the elements
+        let elementsConfig = new StackframeSlotWidgetConfig();
+        elementsConfig.slotWidth = this.slotConfig.slotWidth - this.slotConfig.slotHeight;  //1/2 of slotHeight sized padding on the left, 1/2 of slotHeight sizedPadding on the right
+        elementsConfig.slotHeight = this.slotConfig.slotHeight;
+        elementsConfig.textColor = this.slotConfig.textColor;
+        elementsConfig.shortenText = this.slotConfig.shortenText;
+        elementsConfig.slotColor = this.slotConfig.slotColor;
+        elementsConfig.textFontSize = this.slotConfig.textFontSize;
+        elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
+        elementsConfig.textRightOffset = this.slotConfig.textRightOffset;
+        //Drawing the elements
+        let tempStartPosX = this.startPos.x + this.slotConfig.slotHeight/2;
+        let tempStartPosY = this.startPos.y + this.slotConfig.slotHeight + arrayToDraw.size * this.slotStrokeWidth;  //Accounting for the parent variable + all element slot's stroke widths
+        //Drawing the elements themselves
+        let emptySlot = new DataModelStructures.StackFrame();     //To signify an empty space in an array
+        emptySlot.functionName = "";
+        for(let i = 0; i < arrayToDraw.size; i++)
+        {
+            let currentChild;
+            //If the current index is populated
+            if(arrayToDraw.elements[i] != undefined)
+            {
+                currentChild = new StackframeSlotWidget(arrayToDraw.elements[i], this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
+            }
+            else
+            {
+                currentChild = new StackframeSlotWidget(emptySlot, this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
+            }
+            this.children.push(currentChild);
+            currentChild.draw();
+            //Adjusting the starting position for the next element
+            let childHeight = currentChild.height;
+            tempStartPosY += childHeight == undefined ? 0 : childHeight - this.slotStrokeWidth;  
+        }
+    }
+
+    drawArrayHorizontal(arrayToDraw: DataModelStructures.Array) {
+        console.log("[DEBUG] Drawing the array \"" + arrayToDraw.variableName + "\" horizontally");
+        //Creating the config for the elements
+        let elementsConfig = new StackframeSlotWidgetConfig();
+        elementsConfig.slotWidth = this.checkMaxArrayMemberTextWidth(arrayToDraw);
+        elementsConfig.slotHeight = this.slotConfig.slotHeight;
+        elementsConfig.textColor = this.slotConfig.textColor;
+        elementsConfig.shortenText = this.slotConfig.shortenText;
+        elementsConfig.slotColor = this.slotConfig.slotColor;
+        elementsConfig.textFontSize = this.slotConfig.textFontSize;
+        elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
+        elementsConfig.textRightOffset = this.slotConfig.textRightOffset;
+        //Drawing the elements
+        let tempStartPosX = this.startPos.x + this.slotConfig.slotHeight/2;
+        let tempStartPosY = this.startPos.y + this.slotConfig.slotHeight + arrayToDraw.size * this.slotStrokeWidth;  //Accounting for the parent variable + all element slot's stroke widths
+        //Drawing the elements themselves
+        let emptyVariable = new DataModelStructures.Variable();     //To signify an empty space in an array
+        emptyVariable.valueString = "";
+        for(let i = 0; i < arrayToDraw.size; i++)
+        {
+            let currentChild;
+            //If the current index is populated
+            if(arrayToDraw.elements[i] != undefined)
+            {
+                currentChild = new ArrayVariableWidget(arrayToDraw.elements[i], this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
+            }
+            else
+            {
+                currentChild = new ArrayVariableWidget(emptyVariable, this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
+            }
+            this.children.push(currentChild);
+            currentChild.draw();
+            //Adjusting the starting position for the next element
+            tempStartPosX += elementsConfig.slotWidth;
+        }
+    }
+
+    initAndDrawChildren() {
         //Adding the elements (in case of a struct)
         if(this.dataModelObject instanceof DataModelStructures.Struct && !this.dataModelObject.isCollapsed)
         {
-            //Creating the config for the elements
-            let elementsConfig = new StackframeSlotWidgetConfig();
-            elementsConfig.slotWidth = this.slotConfig.slotWidth - this.slotConfig.slotHeight;  //1/2 of slotHeight sized padding on the left, 1/2 of slotHeight sizedPadding on the right
-            elementsConfig.slotHeight = this.slotConfig.slotHeight;
-            elementsConfig.textColor = this.slotConfig.textColor;
-            elementsConfig.shortenText = this.slotConfig.shortenText;
-            elementsConfig.slotColor = this.slotConfig.slotColor;
-            elementsConfig.textFontSize = this.slotConfig.textFontSize;
-            elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
-            elementsConfig.textRightOffset = this.slotConfig.textRightOffset;
-            //Drawing the elements
-            let tempStartPosX = this.startPos.x + this.slotConfig.slotHeight/2;
-            let tempStartPosY = this.startPos.y + this.slotConfig.slotHeight + this.dataModelObject.elements.length * slotStrokeWidth;  //Accounting for the parent variable + all element slot's stroke widths
-            //Drawing the elements themselves
-            for(let i = 0; i < this.dataModelObject.elements.length; i++)
-            {
-                let currentChild = new StackframeSlotWidget(this.dataModelObject.elements[i], this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
-                this.children.push(currentChild);
-                currentChild.draw();
-                //Adjusting the starting position for the next element
-                let childHeight = currentChild.height;
-                tempStartPosY += childHeight == undefined ? 0 : childHeight - slotStrokeWidth;  
-            }
+            this.drawStructVertical(this.dataModelObject);
         }
         //Adding the elements (in case of an array)
         else if(this.dataModelObject instanceof DataModelStructures.Array && !this.dataModelObject.isCollapsed)
         {
-            //Creating the config for the elements
-            let elementsConfig = new StackframeSlotWidgetConfig();
-            elementsConfig.slotWidth = this.checkMaxArrayMemberTextWidth(this.dataModelObject);
-            elementsConfig.slotHeight = this.slotConfig.slotHeight;
-            elementsConfig.textColor = this.slotConfig.textColor;
-            elementsConfig.shortenText = this.slotConfig.shortenText;
-            elementsConfig.slotColor = this.slotConfig.slotColor;
-            elementsConfig.textFontSize = this.slotConfig.textFontSize;
-            elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
-            elementsConfig.textRightOffset = this.slotConfig.textRightOffset;
-            //Drawing the elements
-            let tempStartPosX = this.startPos.x + this.slotConfig.slotHeight/2;
-            let tempStartPosY = this.startPos.y + this.slotConfig.slotHeight + this.dataModelObject.size * slotStrokeWidth;  //Accounting for the parent variable + all element slot's stroke widths
-            //Drawing the elements themselves
-            let emptyVariable = new DataModelStructures.Variable();     //To signify an empty space in an array
-            emptyVariable.valueString = "";
-            for(let i = 0; i < this.dataModelObject.size; i++)
+            //Checking if the array has elements
+            let variableKeys = Object.keys(this.dataModelObject.elements); 
+            if(variableKeys.length > 0)
             {
-                let currentChild;
-                //If the current index is populated
-                if(this.dataModelObject.elements[i] != undefined)
-                {
-                    currentChild = new ArrayVariableWidget(this.dataModelObject.elements[i], this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
-                }
+                //Checking if the element is an expandable variable
+                if(this.dataModelObject.elements[variableKeys[0]] instanceof DataModelStructures.ExpandableVariable)
+                    this.drawArrayVertical(this.dataModelObject);   //If yes, drawing it vertically (to be able to later further expand the elements)
                 else
-                {
-                    currentChild = new ArrayVariableWidget(emptyVariable, this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
-                }
-                this.children.push(currentChild);
-                currentChild.draw();
-                //Adjusting the starting position for the next element
-                tempStartPosX += elementsConfig.slotWidth;
+                    this.drawArrayHorizontal(this.dataModelObject);
+            }
+            else
+            {
+                this.drawArrayHorizontal(this.dataModelObject);     //By default, drawing horizontally
             }
         }
     }
@@ -433,12 +494,22 @@ class StackframeSlotWidget implements Widget {
     draw() {
         let startingSlotHeight = this.slotConfig.slotHeight;
         let tempSlotHeight = startingSlotHeight;
-        let slotStrokeWidth = this.slotConfig.textFontSize / 10;
 
         function addSpaceForExpandable(variableToCheck: DataModelStructures.ExpandableVariable) {
+            function drawArrayVertically(arrayToCheck: DataModelStructures.Array) : boolean {
+                //Checking if the array has elements
+                let variableKeys = Object.keys(arrayToCheck.elements); 
+                if(variableKeys.length > 0)
+                {
+                    //If the first found element is an expandable variable, drawing the array vertically
+                    return arrayToCheck.elements[variableKeys[0]] instanceof DataModelStructures.ExpandableVariable;
+                }
+                return false;
+            } 
+
             if(variableToCheck instanceof DataModelStructures.Struct && !variableToCheck.isCollapsed)
             {
-                tempSlotHeight += startingSlotHeight * (variableToCheck.elements.length + 1); //for the variable itself + (elements.length for elements + 1 for extra space for padding)
+                tempSlotHeight += startingSlotHeight * (variableToCheck.elements.length + 1);   //for the variable itself + (elements.length for elements + 1 for extra space for padding)
                 for(let i = 0; i < variableToCheck.elements.length; i++)
                 {
                     let currentElement = variableToCheck.elements[i];
@@ -448,7 +519,11 @@ class StackframeSlotWidget implements Widget {
             }
             if(variableToCheck instanceof DataModelStructures.Array && !variableToCheck.isCollapsed)
             {
-                tempSlotHeight += 2 * startingSlotHeight;  //+1 for elements + 1 for extra space for padding
+                if(drawArrayVertically(variableToCheck))
+                    tempSlotHeight += startingSlotHeight * (variableToCheck.size + 1);          //for the variable itself + (size for elements + 1 for extra space for padding)
+                else
+                    tempSlotHeight += 2 * startingSlotHeight;                                   //+1 for elements + 1 for extra space for padding
+
                 for(let i = 0; i < variableToCheck.size; i++)
                 {
                     let currentElement = variableToCheck.elements[i];
@@ -473,7 +548,7 @@ class StackframeSlotWidget implements Widget {
             //Default values
             padding: this.slotConfig.textFontSize / 2.5,
             stroke: "#000000",
-            strokeWidth: slotStrokeWidth
+            strokeWidth: this.slotStrokeWidth
         });
         //Drawing the slot's text
         let slotText = "";
@@ -834,64 +909,6 @@ class ProgramStackWidget implements Widget {
         return heightSum;
     }
 
-    draw() {
-        let shortenText = false;
-        let stackSlotHeight = 30;
-        let textColor = "black";
-        let textFontSize = stackSlotHeight - stackSlotHeight / 3;
-        let textLeftOffset = textFontSize / 5;
-        let textRightOffset = textLeftOffset * 2;
-        let structLeftOffset = stackSlotHeight/2;   //X offset of the struct's children (compared to the variable 1 level up)
-        let calculatedMaxTextWidth = this.calculateMaxTextWidth(textFontSize, textLeftOffset, textRightOffset, structLeftOffset);
-        let tempStartPosX = this.startPos.x;
-        let tempStartPosY = this.startPos.y;
-
-        //Saving the now drawn program stack state (and the arguments of the last call)
-        this.programStackConfig.fabricDrawingModuleCache.drawProgramStackArguments = [this.dataModelObject, this.startPos.x, this.startPos.y, this.programStackConfig.maxStackSlotWidth];
-
-        //Caching the pointers in the program stack
-        this.checkForPointers();
-        
-        //If maximum stack slot width is set
-        if (this.programStackConfig.maxStackSlotWidth != undefined) {
-            //Checking if we'll need to shorten the variable text (if all variable texts are shorter than the desired stackSlotWidth)
-            shortenText = this.programStackConfig.maxStackSlotWidth < calculatedMaxTextWidth;
-        }
-
-        //To prepare the slot's shared config
-        function createConfig(programStackConfig: ProgramStackWidgetConfig) : StackframeWidgetConfig{
-            let retSlotConfig = new StackframeWidgetConfig();
-            if(shortenText && programStackConfig.maxStackSlotWidth != undefined)
-                retSlotConfig.slotWidth = programStackConfig.maxStackSlotWidth;
-            else
-                retSlotConfig.slotWidth = calculatedMaxTextWidth + textRightOffset;
-            retSlotConfig.slotHeight = stackSlotHeight;
-            retSlotConfig.textColor = textColor;
-            retSlotConfig.shortenText = shortenText;
-            return retSlotConfig;
-        }
-        
-        //Drawing all the stackframes present
-        for (let key in this.dataModelObject.stackFrames) {
-            let value = this.dataModelObject.stackFrames[key];
-            
-            if (value != null) {
-                let stackConfig = createConfig(this.programStackConfig);
-                let stackframeWidget = new StackframeWidget(value, this.canvas, tempStartPosX, tempStartPosY, stackConfig);
-                this.children.push(stackframeWidget);       //Adding the stackframe to the children array
-                stackframeWidget.draw();                    //Drawing the stackframe
-                if(stackframeWidget.height != undefined)
-                {
-                    tempStartPosY += stackframeWidget.height;   //Chaging the starting position with each drawn stackframe
-                    if(stackframeWidget.children[0] instanceof StackframeSlotWidget)
-                    {
-                        tempStartPosY -= stackframeWidget.children[0].slotConfig.textFontSize / 10;     //Accounting for the rectangle stroke width
-                    }
-                } 
-            }
-        }
-    }
-
     //Helper function used to calculate max text width in a provided program stack (used to determine neccessary slot width)
     calculateMaxTextWidth(textFontSize: number, textLeftOffset: number, textRightOffset: number, structLeftOffset: number) : number {
         let maxTotalTextWidth = 0;
@@ -904,7 +921,7 @@ class ProgramStackWidget implements Widget {
                 
                 if (value != null) {
                     //"Mock" creating Fabric text (to calculate total width properly)
-                    let tempFabricSlotText = new fabric.Text(value.valueString, {
+                    let tempFabricSlotText = new fabric.Text(value.valueString != undefined ? value.valueString : "", {
                         left: 0,
                         top: 0,
                         fill: "black",
@@ -947,10 +964,28 @@ class ProgramStackWidget implements Widget {
                 {
                     let maxElementWidth = checkMaxArrayMemberTextWidth(variableToCheck);
 
+                    //Checking if the elements are expandable variables
+                    let isArrayOfExpandables = false;
+                    let variableKeys = Object.keys(variableToCheck.elements); 
+                    if(variableKeys.length > 0) //Checking if the array has elements
+                    {
+                        //Checking if the element is an expandable variable
+                        isArrayOfExpandables = variableToCheck.elements[variableKeys[0]] instanceof DataModelStructures.ExpandableVariable
+                    }
+
                     for (let i = 0; i < variableToCheck.size; i++)
                     {
-                        currentVariableText = "";
-                        allVariableTexts.push({variableText: currentVariableText, level: currentLevel, arrayElementXOffset: maxElementWidth * (i+1)});  //empty string ("") and "i+1" and  due to the array's slots being longer than their text (to end with the next slot)
+                        if(isArrayOfExpandables)
+                        {
+                            let currentElement = variableToCheck.elements[i];
+                            if(currentElement != undefined)
+                                checkVariableText(currentElement, currentLevel + 1);
+                        }
+                        else
+                        {
+                            currentVariableText = "";
+                            allVariableTexts.push({variableText: currentVariableText, level: currentLevel, arrayElementXOffset: maxElementWidth * (i+1)});  //empty string ("") and "i+1" and  due to the array's slots being longer than their text (to end with the next slot)   
+                        }
                     }
                 }
             }
@@ -995,7 +1030,7 @@ class ProgramStackWidget implements Widget {
             });
 
             let textTotalXOffset = textLeftOffset + allVariableTexts[i].level * (textLeftOffset + structLeftOffset) + allVariableTexts[i].arrayElementXOffset;
-            let textTotalWidth = textTotalXOffset + tempFabricSlotText.getScaledWidth() + textRightOffset; 
+            let textTotalWidth = textTotalXOffset + tempFabricSlotText.getScaledWidth() + textRightOffset * (allVariableTexts[i].level + 1) //+1 due to the 0th level having right offset already; 
 
             //Comparing the current variable text's length to the maximum 
             maxTotalTextWidth = textTotalWidth > maxTotalTextWidth ? textTotalWidth : maxTotalTextWidth;
@@ -1050,6 +1085,64 @@ class ProgramStackWidget implements Widget {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    draw() {
+        let shortenText = false;
+        let stackSlotHeight = 30;
+        let textColor = "black";
+        let textFontSize = stackSlotHeight - stackSlotHeight / 3;
+        let textLeftOffset = textFontSize / 5;
+        let textRightOffset = textLeftOffset * 2;
+        let structLeftOffset = stackSlotHeight/2;   //X offset of the struct's children (compared to the variable 1 level up)
+        let calculatedMaxTextWidth = this.calculateMaxTextWidth(textFontSize, textLeftOffset, textRightOffset, structLeftOffset);
+        let tempStartPosX = this.startPos.x;
+        let tempStartPosY = this.startPos.y;
+
+        //Saving the now drawn program stack state (and the arguments of the last call)
+        this.programStackConfig.fabricDrawingModuleCache.drawProgramStackArguments = [this.dataModelObject, this.startPos.x, this.startPos.y, this.programStackConfig.maxStackSlotWidth];
+
+        //Caching the pointers in the program stack
+        this.checkForPointers();
+        
+        //If maximum stack slot width is set
+        if (this.programStackConfig.maxStackSlotWidth != undefined) {
+            //Checking if we'll need to shorten the variable text (if all variable texts are shorter than the desired stackSlotWidth)
+            shortenText = this.programStackConfig.maxStackSlotWidth < calculatedMaxTextWidth;
+        }
+
+        //To prepare the slot's shared config
+        function createConfig(programStackConfig: ProgramStackWidgetConfig) : StackframeWidgetConfig{
+            let retSlotConfig = new StackframeWidgetConfig();
+            if(shortenText && programStackConfig.maxStackSlotWidth != undefined)
+                retSlotConfig.slotWidth = programStackConfig.maxStackSlotWidth;
+            else
+                retSlotConfig.slotWidth = calculatedMaxTextWidth + textRightOffset;
+            retSlotConfig.slotHeight = stackSlotHeight;
+            retSlotConfig.textColor = textColor;
+            retSlotConfig.shortenText = shortenText;
+            return retSlotConfig;
+        }
+        
+        //Drawing all the stackframes present
+        for (let key in this.dataModelObject.stackFrames) {
+            let value = this.dataModelObject.stackFrames[key];
+            
+            if (value != null) {
+                let stackConfig = createConfig(this.programStackConfig);
+                let stackframeWidget = new StackframeWidget(value, this.canvas, tempStartPosX, tempStartPosY, stackConfig);
+                this.children.push(stackframeWidget);       //Adding the stackframe to the children array
+                stackframeWidget.draw();                    //Drawing the stackframe
+                if(stackframeWidget.height != undefined)
+                {
+                    tempStartPosY += stackframeWidget.height;   //Chaging the starting position with each drawn stackframe
+                    if(stackframeWidget.children[0] instanceof StackframeSlotWidget)
+                    {
+                        tempStartPosY -= stackframeWidget.children[0].slotConfig.textFontSize / 10;     //Accounting for the rectangle stroke width
+                    }
+                } 
             }
         }
     }
@@ -1194,7 +1287,7 @@ export class FabricDrawingModule {
                                         markPointee(drawingModuleThis.cache.pointers[i][1]);
                                         
                                         let fromVariableObject = drawingModuleThis.findFabricObjectByText(hoveredOverVariableText);
-                                        let toVariableObject = drawingModuleThis.findFabricObjectByText(drawingModuleThis.cache.pointers[i][1]);
+                                        let toVariableObject = drawingModuleThis.findFabricObjectByText(drawingModuleThis.cache.pointers[i][1] + ":");
                                         if (fromVariableObject == undefined || toVariableObject == undefined)
                                             console.log("[DEBUG] Error - FROM variable or TO variable are undefined");
                                         else
@@ -1321,11 +1414,11 @@ export class FabricDrawingModule {
                 //Structs and arrays
                 if(variableToCheck instanceof DataModelStructures.ExpandableVariable)
                 {
-                    return checkStructArrayForText(variableToCheck);
+                    return checkExpandableForText(variableToCheck);
                 }
                 return undefined;
             }
-            function checkStructArrayForText(variableToCheck: DataModelStructures.ExpandableVariable) : DataModelStructures.Variable | undefined {
+            function checkExpandableForText(variableToCheck: DataModelStructures.ExpandableVariable) : DataModelStructures.Variable | undefined {
                 let stackFrameStringRepresentation;
                 if(variableToCheck instanceof DataModelStructures.Struct)
                     stackFrameStringRepresentation = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " (...)";
@@ -1523,16 +1616,19 @@ export class FabricDrawingModule {
             let fromVarRightMiddlePoint =   [fromVariableObjectPosition[1].x,   fromVariableObjectPosition[1].y + (fromVariableObjectPosition[2].y  - fromVariableObjectPosition[1].y)  / 2];
             let toVarRightMiddlePoint =     [toVariableObjectPosition[1].x,     toVariableObjectPosition[1].y   + (toVariableObjectPosition[2].y    - toVariableObjectPosition[1].y)    / 2];
 
+            //Compensating for a possible mismatch in X values
+            let higherXValue = Math.max(fromVarRightMiddlePoint[0], toVarRightMiddlePoint[0]);
+
             //Drawing an arrow from the variable objects right X and middle points (Y)
-            let lineStart = new fabric.Line([fromVarRightMiddlePoint[0] + arrowOffset * 50 + 1, fromVarRightMiddlePoint[1], fromVarRightMiddlePoint[0], fromVarRightMiddlePoint[1]], {
+            let lineStart = new fabric.Line([higherXValue + arrowOffset * 50 + 1, fromVarRightMiddlePoint[1], fromVarRightMiddlePoint[0], fromVarRightMiddlePoint[1]], {
                 stroke: arrowColor
             });
 
-            let lineMiddle = new fabric.Line([fromVarRightMiddlePoint[0] + arrowOffset * 50, fromVarRightMiddlePoint[1], toVarRightMiddlePoint[0] + arrowOffset * 50, toVarRightMiddlePoint[1]], {
+            let lineMiddle = new fabric.Line([higherXValue + arrowOffset * 50, fromVarRightMiddlePoint[1], higherXValue + arrowOffset * 50, toVarRightMiddlePoint[1]], {
                 stroke: arrowColor
             });
             
-            let lineEnd = new fabric.Line([toVarRightMiddlePoint[0] + arrowOffset * 50, toVarRightMiddlePoint[1], toVarRightMiddlePoint[0] + arrowEndTriangleWidth, toVarRightMiddlePoint[1]], {
+            let lineEnd = new fabric.Line([higherXValue + arrowOffset * 50, toVarRightMiddlePoint[1], toVarRightMiddlePoint[0] + arrowEndTriangleWidth, toVarRightMiddlePoint[1]], {
                 stroke: arrowColor
             });
 

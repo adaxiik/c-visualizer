@@ -22,11 +22,13 @@ let stackFrame1Var3 = new myDataModelStructures.Variable();
 stackFrame1Var3.variableName = "stackFrame1Var3";
 stackFrame1Var3.dataTypeString = "float";
 stackFrame1Var3.valueString = "3.28";
+
 let stackFrame1PointerVar1 = new myDataModelStructures.Variable();          //Pointer variable
 stackFrame1PointerVar1.variableName = "stackFrame1PointerVar1";
 stackFrame1PointerVar1.dataTypeString = "int *";
 stackFrame1PointerVar1.valueString = "stackFrame1Var2";
 stackFrame1PointerVar1.isPointer = true;
+
 let stackFrame1StructVar1 = new myDataModelStructures.Struct();             //Struct variable
 stackFrame1StructVar1.variableName = "stackFrame1StructVar1";
 stackFrame1StructVar1.elements = new Array<myDataModelStructures.Variable>();
@@ -58,11 +60,12 @@ stackFrame1StructMemberStruct2.variableName = "stackFrame1StructMemberStruct2";
 stackFrame1StructMemberStruct2.elements = new Array<myDataModelStructures.Variable>();
 stackFrame1StructMemberStruct2.dataTypeString = "struct3";
 stackFrame1StructMemberStruct2.isCollapsed = true;
-let stackFrame1StructMemberArray = new myDataModelStructures.Array();       //Member array variable
-stackFrame1StructMemberArray.variableName = "stackFrame1StructMemberArray";
-stackFrame1StructMemberArray.dataTypeString = "int";
-stackFrame1StructMemberArray.isCollapsed = true;
-stackFrame1StructMemberArray.size = 4;
+
+let stackFrame1StructMemberArrayAtomic = new myDataModelStructures.Array(); //Member array variable (atomic)
+stackFrame1StructMemberArrayAtomic.variableName = "stackFrame1StructMemberArrayAtomic";
+stackFrame1StructMemberArrayAtomic.dataTypeString = "int";
+stackFrame1StructMemberArrayAtomic.isCollapsed = true;
+stackFrame1StructMemberArrayAtomic.size = 4;
 let stackFrame1StructMemberArrayVarAtIdx0 = new myDataModelStructures.Variable();   //Array element
 stackFrame1StructMemberArrayVarAtIdx0.valueString = "23";
 let stackFrame1StructMemberArrayVarAtIdx1 = new myDataModelStructures.Variable();   //Array element
@@ -71,22 +74,65 @@ let stackFrame1StructMemberArrayVarAtIdx2 = new myDataModelStructures.Variable()
 stackFrame1StructMemberArrayVarAtIdx2.valueString = "3";
 let stackFrame1StructMemberArrayVarAtIdx3 = new myDataModelStructures.Variable();   //Array element
 stackFrame1StructMemberArrayVarAtIdx3.valueString = "11";
-stackFrame1StructMemberArray.elements[0] = stackFrame1StructMemberArrayVarAtIdx0;
-stackFrame1StructMemberArray.elements[1] = stackFrame1StructMemberArrayVarAtIdx1;
-stackFrame1StructMemberArray.elements[2] = stackFrame1StructMemberArrayVarAtIdx2;
-stackFrame1StructMemberArray.elements[3] = stackFrame1StructMemberArrayVarAtIdx3;
-let stackFrame1StructMember7 = new myDataModelStructures.Variable();
-stackFrame1StructMember7.variableName = "stackFrame1StructMember6";
-stackFrame1StructMember7.dataTypeString = "int";
-stackFrame1StructMember7.valueString = "423";
+stackFrame1StructMemberArrayAtomic.elements[0] = stackFrame1StructMemberArrayVarAtIdx0;
+stackFrame1StructMemberArrayAtomic.elements[1] = stackFrame1StructMemberArrayVarAtIdx1;
+stackFrame1StructMemberArrayAtomic.elements[2] = stackFrame1StructMemberArrayVarAtIdx2;
+stackFrame1StructMemberArrayAtomic.elements[3] = stackFrame1StructMemberArrayVarAtIdx3;
+
+let stackFrame1StructMemberArrayExpandable = new myDataModelStructures.Array(); //Member array variable (expandable)
+stackFrame1StructMemberArrayExpandable.variableName = "stackFrame1StructMemberArrayExpandable";
+stackFrame1StructMemberArrayExpandable.dataTypeString = "struct1";
+stackFrame1StructMemberArrayExpandable.isCollapsed = true;
+stackFrame1StructMemberArrayExpandable.size = 4;
+let stackFrame1StructInArray1 = new myDataModelStructures.Struct();             //Array element (struct variable)
+stackFrame1StructInArray1.variableName = "stackFrame1StructInArray1";
+stackFrame1StructInArray1.elements = new Array<myDataModelStructures.Variable>();
+stackFrame1StructInArray1.dataTypeString = "struct1";
+stackFrame1StructInArray1.isCollapsed = true;
+let stackFrame1StructInArray1Member1 = new myDataModelStructures.Variable();
+stackFrame1StructInArray1Member1.variableName = "stackFrame1StructInArray1Member1";
+stackFrame1StructInArray1Member1.dataTypeString = "int";
+stackFrame1StructInArray1Member1.valueString = "499";
+let stackFrame1StructInArray1Member2 = new myDataModelStructures.Variable();
+stackFrame1StructInArray1Member2.variableName = "stackFrame1StructInArray1Member2";
+stackFrame1StructInArray1Member2.dataTypeString = "bool";
+stackFrame1StructInArray1Member2.valueString = "true";
+stackFrame1StructInArray1.elements.push(stackFrame1StructInArray1Member1);
+stackFrame1StructInArray1.elements.push(stackFrame1StructInArray1Member2);
+let stackFrame1StructInArray2 = new myDataModelStructures.Struct();             //Array element (struct variable)
+stackFrame1StructInArray2.variableName = "stackFrame1StructInArray2";
+stackFrame1StructInArray2.elements = new Array<myDataModelStructures.Variable>();
+stackFrame1StructInArray2.dataTypeString = "struct1";
+stackFrame1StructInArray2.isCollapsed = true;
+let stackFrame1StructInArray2Member1 = new myDataModelStructures.Variable();
+stackFrame1StructInArray2Member1.variableName = "stackFrame1StructInArray2Member1";
+stackFrame1StructInArray2Member1.dataTypeString = "int";
+stackFrame1StructInArray2Member1.valueString = "45630";
+let stackFrame1StructInArray2Member2 = new myDataModelStructures.Variable();
+stackFrame1StructInArray2Member2.variableName = "stackFrame1StructInArray2Member2";
+stackFrame1StructInArray2Member2.dataTypeString = "bool";
+stackFrame1StructInArray2Member2.valueString = "false";
+stackFrame1StructInArray2.elements.push(stackFrame1StructInArray2Member1);
+stackFrame1StructInArray2.elements.push(stackFrame1StructInArray2Member2);
+stackFrame1StructMemberArrayExpandable.elements[0] = stackFrame1StructInArray1;
+stackFrame1StructMemberArrayExpandable.elements[2] = stackFrame1StructInArray2;
+
+let stackFrame1StructMember6 = new myDataModelStructures.Variable();
+stackFrame1StructMember6.variableName = "stackFrame1StructMember6";
+stackFrame1StructMember6.dataTypeString = "int";
+stackFrame1StructMember6.valueString = "423";
+
+stackFrame1StructMemberStruct1.elements.push(stackFrame1StructMember4);
+stackFrame1StructMemberStruct1.elements.push(stackFrame1StructMember5);
+stackFrame1StructMemberStruct2.elements.push(stackFrame1StructMember6);
+
 stackFrame1StructVar1.elements.push(stackFrame1StructMember1);
 stackFrame1StructVar1.elements.push(stackFrame1StructMember2);
 stackFrame1StructVar1.elements.push(stackFrame1StructMemberStruct1);
 stackFrame1StructVar1.elements.push(stackFrame1StructMemberStruct2);
-stackFrame1StructVar1.elements.push(stackFrame1StructMemberArray);
-stackFrame1StructMemberStruct1.elements.push(stackFrame1StructMember4);
-stackFrame1StructMemberStruct1.elements.push(stackFrame1StructMember5);
-stackFrame1StructMemberStruct2.elements.push(stackFrame1StructMember7);
+stackFrame1StructVar1.elements.push(stackFrame1StructMemberArrayAtomic);
+stackFrame1StructVar1.elements.push(stackFrame1StructMemberArrayExpandable);
+
 stackFrame1.functionVariables[stackFrame1Var1.variableName] = stackFrame1Var1;
 stackFrame1.functionVariables[stackFrame1Var2.variableName] = stackFrame1Var2;
 stackFrame1.functionVariables[stackFrame1Var3.variableName] = stackFrame1Var3;
