@@ -560,11 +560,10 @@ class StackframeSlotWidget implements Widget {
         }
         else if (this.dataModelObject instanceof DataModelStructures.Struct)
         {
-            //TODO: Implement a different object search tactic - to prevent issues (then add these commented lines)
-            //if(this.dataModelObject.variableName != undefined)
-                slotText = this.dataModelObject.variableName + ": " + this.dataModelObject.dataTypeString + " (...)";                                   //Custom value text for struct variables
-            //else
-            //    slotText = this.dataModelObject.dataTypeString + " (...)"
+            if(this.dataModelObject.variableName != undefined)
+                slotText = this.dataModelObject.variableName + ": " + this.dataModelObject.dataTypeString + " (...)";                               //Custom value text for struct variables
+            else
+                slotText = this.dataModelObject.dataTypeString + " (...)"
         }
         else if (this.dataModelObject instanceof DataModelStructures.Array)
         {
@@ -1288,8 +1287,8 @@ export class FabricDrawingModule {
                             console.log("[DEBUG] Error - cached programStackWidget is undefined");
                         }
                         
-                        //If the hovered over widget is not undefined (is a stackframe slot widget)
-                        if(hoveredOverWidget instanceof StackframeSlotWidget)
+                        //If the hovered over widget is not undefined (is a slot widget)
+                        if(hoveredOverWidget instanceof StackframeSlotWidget || hoveredOverWidget instanceof ArrayVariableWidget)
                         {
                             //Changing the color of the variable (over which we're hovering)
                             let previousObjectColor = hoveredOverWidget.fabricObject._objects[0].get('fill')?.toString();
@@ -1376,7 +1375,7 @@ export class FabricDrawingModule {
     }
 
     //Helper function to return the object with the searched for text
-    findFabricObjectByText(searchedForText : string) : fabric.Object | undefined {
+    findFabricObjectByText(searchedForText: string) : fabric.Object | undefined {
         let allCanvasObjects = this.canvas.getObjects();
         for (let i = 0; i < allCanvasObjects.length; i++)
         {
@@ -1409,7 +1408,7 @@ export class FabricDrawingModule {
     }
 
     //Helper function to return the object with the searched for text
-    findDataModelObjectByText(searchedForText : string) : DataModelObject | undefined {
+    findDataModelObjectByText(searchedForText: string) : DataModelObject | undefined {
         let mainProgramStack;
         let shortenedText = searchedForText.endsWith("...");
         if(shortenedText)
@@ -1550,7 +1549,7 @@ export class FabricDrawingModule {
     }
 
     //Helper function to change a color of an object (stack slot) - after the change, there must be a call to "requestRenderAll()" afterwards
-    setObjectColor(affectedObject : fabric.Object, newObjectColor : string, savePreviousColor : boolean, clearColorCache : boolean) {
+    setObjectColor(affectedObject: fabric.Object, newObjectColor: string, savePreviousColor: boolean, clearColorCache: boolean) {
         if(affectedObject !== undefined && affectedObject !== null)
         {
             if(affectedObject instanceof fabric.Group)
@@ -1591,7 +1590,7 @@ export class FabricDrawingModule {
     }
 
     //Helper function (for mouse:over events, etc.)
-    calculateLighterDarkerHex(inputHex : string, percentage : number) : string {
+    calculateLighterDarkerHex(inputHex: string, percentage: number) : string {
         //Parsing the rbg values
         const r = parseInt(inputHex.substring(1, 3), 16);
         const g = parseInt(inputHex.substring(3, 5), 16);

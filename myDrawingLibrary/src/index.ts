@@ -85,7 +85,7 @@ stackFrame1StructMemberArrayExpandable.dataTypeString = "struct1";
 stackFrame1StructMemberArrayExpandable.isCollapsed = true;
 stackFrame1StructMemberArrayExpandable.size = 4;
 let stackFrame1StructInArray1 = new myDataModelStructures.Struct();             //Array element (struct variable)
-stackFrame1StructInArray1.variableName = "stackFrame1StructInArray1";
+stackFrame1StructInArray1.variableName = "stackFrame1StructInArray1"; 
 stackFrame1StructInArray1.elements = new Array<myDataModelStructures.Variable>();
 stackFrame1StructInArray1.dataTypeString = "struct1";
 stackFrame1StructInArray1.isCollapsed = true;
@@ -100,7 +100,7 @@ stackFrame1StructInArray1Member2.valueString = "true";
 stackFrame1StructInArray1.elements.push(stackFrame1StructInArray1Member1);
 stackFrame1StructInArray1.elements.push(stackFrame1StructInArray1Member2);
 let stackFrame1StructInArray2 = new myDataModelStructures.Struct();             //Array element (struct variable)
-stackFrame1StructInArray2.variableName = "stackFrame1StructInArray2";
+//struct without a variable name (just a basic member of an array)
 stackFrame1StructInArray2.elements = new Array<myDataModelStructures.Variable>();
 stackFrame1StructInArray2.dataTypeString = "struct1";
 stackFrame1StructInArray2.isCollapsed = true;
