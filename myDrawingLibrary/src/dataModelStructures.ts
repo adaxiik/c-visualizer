@@ -39,22 +39,25 @@ export class Variable {
     valueString: string;
 }
 
-//Struct
-export class Struct extends Variable {
-    elements: Variable[];
-    memory: Memory;
+//ExpandableVariable
+export class ExpandableVariable extends Variable {
     isCollapsed: boolean;
 }
 
+//Struct
+export class Struct extends ExpandableVariable {
+    elements: Variable[];
+    memory: Memory;
+}
+
 //Array
-export class Array extends Variable {
+export class Array extends ExpandableVariable {
     dimensionCount: number;
     isAllocated: boolean;
     arrayPointerAddress: string;
     size: number;                       //If the array is already allocated (if this.isAllocated == true)
     elements: { [index: string] : Variable } = {}; 
     memory: Memory;
-    isCollapsed: boolean;
 }
 
 //DataType

@@ -43,7 +43,8 @@ type DataModelObject = DataModelStructures.Array
                     | DataModelStructures.ProgramStack 
                     | DataModelStructures.StackFrame 
                     | DataModelStructures.Struct 
-                    | DataModelStructures.Variable;
+                    | DataModelStructures.Variable
+                    | DataModelStructures.ExpandableVariable;
 
 interface Widget {
     canvas: CustomCanvas;
@@ -360,20 +361,89 @@ class StackframeSlotWidget implements Widget {
         return maxTotalArrayMemberTextWidth;
     }
 
+    initAndDrawChildren() {
+        let slotStrokeWidth = this.slotConfig.textFontSize / 10;
+
+        //Adding the elements (in case of a struct)
+        if(this.dataModelObject instanceof DataModelStructures.Struct && !this.dataModelObject.isCollapsed)
+        {
+            //Creating the config for the elements
+            let elementsConfig = new StackframeSlotWidgetConfig();
+            elementsConfig.slotWidth = this.slotConfig.slotWidth - this.slotConfig.slotHeight;  //1/2 of slotHeight sized padding on the left, 1/2 of slotHeight sizedPadding on the right
+            elementsConfig.slotHeight = this.slotConfig.slotHeight;
+            elementsConfig.textColor = this.slotConfig.textColor;
+            elementsConfig.shortenText = this.slotConfig.shortenText;
+            elementsConfig.slotColor = this.slotConfig.slotColor;
+            elementsConfig.textFontSize = this.slotConfig.textFontSize;
+            elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
+            elementsConfig.textRightOffset = this.slotConfig.textRightOffset;
+            //Drawing the elements
+            let tempStartPosX = this.startPos.x + this.slotConfig.slotHeight/2;
+            let tempStartPosY = this.startPos.y + this.slotConfig.slotHeight + this.dataModelObject.elements.length * slotStrokeWidth;  //Accounting for the parent variable + all element slot's stroke widths
+            //Drawing the elements themselves
+            for(let i = 0; i < this.dataModelObject.elements.length; i++)
+            {
+                let currentChild = new StackframeSlotWidget(this.dataModelObject.elements[i], this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
+                this.children.push(currentChild);
+                currentChild.draw();
+                //Adjusting the starting position for the next element
+                let childHeight = currentChild.height;
+                tempStartPosY += childHeight == undefined ? 0 : childHeight - slotStrokeWidth;  
+            }
+        }
+        //Adding the elements (in case of an array)
+        else if(this.dataModelObject instanceof DataModelStructures.Array && !this.dataModelObject.isCollapsed)
+        {
+            //Creating the config for the elements
+            let elementsConfig = new StackframeSlotWidgetConfig();
+            elementsConfig.slotWidth = this.checkMaxArrayMemberTextWidth(this.dataModelObject);
+            elementsConfig.slotHeight = this.slotConfig.slotHeight;
+            elementsConfig.textColor = this.slotConfig.textColor;
+            elementsConfig.shortenText = this.slotConfig.shortenText;
+            elementsConfig.slotColor = this.slotConfig.slotColor;
+            elementsConfig.textFontSize = this.slotConfig.textFontSize;
+            elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
+            elementsConfig.textRightOffset = this.slotConfig.textRightOffset;
+            //Drawing the elements
+            let tempStartPosX = this.startPos.x + this.slotConfig.slotHeight/2;
+            let tempStartPosY = this.startPos.y + this.slotConfig.slotHeight + this.dataModelObject.size * slotStrokeWidth;  //Accounting for the parent variable + all element slot's stroke widths
+            //Drawing the elements themselves
+            let emptyVariable = new DataModelStructures.Variable();     //To signify an empty space in an array
+            emptyVariable.valueString = "";
+            for(let i = 0; i < this.dataModelObject.size; i++)
+            {
+                let currentChild;
+                //If the current index is populated
+                if(this.dataModelObject.elements[i] != undefined)
+                {
+                    currentChild = new ArrayVariableWidget(this.dataModelObject.elements[i], this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
+                }
+                else
+                {
+                    currentChild = new ArrayVariableWidget(emptyVariable, this.canvas, tempStartPosX, tempStartPosY, elementsConfig);
+                }
+                this.children.push(currentChild);
+                currentChild.draw();
+                //Adjusting the starting position for the next element
+                tempStartPosX += elementsConfig.slotWidth;
+            }
+        }
+    }
+
     draw() {
         let startingSlotHeight = this.slotConfig.slotHeight;
         let tempSlotHeight = startingSlotHeight;
         let slotStrokeWidth = this.slotConfig.textFontSize / 10;
 
-        function checkForUncollapsedStructsOrArrays(variableToCheck: DataModelStructures.Variable) {
+        function addSpaceForExpandable(variableToCheck: DataModelStructures.ExpandableVariable) {
             if(variableToCheck instanceof DataModelStructures.Struct && !variableToCheck.isCollapsed)
             {
                 tempSlotHeight += startingSlotHeight * (variableToCheck.elements.length + 1); //for the variable itself + (elements.length for elements + 1 for extra space for padding)
                 for(let i = 0; i < variableToCheck.elements.length; i++)
                 {
                     let currentElement = variableToCheck.elements[i];
-                    if((currentElement instanceof DataModelStructures.Struct || currentElement instanceof DataModelStructures.Array) && !variableToCheck.isCollapsed)
-                        checkForUncollapsedStructsOrArrays(currentElement);
+                    if(currentElement instanceof DataModelStructures.ExpandableVariable && !variableToCheck.isCollapsed)
+                        addSpaceForExpandable(currentElement);
                 }
             }
             if(variableToCheck instanceof DataModelStructures.Array && !variableToCheck.isCollapsed)
@@ -382,15 +452,15 @@ class StackframeSlotWidget implements Widget {
                 for(let i = 0; i < variableToCheck.size; i++)
                 {
                     let currentElement = variableToCheck.elements[i];
-                    if(currentElement != undefined && (currentElement instanceof DataModelStructures.Struct || currentElement instanceof DataModelStructures.Array) && !variableToCheck.isCollapsed)
-                        checkForUncollapsedStructsOrArrays(currentElement);
+                    if(currentElement != undefined && currentElement instanceof DataModelStructures.ExpandableVariable && !variableToCheck.isCollapsed)
+                        addSpaceForExpandable(currentElement);
                 }
             }
         }
 
         //Checking for uncollapsed structs / arrays (and then increasing the total slot height)
-        if(this.dataModelObject instanceof DataModelStructures.Variable)
-            checkForUncollapsedStructsOrArrays(this.dataModelObject);
+        if(this.dataModelObject instanceof DataModelStructures.ExpandableVariable)
+            addSpaceForExpandable(this.dataModelObject);
 
         //Drawing the slot's background
         let fabricSlotBackground = new fabric.Rect({
@@ -456,82 +526,8 @@ class StackframeSlotWidget implements Widget {
         //Adding the group to the canvas
         this.canvas.add(this.fabricObject);
 
-        //Adding the elements (in case of a struct)
-        if(this.dataModelObject instanceof DataModelStructures.Struct && !this.dataModelObject.isCollapsed)
-        {
-            //Creating the config for the elements
-            let elementsConfig = new StackframeSlotWidgetConfig();
-            elementsConfig.slotWidth = this.slotConfig.slotWidth - this.slotConfig.slotHeight;  //1/2 of slotHeight sized padding on the left, 1/2 of slotHeight sizedPadding on the right
-            elementsConfig.slotHeight = this.slotConfig.slotHeight;
-            elementsConfig.textColor = this.slotConfig.textColor;
-            elementsConfig.shortenText = this.slotConfig.shortenText;
-            elementsConfig.slotColor = this.slotConfig.slotColor;
-            elementsConfig.textFontSize = this.slotConfig.textFontSize;
-            elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
-            elementsConfig.textRightOffset = this.slotConfig.textRightOffset;
-            //Drawing the elements
-            let tempStartPosX = this.startPos.x + this.slotConfig.slotHeight/2;
-            let tempStartPosY = this.startPos.y + this.slotConfig.slotHeight + this.dataModelObject.elements.length * slotStrokeWidth;  //Accounting for the parent variable + all element slot's stroke widths
-            //Drawing the elements themselves
-            for(let i = 0; i < this.dataModelObject.elements.length; i++)
-            {
-                let currentChild = new StackframeSlotWidget(this.dataModelObject.elements[i], 
-                                                            this.canvas,
-                                                            tempStartPosX,
-                                                            tempStartPosY,
-                                                            elementsConfig);
-                this.children.push(currentChild);
-                currentChild.draw();
-                //Adjusting the starting position for the next element
-                let childHeight = currentChild.height;
-                tempStartPosY += childHeight == undefined ? 0 : childHeight - slotStrokeWidth;  
-            }
-        }
-        //Adding the elements (in case of an array)
-        else if(this.dataModelObject instanceof DataModelStructures.Array && !this.dataModelObject.isCollapsed)
-        {
-            //Creating the config for the elements
-            let elementsConfig = new StackframeSlotWidgetConfig();
-            elementsConfig.slotWidth = this.checkMaxArrayMemberTextWidth(this.dataModelObject);
-            elementsConfig.slotHeight = this.slotConfig.slotHeight;
-            elementsConfig.textColor = this.slotConfig.textColor;
-            elementsConfig.shortenText = this.slotConfig.shortenText;
-            elementsConfig.slotColor = this.slotConfig.slotColor;
-            elementsConfig.textFontSize = this.slotConfig.textFontSize;
-            elementsConfig.textLeftOffset = this.slotConfig.textLeftOffset;
-            elementsConfig.textRightOffset = this.slotConfig.textRightOffset;
-            //Drawing the elements
-            let tempStartPosX = this.startPos.x + this.slotConfig.slotHeight/2;
-            let tempStartPosY = this.startPos.y + this.slotConfig.slotHeight + this.dataModelObject.size * slotStrokeWidth;  //Accounting for the parent variable + all element slot's stroke widths
-            //Drawing the elements themselves
-            let emptyVariable = new DataModelStructures.Variable();     //To signify an empty space in an array
-            emptyVariable.valueString = "";
-            for(let i = 0; i < this.dataModelObject.size; i++)
-            {
-                let currentChild;
-                //If the current index is populated
-                if(this.dataModelObject.elements[i] != undefined)
-                {
-                    currentChild = new ArrayVariableWidget(this.dataModelObject.elements[i], 
-                                                            this.canvas,
-                                                            tempStartPosX,
-                                                            tempStartPosY,
-                                                            elementsConfig);
-                }
-                else
-                {
-                    currentChild = new ArrayVariableWidget(emptyVariable, 
-                                                            this.canvas,
-                                                            tempStartPosX,
-                                                            tempStartPosY,
-                                                            elementsConfig);
-                }
-                this.children.push(currentChild);
-                currentChild.draw();
-                //Adjusting the starting position for the next element
-                tempStartPosX += elementsConfig.slotWidth;
-            }
-        }
+        //In case of structs / arrays, preparing (and drawing) their elements
+        this.initAndDrawChildren();
 
         //Locking the movement of the items
         this.canvas.lockAllItems();
@@ -1092,8 +1088,7 @@ export class FabricDrawingModule {
                     
                     let foundMatch = drawingModuleThis.findDataModelObjectByText(hoveredOverObjectText);
                     if(foundMatch != undefined && ( foundMatch instanceof DataModelStructures.StackFrame ||
-                                                    foundMatch instanceof DataModelStructures.Struct ||
-                                                    foundMatch instanceof DataModelStructures.Array))
+                                                    foundMatch instanceof DataModelStructures.ExpandableVariable))
                     {
                         foundMatch.isCollapsed = !foundMatch.isCollapsed;
 
@@ -1324,13 +1319,13 @@ export class FabricDrawingModule {
                     }
                 }
                 //Structs and arrays
-                if(variableToCheck instanceof DataModelStructures.Struct || variableToCheck instanceof DataModelStructures.Array)
+                if(variableToCheck instanceof DataModelStructures.ExpandableVariable)
                 {
                     return checkStructArrayForText(variableToCheck);
                 }
                 return undefined;
             }
-            function checkStructArrayForText(variableToCheck: DataModelStructures.Struct | DataModelStructures.Array) : DataModelStructures.Variable | undefined {
+            function checkStructArrayForText(variableToCheck: DataModelStructures.ExpandableVariable) : DataModelStructures.Variable | undefined {
                 let stackFrameStringRepresentation;
                 if(variableToCheck instanceof DataModelStructures.Struct)
                     stackFrameStringRepresentation = variableToCheck.variableName + ": " + variableToCheck.dataTypeString + " (...)";
