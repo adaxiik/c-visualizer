@@ -26,6 +26,7 @@ class FabricDrawingModuleCache {
     pointerArrowObject : fabric.Object | undefined;     //Fabric object representing the arrow between variables (presuming there is only one arrow object temporarily present)
     pointers: Array<{pointerVariable: any, pointingTo: any}>;
     drawProgramStackArguments?: [dataModelObject: DataModelStructures.ProgramStack, startPosX: number, startPoxY: number, maxStackSlotWidth?: number];    //[this.dataModelObject, this.startPos.x, this.startPos.y, this.programStackConfig.maxStackSlotWidth]
+    programStackWidget: ProgramStackWidget | undefined; //Reference to the current program stack widget
 
     constructor() {
         this.objectColor = "";
@@ -33,6 +34,7 @@ class FabricDrawingModuleCache {
         this.pointerArrowObject = undefined;
         this.pointers = new Array<{pointerVariable: any, pointingTo: any}>();
         this.drawProgramStackArguments = undefined;
+        this.programStackWidget = undefined;
     }
 }
 
@@ -1149,6 +1151,9 @@ class ProgramStackWidget implements Widget {
                 } 
             }
         }
+
+        //Saving the current state to the cache
+        this.programStackConfig.fabricDrawingModuleCache.programStackWidget = this;
     }
 }
 
@@ -1179,15 +1184,21 @@ export class FabricDrawingModule {
                 //If we clicked on an object (stackframe slot)
                 if(opt.target instanceof fabric.Group)
                 {
-                    let hoveredOverObjectText;
-                    if(opt.target._objects[1] instanceof fabric.Text)
-                        hoveredOverObjectText = opt.target._objects[1].text;
-                    
-                    let foundMatch = drawingModuleThis.findDataModelObjectByText(hoveredOverObjectText);
-                    if(foundMatch != undefined && ( foundMatch instanceof DataModelStructures.StackFrame ||
-                                                    foundMatch instanceof DataModelStructures.ExpandableVariable))
+                    let hoveredOverWidget;
+                    if(drawingModuleThis.cache.programStackWidget != undefined)
                     {
-                        foundMatch.isCollapsed = !foundMatch.isCollapsed;
+                        hoveredOverWidget = drawingModuleThis.findWidgetByFabricObject(opt.target, drawingModuleThis.cache.programStackWidget); 
+                        console.log({message: "[DEBUG] Hovering over widget:", body: hoveredOverWidget});
+                    }
+                    else
+                    {
+                        console.log("[DEBUG] Error - cached programStackWidget is undefined");
+                    }
+                    
+                    if(hoveredOverWidget != undefined && (  hoveredOverWidget.dataModelObject instanceof DataModelStructures.StackFrame ||
+                                                            hoveredOverWidget.dataModelObject instanceof DataModelStructures.ExpandableVariable))
+                    {
+                        hoveredOverWidget.dataModelObject.isCollapsed = !hoveredOverWidget.dataModelObject.isCollapsed;
 
                         //Redraw the canvas
                         if (drawingModuleThis.cache.drawProgramStackArguments != undefined && drawingModuleThis.cache.drawProgramStackArguments != null)
@@ -1259,55 +1270,58 @@ export class FabricDrawingModule {
         let drawingModuleThis = this;
 
         this.canvas.on('mouse:over', function(opt) {
-            console.log("[DEBUG] mouse:over event - target: " + opt.target);
+            console.log({message: "[DEBUG] mouse:over event - target: ", body: opt.target});
             if(!this.isDragging)
             {
                 if(opt.target !== undefined && opt.target !== null)
                 {
                     if(opt.target instanceof fabric.Group)
                     {
-                        //Changing the color of the variable (over which we're hovering)
-                        let previousObjectColor = opt.target._objects[0].get('fill')?.toString();
-                        if (previousObjectColor != undefined)
-                            drawingModuleThis.setObjectColor(opt.target, calculateNewHex(previousObjectColor, -20), true, false);
-                        else
-                            console.log("[DEBUG] Error - previousObjectColor was undefined");
-    
-                        //Checking if the hovered over variable is a pointer
-                        if(drawingModuleThis.cache.pointers != undefined)
+                        let hoveredOverWidget;
+                        if(drawingModuleThis.cache.programStackWidget != undefined)
                         {
-                            for (let i = 0; i < drawingModuleThis.cache.pointers.length; i++)
+                            hoveredOverWidget = drawingModuleThis.findWidgetByFabricObject(opt.target, drawingModuleThis.cache.programStackWidget); 
+                            console.log({message: "[DEBUG] Hovering over widget:", body: hoveredOverWidget});
+                        }
+                        else
+                        {
+                            console.log("[DEBUG] Error - cached programStackWidget is undefined");
+                        }
+                        
+                        //If the hovered over widget is not undefined (is a stackframe slot widget)
+                        if(hoveredOverWidget instanceof StackframeSlotWidget)
+                        {
+                            //Changing the color of the variable (over which we're hovering)
+                            let previousObjectColor = hoveredOverWidget.fabricObject._objects[0].get('fill')?.toString();
+                            if (previousObjectColor != undefined)
+                                drawingModuleThis.setObjectColor(hoveredOverWidget.fabricObject, calculateNewHex(previousObjectColor, -20), true, false);
+                            else
+                                console.log("[DEBUG] Error - previousObjectColor was undefined");
+
+                            //Checking if the hovered over variable is a pointer
+                            if(drawingModuleThis.cache.pointers != undefined)
                             {
-                                if("text" in opt.target._objects[1])
+                                if(hoveredOverWidget.dataModelObject instanceof DataModelStructures.Variable && hoveredOverWidget.dataModelObject.isPointer)
                                 {
-                                    let hoveredOverVariableText;
-                                    if(opt.target._objects[1] instanceof fabric.Text)
-                                        hoveredOverVariableText = opt.target._objects[1].text;
-                                    let searchedForText = drawingModuleThis.cache.pointers[i].pointerVariable + ":";
-        
-                                    console.log("[DEBUG] Hovering over: \"" + hoveredOverVariableText + "\", searching for: \"" + searchedForText + "\"");
-                                    //If the hovered over variable is of pointer type
-                                    if (hoveredOverVariableText.includes(searchedForText)) {
-                                        markPointee(drawingModuleThis.cache.pointers[i].pointingTo);
-                                        
-                                        let fromVariableObject = drawingModuleThis.findFabricObjectByText(hoveredOverVariableText);
-                                        let toVariableObject = drawingModuleThis.findFabricObjectByText(drawingModuleThis.cache.pointers[i].pointingTo + ":");
-                                        if (fromVariableObject == undefined || toVariableObject == undefined)
-                                            console.log("[DEBUG] Error - FROM variable or TO variable are undefined");
-                                        else
-                                            drawingModuleThis.drawArrowBetweenVariables(fromVariableObject, toVariableObject);
-                                    }
+                                    markPointee(hoveredOverWidget.dataModelObject.valueString); //Mark the variable that is being pointed to
+                                            
+                                    let fromVariableObject = hoveredOverWidget.fabricObject;
+                                    let toVariableObject = drawingModuleThis.findFabricObjectByText(hoveredOverWidget.dataModelObject.valueString + ":");
+                                    if (fromVariableObject == undefined || toVariableObject == undefined)
+                                        console.log("[DEBUG] Error - FROM variable or TO variable are undefined");
+                                    else
+                                        drawingModuleThis.drawArrowBetweenVariables(fromVariableObject, toVariableObject);
                                 }
                             }
+                            requestRenderAll();
                         }
-                        requestRenderAll();
                     }
                 }
             }
         });
         
         this.canvas.on('mouse:out', function(opt) {
-            console.log("[DEBUG] mouse:out event - target: " + opt.target);
+            console.log({message: "[DEBUG] mouse:out event - target: ", body: opt.target});
             if(!this.isDragging)
             {
                 if(opt.target !== undefined && opt.target !== null)
@@ -1337,6 +1351,28 @@ export class FabricDrawingModule {
                 }
             }
         });
+    }
+
+    //Helper function to return the parent widget of the Fabric object (group)
+    findWidgetByFabricObject(searchedForFabricGroup: fabric.Group, startSearchFrom: Widget): Widget | undefined {
+        //Checking the main widget for a match
+        if(startSearchFrom.fabricObject == searchedForFabricGroup)
+        {
+            console.log("[DEBUG] Widget match found!");
+            return startSearchFrom;
+        }
+        else
+        {
+            //Checking it's children
+            for (let i = 0; i < startSearchFrom.children.length; i ++)
+            {
+                let tempReturn = this.findWidgetByFabricObject(searchedForFabricGroup, startSearchFrom.children[i]);
+                if(tempReturn != undefined)
+                    return tempReturn;
+            }
+
+            return undefined;
+        }    
     }
 
     //Helper function to return the object with the searched for text
