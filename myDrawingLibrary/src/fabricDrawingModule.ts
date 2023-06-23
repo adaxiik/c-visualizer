@@ -22,7 +22,7 @@ class CustomCanvas extends fabric.Canvas {
 //Class for temporary storage of data for the FabricDrawingModule
 class FabricDrawingModuleCache {
     objectColor: string;
-    pointeeObject: {bgRectObject: fabric.Object, previousColor: string};             //[backgroundRectangleObject, previousColor]
+    pointeeObject: {bgRectObject: fabric.Object, textObject: fabric.Object, previousColor: string};             //[backgroundRectangleObject, slotTextObject, previousColor]
     pointerArrowObject : fabric.Object | undefined;     //Fabric object representing the arrow between variables (presuming there is only one arrow object temporarily present)
     pointers: Array<{pointerVariable: any, pointingTo: any}>;
     drawProgramStackArguments?: [dataModelObject: DataModelStructures.ProgramStack, startPosX: number, startPoxY: number, maxStackSlotWidth?: number];    //[this.dataModelObject, this.startPos.x, this.startPos.y, this.programStackConfig.maxStackSlotWidth]
@@ -30,7 +30,7 @@ class FabricDrawingModuleCache {
 
     constructor() {
         this.objectColor = "";
-        this.pointeeObject = {bgRectObject: new fabric.Object,previousColor: ""};
+        this.pointeeObject = {bgRectObject: new fabric.Object, textObject: new fabric.Object, previousColor: ""};
         this.pointerArrowObject = undefined;
         this.pointers = new Array<{pointerVariable: any, pointingTo: any}>();
         this.drawProgramStackArguments = undefined;
@@ -493,6 +493,7 @@ class StackframeSlotWidget implements Widget {
         }
     }
 
+    //Unused - changing the text's background is probably a better option
     highlightIfChanged() {
 
         if(this.dataModelObject instanceof DataModelStructures.Variable && this.dataModelObject.valueChanged)
@@ -602,11 +603,17 @@ class StackframeSlotWidget implements Widget {
         {
             slotText = this.dataModelObject.variableName + ": " + this.dataModelObject.dataTypeString + " (" + this.dataModelObject.valueString + ")";
         }
+
+        let textBackgroundColor: string | undefined = undefined;
+        if(this.dataModelObject instanceof DataModelStructures.Variable && this.dataModelObject.valueChanged)
+            textBackgroundColor = FabricDrawingModule.calculateLighterDarkerHex(this.slotConfig.slotColor, 15);
+
         let fabricSlotText = new fabric.Text(slotText, {
             left: this.startPos.x + this.slotConfig.textLeftOffset,
             top: this.startPos.y - 2 + (this.slotConfig.slotHeight - this.slotConfig.textFontSize) / 2,
             fill: this.slotConfig.textColor,
-            fontSize: this.slotConfig.textFontSize
+            fontSize: this.slotConfig.textFontSize,
+            backgroundColor: textBackgroundColor
         });
 
         if (this.slotConfig.shortenText) {
@@ -624,7 +631,8 @@ class StackframeSlotWidget implements Widget {
                     left: this.startPos.x + this.slotConfig.textLeftOffset,
                     top: this.startPos.y - 2 + (this.slotConfig.slotHeight - this.slotConfig.textFontSize) / 2,
                     fill: this.slotConfig.textColor,
-                    fontSize: this.slotConfig.textFontSize
+                    fontSize: this.slotConfig.textFontSize,
+                    backgroundColor: textBackgroundColor
                 });
             }
         }
@@ -633,7 +641,7 @@ class StackframeSlotWidget implements Widget {
         this.fabricObject = new fabric.Group([fabricSlotBackground, fabricSlotText]);
 
         //In case the value has changed (has it's "valueChanged" flag set to "true"), highlighting it
-        this.highlightIfChanged();
+        //this.highlightIfChanged();
 
         //Adding the group to the canvas
         this.canvas.add(this.fabricObject);
@@ -679,6 +687,7 @@ class ArrayVariableWidget implements Widget {
         return Math.abs(coords[0].y - coords[3].y);
     }
 
+    //Unused - changing the text's background is probably a better option
     highlightIfChanged() {
 
         if(this.dataModelObject instanceof DataModelStructures.Variable && this.dataModelObject.valueChanged)
@@ -728,11 +737,16 @@ class ArrayVariableWidget implements Widget {
         //Drawing the slot's text
         let slotText = this.dataModelObject.valueString;    //Custom value for array elements
 
+        let textBackgroundColor: string | undefined = undefined;
+        if(this.dataModelObject instanceof DataModelStructures.Variable && this.dataModelObject.valueChanged)
+            textBackgroundColor = FabricDrawingModule.calculateLighterDarkerHex(this.slotConfig.slotColor, 15);
+
         let fabricSlotText = new fabric.Text(slotText, {
             left: this.startPos.x + this.slotConfig.textLeftOffset,
             top: this.startPos.y - 2 + (this.slotConfig.slotHeight - this.slotConfig.textFontSize) / 2,
             fill: this.slotConfig.textColor,
-            fontSize: this.slotConfig.textFontSize
+            fontSize: this.slotConfig.textFontSize,
+            backgroundColor: textBackgroundColor
         });
 
         if (this.slotConfig.shortenText) {
@@ -750,7 +764,8 @@ class ArrayVariableWidget implements Widget {
                     left: this.startPos.x + this.slotConfig.textLeftOffset,
                     top: this.startPos.y - 2 + (this.slotConfig.slotHeight - this.slotConfig.textFontSize) / 2,
                     fill: this.slotConfig.textColor,
-                    fontSize: this.slotConfig.textFontSize
+                    fontSize: this.slotConfig.textFontSize,
+                    backgroundColor: textBackgroundColor
                 });
             }
         }
@@ -759,7 +774,7 @@ class ArrayVariableWidget implements Widget {
         this.fabricObject = new fabric.Group([fabricSlotBackground, fabricSlotText]);
 
         //In case the value has changed (has it's "valueChanged" flag set to "true"), highlighting it
-        this.highlightIfChanged();
+        //this.highlightIfChanged();
 
         //Adding the group to the canvas
         this.canvas.add(this.fabricObject);
@@ -1329,7 +1344,7 @@ export class FabricDrawingModule {
 
     initHoverOver() {
         const requestRenderAll = this.canvas.requestRenderAll.bind(this.canvas);
-        const calculateNewHex = this.calculateLighterDarkerHex;
+        const calculateNewHex = FabricDrawingModule.calculateLighterDarkerHex;
         const markPointee = this.markPointee.bind(this);
         let drawingModuleThis = this;
 
@@ -1358,7 +1373,13 @@ export class FabricDrawingModule {
                             //Changing the color of the variable (over which we're hovering)
                             let previousObjectColor = hoveredOverWidget.fabricObject._objects[0].get('fill')?.toString();
                             if (previousObjectColor != undefined)
+                            {
+                                //Changing the slot's background color
                                 drawingModuleThis.setObjectColor(hoveredOverWidget.fabricObject, calculateNewHex(previousObjectColor, -20), true, false);
+                                //Changing the color of the text's background color (if present)
+                                if(hoveredOverWidget.fabricObject._objects[1].backgroundColor != undefined)
+                                    hoveredOverWidget.fabricObject._objects[1].backgroundColor = calculateNewHex(hoveredOverWidget.fabricObject._objects[1].backgroundColor, -15);
+                            }
                             else
                                 console.log("[DEBUG] Error - previousObjectColor was undefined");
 
@@ -1392,15 +1413,23 @@ export class FabricDrawingModule {
                 {
                     if(opt.target instanceof fabric.Group)
                     {
+                        //Changing the color of the text's background color (if present) - before setObjectColor, that clears the cached color
+                        if(opt.target._objects[1].backgroundColor != undefined)
+                            opt.target._objects[1].backgroundColor = calculateNewHex(drawingModuleThis.cache.objectColor, 15);
+                        //Changing the slot's background color
                         drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cache.objectColor, false, true);
-    
+                        
                         //Resetting the state of the pointee variable (if changed)
                         if (drawingModuleThis.cache.pointeeObject.previousColor !== "")
                         {
                             //Resetting the pointee's previous color
                             drawingModuleThis.cache.pointeeObject.bgRectObject.set("fill", drawingModuleThis.cache.pointeeObject.previousColor);
+                            //Changing the color of the text's background color (if present)
+                            if(drawingModuleThis.cache.pointeeObject.textObject.backgroundColor != undefined)
+                                drawingModuleThis.cache.pointeeObject.textObject.backgroundColor = calculateNewHex(drawingModuleThis.cache.pointeeObject.previousColor, 15);
                             //Clearing the cached pointee
                             drawingModuleThis.cache.pointeeObject.bgRectObject = new fabric.Object();
+                            drawingModuleThis.cache.pointeeObject.textObject = new fabric.Object();
                             drawingModuleThis.cache.pointeeObject.previousColor = "";
 
                             //Deleting the arrow object from canvas (if present)
@@ -1655,7 +1684,7 @@ export class FabricDrawingModule {
     }
 
     //Helper function (for mouse:over events, etc.)
-    calculateLighterDarkerHex(inputHex: string, percentage: number) : string {
+    static calculateLighterDarkerHex(inputHex: string, percentage: number) : string {
         //Parsing the rbg values
         const r = parseInt(inputHex.substring(1, 3), 16);
         const g = parseInt(inputHex.substring(3, 5), 16);
@@ -1693,13 +1722,16 @@ export class FabricDrawingModule {
 
             //Saving the previous state of the pointee
             this.cache.pointeeObject.bgRectObject = searchedForVariableObject._objects[0];
+            this.cache.pointeeObject.textObject = searchedForVariableObject._objects[1];
             let previousColor = searchedForVariableObject._objects[0].get("fill")?.toString();
             if (previousColor != undefined)
                 this.cache.pointeeObject.previousColor = previousColor;  
             else
                 console.log("[DEBUG] Error - previous pointee color is undefined");
             //Changing the pointee's color
-            searchedForVariableObject._objects[0].set("fill", "red");
+            searchedForVariableObject._objects[0].set("fill", "red");                   //Changing the color of the slot
+            if(searchedForVariableObject._objects[1].backgroundColor != undefined)      //Changing the color of the text's background color (if present)
+                searchedForVariableObject._objects[1].backgroundColor = "red"
         }
     }
 
