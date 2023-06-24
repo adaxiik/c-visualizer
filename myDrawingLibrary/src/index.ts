@@ -187,10 +187,18 @@ stackFrame2Var4.elements[0] = stackFrame2Var4atIdx0;
 stackFrame2Var4.elements[1] = stackFrame2Var4atIdx1;
 stackFrame2Var4.elements[2] = stackFrame2Var4atIdx2;
 stackFrame2Var4.elements[4] = stackFrame2Var4atIdx4;
+
+let stackFrame2PointerToHeap = new myDataModelStructures.Variable();          //Pointer variable (pointing to heap)
+stackFrame2PointerToHeap.variableName = "stackFrame2PointerToHeap";
+stackFrame2PointerToHeap.dataTypeString = "int *";
+stackFrame2PointerToHeap.valueString = "heapVar1";
+stackFrame2PointerToHeap.isPointer = true;
+
 stackFrame2.functionVariables[stackFrame2Var1.variableName] = stackFrame2Var1;
 stackFrame2.functionVariables[stackFrame2Var2.variableName] = stackFrame2Var2;
 stackFrame2.functionVariables[stackFrame2Var3.variableName] = stackFrame2Var3;
 stackFrame2.functionVariables[stackFrame2Var4.variableName] = stackFrame2Var4;
+stackFrame2.functionVariables[stackFrame2PointerToHeap.variableName] = stackFrame2PointerToHeap;
 //Function parameters 2
 let stackFrame2Param1 = new myDataModelStructures.Variable();
 stackFrame2Param1.variableName = "stackFrame2Param1";
@@ -203,6 +211,24 @@ stackFrame2Param2.valueString = "15.893";
 stackFrame2.functionParameters[stackFrame2Param1.variableName] = stackFrame2Param1;
 stackFrame2.functionParameters[stackFrame2Param2.variableName] = stackFrame2Param2;
 
+//Preparing the heap variables
+let heapValueVar1 = new myDataModelStructures.Variable();
+heapValueVar1.variableName = "heapVar1";
+heapValueVar1.dataTypeString = "int";
+heapValueVar1.valueString = "113";
+let heapVar1 = new myDataModelStructures.HeapVariable();
+heapVar1.variable = heapValueVar1;
+let heapValueVar2 = new myDataModelStructures.Variable();
+heapValueVar2.variableName = "heapVar2";
+heapValueVar2.dataTypeString = "double";
+heapValueVar2.valueString = "16.44";
+let heapVar2 = new myDataModelStructures.HeapVariable();
+heapVar2.variable = heapValueVar2;
+//Preparing the heap
+let heap = new myDataModelStructures.Heap();
+heap.heapVariables[heapVar1.variable.variableName] = heapVar1;
+heap.heapVariables[heapVar2.variable.variableName] = heapVar2;
+
 //Creating the program stack
 let programStack = new myDataModelStructures.ProgramStack();
 programStack.stackFrames = new Array<myDataModelStructures.StackFrame>();
@@ -210,6 +236,8 @@ programStack.stackFrames = new Array<myDataModelStructures.StackFrame>();
 //Adding the stackframes
 programStack.stackFrames[stackFrame1.frameId] = stackFrame1;
 programStack.stackFrames[stackFrame2.frameId] = stackFrame2;
+//Adding the heap
+programStack.heap = heap;
 
 //Drawing the program stack
 console.log("[DEBUG] Drawing the full program stack");

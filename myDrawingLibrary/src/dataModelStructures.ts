@@ -18,14 +18,15 @@ export enum DataTypeEnum {
 //ProgramStack
 export class ProgramStack {
     stackFrames: { [id: number] : StackFrame } = {};          //To easily avoid duplicates (differentiate by ID)
+    heap: Heap;     //All heap variables / memory
 }
 
 //StackFrame
 export class StackFrame {
     frameId: number;
     functionName: string;
-    functionVariables: { [id: string] : Variable } = {};      //Using a dictionary for faster usage when searching 
-    functionParameters: { [id: string] : Variable } = {};     //Using a dictionary for faster usage when searching
+    functionVariables:  { [id: string] : Variable } = {};
+    functionParameters: { [id: string] : Variable } = {};
     isCollapsed: boolean;
 }
 
@@ -65,6 +66,17 @@ export class Array extends ExpandableVariable {
 export class DataType {
     dataTypeEnum: DataTypeEnum;
     dataTypeString: string;
+}
+
+//HeapVariable
+export class HeapVariable {
+    variable: Variable; 
+    memory: Memory;
+}
+
+//Heap
+export class Heap {
+    heapVariables:  { [id: string] : HeapVariable } = {}; 
 }
 
 //Memory
