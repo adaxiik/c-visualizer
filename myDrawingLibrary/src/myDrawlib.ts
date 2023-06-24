@@ -35,8 +35,15 @@ function drawVariablesJSON(message: any){
 }
 
 function drawProgramStackJSON(messageBody: any){
+  //TODO: Remove - debug
+  console.log(messageBody);
+  //Adding an empty heap (for now)
+  currentProgramStack.heap = new DataModelStructures.Heap();
   //Processing all the stackframes
-  messageBody.stackFrames.forEach(currentStackFrame => {
+  for(let i = 0; i < messageBody.stackFrames.length; i++)
+  {
+    let currentStackFrame = messageBody.stackFrames[i];
+
     console.log("Processing stackframe from a function named: \"" + currentStackFrame.name + "\" (id: " + currentStackFrame.id + ")");
 
     var tempStackFrameVar = new DataModelStructures.StackFrame();
@@ -49,13 +56,13 @@ function drawProgramStackJSON(messageBody: any){
       id: currentStackFrame.id
     }); //Posting a message back to the extension
     */
-
+  
     //Adding the stackframe to the program stack
     currentProgramStack.stackFrames[tempStackFrameVar.frameId] = tempStackFrameVar;
-    
+      
     //Adding its variables
     drawVariablesJSON({id: tempStackFrameVar.frameId, variables: currentStackFrame.variables});
-  });
+  }
 
   //Drawing the full program stack
   myDrawingModule.drawProgramStack(currentProgramStack);
@@ -66,7 +73,7 @@ var myDrawingModule = new FabricDrawingModule('drawLibCanvas');
 const vscode = acquireVsCodeApi();  //Getting the VS Code Api (to communicate with the extension)
 
 var currentProgramStack = new DataModelStructures.ProgramStack();
-currentProgramStack.stackFrames = new Array<DataModelStructures.StackFrame>();
+//currentProgramStack.stackFrames = new Array<DataModelStructures.StackFrame>();
 var currentProgramStackMessage = {};
 
 //Getting a test message from the external TypeScript
