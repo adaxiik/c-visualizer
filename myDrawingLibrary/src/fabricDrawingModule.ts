@@ -23,6 +23,7 @@ class CustomCanvas extends fabric.Canvas {
 //Class for temporary storage of data for the FabricDrawingModule
 class FabricDrawingModuleCache {
     objectColor: string;
+    hoveredOverWidget: StackframeSlotWidget | ArrayVariableWidget | undefined;
     pointeeObject: {bgRectObject: fabric.Object, textObject: fabric.Object, previousColor: string};             //[backgroundRectangleObject, slotTextObject, previousColor]
     pointerArrowObject : fabric.Object | undefined;     //Fabric object representing the arrow between variables (presuming there is only one arrow object temporarily present)
     pointers: Array<{pointerVariable: any, pointingTo: any}>;
@@ -31,6 +32,7 @@ class FabricDrawingModuleCache {
 
     constructor() {
         this.objectColor = "";
+        this.hoveredOverWidget = undefined;
         this.pointeeObject = {bgRectObject: new fabric.Object, textObject: new fabric.Object, previousColor: ""};
         this.pointerArrowObject = undefined;
         this.pointers = new Array<{pointerVariable: any, pointingTo: any}>();
@@ -1590,7 +1592,7 @@ export class FabricDrawingModule {
                     if(drawingModuleThis.cache.programStackWidget != undefined)
                     {
                         hoveredOverWidget = drawingModuleThis.findWidgetByFabricObject(opt.target, drawingModuleThis.cache.programStackWidget); 
-                        console.log({message: "[DEBUG] Hovering over widget:", body: hoveredOverWidget});
+                        console.log({message: "[DEBUG] mouse:down on widget:", body: hoveredOverWidget});
                     }
                     else
                     {
@@ -1608,10 +1610,10 @@ export class FabricDrawingModule {
                             drawingModuleThis.canvas.clearCanvas();
                             drawingModuleThis.drawProgramStack(...drawingModuleThis.cache.drawProgramStackArguments);
                         }
+                        //Preventing the mouse going to selection mode and returning (to skip the dragging logic)
+                        this.selection = false;
+                        return;
                     }
-                    //Preventing the mouse going to selection mode and returning (to skip the dragging logic)
-                    this.selection = false;
-                    return;
                 }
             }
 
@@ -1693,10 +1695,15 @@ export class FabricDrawingModule {
                         //If the hovered over widget is not undefined (is a slot widget)
                         if(hoveredOverWidget instanceof StackframeSlotWidget || hoveredOverWidget instanceof ArrayVariableWidget)
                         {
+                           
+
                             //Changing the color of the variable (over which we're hovering)
                             let previousObjectColor = hoveredOverWidget.fabricObject._objects[0].get('fill')?.toString();
-                            if (previousObjectColor != undefined)
+                            if (previousObjectColor != undefined && drawingModuleThis.cache.hoveredOverWidget == undefined) //"drawingModuleThis.cache.hoveredOverWidget == undefined" to avoid repeated darkening of object
                             {
+                                 //Saving it to the cache
+                                drawingModuleThis.cache.hoveredOverWidget = hoveredOverWidget;
+
                                 //Changing the slot's background color
                                 drawingModuleThis.setObjectColor(hoveredOverWidget.fabricObject, calculateNewHex(previousObjectColor, -20), true, false);
                                 //Changing the color of the text's background color (if present)
@@ -1751,7 +1758,8 @@ export class FabricDrawingModule {
                         if(opt.target._objects[1].backgroundColor != undefined)
                             opt.target._objects[1].backgroundColor = calculateNewHex(drawingModuleThis.cache.objectColor, 15);
                         //Changing the slot's background color
-                        drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cache.objectColor, false, true);
+                        if(drawingModuleThis.cache.objectColor != "")
+                            drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cache.objectColor, false, true);
                         
                         //Resetting the state of the pointee variable (if changed)
                         if (drawingModuleThis.cache.pointeeObject.previousColor !== "")
@@ -1773,6 +1781,9 @@ export class FabricDrawingModule {
                                 drawingModuleThis.cache.pointerArrowObject = undefined;
                             }
                         }
+                        //Resetting the "hoveredOverWidget" cache
+                        drawingModuleThis.cache.hoveredOverWidget = undefined;
+
                         requestRenderAll();
                     }
                 }
@@ -2009,9 +2020,9 @@ export class FabricDrawingModule {
                 else
                 {
                     if(affectedObject._objects[1] instanceof fabric.Text)
-                        console.log("[DEBUG] Error - tried to set \"" + affectedObject._objects[1].text + "to empty color");
+                        console.log("[DEBUG] Error - tried to set \"" + affectedObject._objects[1].text + "\" to empty color");
                     else
-                        console.log("[DEBUG] Error - affectedObject doesn't contain text (not at the [1] position)");
+                        console.log("[DEBUG] Error - tried to set affectedObject (that doesn't containt text) to empty color");
                 }
             }
         }
