@@ -22,7 +22,14 @@ buildLibrary() {
    # using just "npx parcel ..." because "npx parcel build ..." option doesn't provide the neccessary output (output with everything neccesary compiled into a single file)
     # "... & sleep ..." used to wait for Parcel to finish building (variable can be edited)
     # "... && pkill ..." used to kill the NodeJs process (to kill Parcel)
-    echo "$SCRIPT_HEADER Library built. Exiting..."
+    echo "$SCRIPT_HEADER Library built."
+}
+
+copyLibraryFiles() {
+    echo "$SCRIPT_HEADER Copying the built library files."
+    cp -fr $PARCEL_DIRECTORY_NAME/dist/myDrawlib.js $EXTENSION_DIRECTORY_NAME/lib
+    cp -fr $PARCEL_DIRECTORY_NAME/dist/myDrawlib.js.map $EXTENSION_DIRECTORY_NAME/lib
+    echo "$SCRIPT_HEADER Library files copied. Exiting..."
 }
 
 runParcelLocally() {
@@ -60,6 +67,7 @@ elif [ $selectedAction == 2 ]; then
     runParcelLocally
 elif [ $selectedAction == 3 ]; then
     buildLibrary 
+    copyLibraryFiles
 elif [ $selectedAction == 4 ]; then
     buildDockerImage
     runDockerImage
