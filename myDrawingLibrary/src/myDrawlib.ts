@@ -15,108 +15,129 @@ function redrawCanvas() {
   myDrawingModule.drawProgramStack(currentProgramStack);
 }
 
-function drawVariablesJSON(message: any){
-  message.variables.forEach(messageVariable => {
-    console.log("[DEBUG] Processing variable named: \"" + messageVariable.name + "\"");
+function createDataModelVariable(messageVariable: any) : DataModelStructures.Variable | undefined {
+  console.log("[DEBUG] Processing variable named: \"" + messageVariable.name + "\"");
 
-    let tempVar;
-    const pointerRegex = /^\*[^\d]+[\w\d]*$/;   //"*" symbol, 1 character and then any number of characters or numbers
-    const arrayRegex = /^\[(?:[1-9]\d*|0)]$/;   //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
+  let tempVar;
+  const pointerRegex = /^\*[^\d]+[\w\d]*$/;   //"*" symbol, 1 character and then any number of characters or numbers
+  const arrayRegex = /^\[(?:[1-9]\d*|0)]$/;   //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
 
-    //If it's an expandable variable (array / struct / pointer)
-    if(messageVariable.variablesReference != 0 && messageVariable.children != undefined)
+  //If it's an expandable variable (array / struct / pointer)
+  if(messageVariable.variablesReference != 0 && messageVariable.children != undefined)
+  {
+    let pointerRegexMatchCount = 0;
+    let arrayRegexMatchCount = 0;
+    //Checking the child values with regexes
+    for(let i = 0; i < messageVariable.children.length; i++)
     {
-      let pointerRegexMatchCount = 0;
-      let arrayRegexMatchCount = 0;
-      //Checking the child values with regexes
-      for(let i = 0; i < messageVariable.children.length; i++)
+      if(pointerRegex.test(messageVariable.children[i].name))       //If the child's name format matches that of a pointer
       {
-        if(pointerRegex.test(messageVariable.children[i].name))       //If the child's name format matches that of a pointer
-        {
-          console.log("[DEBUG] Pointer member found: " + messageVariable.children[i].name);
-          pointerRegexMatchCount++;
-        }
-        else if (arrayRegex.test(messageVariable.children[i].name))   //If the child's name format matches that of an array (static)
-        {
-          console.log("[DEBUG] Array (static) member found: " + messageVariable.children[i].name);
-          arrayRegexMatchCount++;
-        }
-        else                                                          //If the child's name format matches that of a struct (static)
-        {
-          console.log("[DEBUG] Struct (static) member found: " + messageVariable.children[i].name);
-        }
+        console.log("[DEBUG] Pointer member found: " + messageVariable.children[i].name);
+        pointerRegexMatchCount++;
       }
-      //Checking if the variable consists only of values of one type
-      if(pointerRegexMatchCount == messageVariable.children.length)       //If the parent variable is of pointer type
+      else if (arrayRegex.test(messageVariable.children[i].name))   //If the child's name format matches that of an array (static)
       {
-        console.log("[DEBUG] Variable " + messageVariable.name + " is of pointer type");
-        //Creating the variables DataModel representation
-        tempVar = new DataModelStructures.Variable();
-        tempVar.isPointer = true;
-
-        tempVar.variableName = messageVariable.name;
-        //tempVar.dataTypeEnum = ;  //Not used
-        tempVar.dataTypeString = messageVariable.type;
-        //tempVar.value = ;         //Not used
-        tempVar.valueString = messageVariable.value;  //TODO: Check how the pointer value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
-        //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+        console.log("[DEBUG] Array (static) member found: " + messageVariable.children[i].name);
+        arrayRegexMatchCount++;
       }
-      else if(arrayRegexMatchCount == messageVariable.children.length)    //If the parent variable is of array (static) type
+      else                                                          //If the child's name format matches that of a struct (static)
       {
-        console.log("[DEBUG] Variable " + messageVariable.name + " is of array (static) type");
-        //Creating the variables DataModel representation
-        tempVar = new DataModelStructures.Array();
-        tempVar.size = messageVariable.children.length; //TODO: Check if it returns the correct value
-        //tempVar.elements = ;  //TODO: Add
-
-        tempVar.isCollapsed = true;   //Setting the "isCollapsed" to "true" by default
-
-        tempVar.variableName = messageVariable.name;
-        //tempVar.dataTypeEnum = ;  //Not used
-        tempVar.dataTypeString = messageVariable.type;
-        //tempVar.value = ;         //Not used
-        tempVar.valueString = messageVariable.value;  //TODO: Check how the array value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
-        //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
-        //TODO: Continue
-      }
-      else if(pointerRegexMatchCount == 0 && arrayRegexMatchCount == 0)   //If the parent variable is of struct (static) type
-      {
-        console.log("[DEBUG] Variable " + messageVariable.name + " is of struct (static) type");
-        //Creating the variables DataModel representation
-        tempVar = new DataModelStructures.Struct();
-        //tempVar.elements = ;  //TODO: Add
-
-        tempVar.isCollapsed = true;   //Setting the "isCollapsed" to "true" by default
-
-        tempVar.variableName = messageVariable.name;
-        //tempVar.dataTypeEnum = ;  //Not used
-        tempVar.dataTypeString = messageVariable.type;
-        //tempVar.value = ;         //Not used
-        tempVar.valueString = messageVariable.value;  //TODO: Check how the struct value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
-        //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
-        //TODO: Continue
-      }
-      else
-      {
-        console.log("[DEBUG] Error - cannot decide ExpandableVariable type - inconsistent child variables");
-        tempVar = undefined;
+        console.log("[DEBUG] Struct (static) member found: " + messageVariable.children[i].name);
       }
     }
-    else  //If it's not an expandable variable
+    //Checking if the variable consists only of values of one type
+    if(pointerRegexMatchCount == messageVariable.children.length)       //If the parent variable is of pointer type
     {
-      console.log("[DEBUG] Regular variable (atomic) found: " + messageVariable.name);
-
+      console.log("[DEBUG] Variable " + messageVariable.name + " is of pointer type");
+      //Creating the variables DataModel representation
       tempVar = new DataModelStructures.Variable();
+      tempVar.isPointer = true;
+
       tempVar.variableName = messageVariable.name;
       //tempVar.dataTypeEnum = ;  //Not used
       tempVar.dataTypeString = messageVariable.type;
       //tempVar.value = ;         //Not used
-      tempVar.valueString = messageVariable.value;
+      tempVar.valueString = messageVariable.value;  //TODO: Check how the pointer value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
+      //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
     }
+    else if(arrayRegexMatchCount == messageVariable.children.length)    //If the parent variable is of array (static) type
+    {
+      console.log("[DEBUG] Variable " + messageVariable.name + " is of array (static) type");
+      //Creating the variables DataModel representation
+      tempVar = new DataModelStructures.Array();
+      tempVar.size = messageVariable.children.length; //TODO: Check if it returns the correct value
+      //Adding the children to the elements (to the dictionary)
+      for(let j = 0; j < messageVariable.children.length; j++)
+      {
+        let currentArrayChild = createDataModelVariable(messageVariable.children[j]);
+
+        if(currentArrayChild != undefined)
+          tempVar.elements[currentArrayChild.variableName] = currentArrayChild;
+      }
+
+      tempVar.isCollapsed = true;   //Setting the "isCollapsed" to "true" by default
+
+      tempVar.variableName = messageVariable.name;
+      //tempVar.dataTypeEnum = ;  //Not used
+      tempVar.dataTypeString = messageVariable.type;
+      //tempVar.value = ;         //Not used
+      tempVar.valueString = messageVariable.value;  //TODO: Check how the array value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
+      //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+      //TODO: Continue
+    }
+    else if(pointerRegexMatchCount == 0 && arrayRegexMatchCount == 0)   //If the parent variable is of struct (static) type
+    {
+      console.log("[DEBUG] Variable " + messageVariable.name + " is of struct (static) type");
+      //Creating the variables DataModel representation
+      tempVar = new DataModelStructures.Struct();
+      tempVar.elements = new Array<DataModelStructures.Variable>();
+      //Adding the children to the elements (to the array)
+      for(let j = 0; j < messageVariable.children.length; j++)
+      {
+        let currentArrayChild = createDataModelVariable(messageVariable.children[j]);
+
+        if(currentArrayChild != undefined)
+          tempVar.elements.push(currentArrayChild);
+      }
+
+      tempVar.isCollapsed = true;   //Setting the "isCollapsed" to "true" by default
+
+      tempVar.variableName = messageVariable.name;
+      //tempVar.dataTypeEnum = ;  //Not used
+      tempVar.dataTypeString = messageVariable.type;
+      //tempVar.value = ;         //Not used
+      tempVar.valueString = messageVariable.value;  //TODO: Check how the struct value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
+      //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+      //TODO: Continue
+    }
+    else
+    {
+      console.log("[DEBUG] Error - cannot decide ExpandableVariable type - inconsistent child variables");
+      tempVar = undefined;
+    }
+  }
+  else  //If it's not an expandable variable
+  {
+    console.log("[DEBUG] Regular variable (atomic) found: " + messageVariable.name);
+
+    tempVar = new DataModelStructures.Variable();
+    tempVar.variableName = messageVariable.name;
+    //tempVar.dataTypeEnum = ;  //Not used
+    tempVar.dataTypeString = messageVariable.type;
+    //tempVar.value = ;         //Not used
+    tempVar.valueString = messageVariable.value;
+  }
+
+  return tempVar;
+}
+
+function drawVariablesJSON(message: any){
+  message.variables.forEach(messageVariable => {
+    let dataModelVariable = createDataModelVariable(messageVariable); //Getting the variable's datamodel representation
 
     //Adding the variable to the correct stackframe (if it was in a valid format)
-    if(tempVar != undefined)
-      currentProgramStack.stackFrames[message.id].functionVariables[tempVar.variableName] = tempVar;
+    if(dataModelVariable != undefined)
+      currentProgramStack.stackFrames[message.id].functionVariables[dataModelVariable.variableName] = dataModelVariable;
   });
 
   //Redrawing the canvas
