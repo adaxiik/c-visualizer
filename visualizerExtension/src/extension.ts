@@ -152,6 +152,27 @@ async function callVariables(callVariablesReference: number): Promise<any> {
 	return await session.customRequest('variables', { variablesReference: callVariablesReference });
 }
 
+async function getChildVariablesRecursive(checkedVariable: any) {
+	//If the variable has child values
+	if(checkedVariable.variablesReference != 0 && checkedVariable.value != "")
+	{
+		let checkedVariablesChildren = await callVariables(checkedVariable.variablesReference);
+		console.log({message: "Checking variable", body: checkedVariable});
+		console.log({message: "Recieved children", body: checkedVariablesChildren});
+		checkedVariable.children = [...checkedVariablesChildren.variables];		//Adding custom "variables" field with the variable data (to the parent variable)
+
+		//Checking the individual variables (for their child values)
+		for (let k = 0; k < checkedVariablesChildren.variables.length; k++) {
+			const currentChild = checkedVariablesChildren.variables[k];
+			
+			//Checking if the child variable has child values
+			getChildVariablesRecursive(currentChild);
+		}
+	}
+
+	return;
+}
+
 async function getProgramState(stoppedThreadId: number) {
 	//Getting stackframes of the current thread
 	let mainStackTraceMessageBody = await callStackTrace(stoppedThreadId);
@@ -171,10 +192,13 @@ async function getProgramState(stoppedThreadId: number) {
 			{
 				customizedStackTraceMessageBody.stackFrames[i].variables = [...currentScopeVariables.variables];	//Adding the variable data to the custom message
 
-				//DEBUG: Outputting the variable data
+				//Checking the individual variables (for their child values)
 				for (let k = 0; k < currentScopeVariables.variables.length; k++) {
 					const elementVariable = currentScopeVariables.variables[k];
 					console.log("Function " + elementStackFrame.name + " (" + elementStackFrame.id + "), Variable ", elementVariable.name + " (" +  elementVariable.value + ")");
+					
+					//Checking for child values
+					await getChildVariablesRecursive(elementVariable);
 				}
 			}
 		}
