@@ -153,12 +153,15 @@ async function callVariables(callVariablesReference: number): Promise<any> {
 }
 
 async function getChildVariablesRecursive(checkedVariable: any) {
-	//If the variable has child values
-	if(checkedVariable.variablesReference != 0 && checkedVariable.value != "")
+	const pointerRegex = /^\*[^\d]+[\w\d]*$/;   //"*" symbol, 1 character and then any number of characters or numbers
+  	const arrayRegex = /^\[?(?:[1-9]\d*|0)]$/;   //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
+
+	//If the variable has child values (continuing when variable is a member of array, stopping when the variable has no value -> is uninitialized)
+	if(checkedVariable.variablesReference != 0 && arrayRegex.test(checkedVariable.name) || checkedVariable.value != "")
 	{
 		let checkedVariablesChildren = await callVariables(checkedVariable.variablesReference);
-		console.log({message: "Checking variable", body: checkedVariable});
-		console.log({message: "Recieved children", body: checkedVariablesChildren});
+		console.log({message: "[DEBUG] Checking variable", body: checkedVariable});
+		console.log({message: "[DEBUG] Recieved children", body: checkedVariablesChildren});
 		checkedVariable.children = [...checkedVariablesChildren.variables];		//Adding custom "variables" field with the variable data (to the parent variable)
 
 		//Checking the individual variables (for their child values)

@@ -574,8 +574,9 @@ function createDataModelVariable(messageVariable) {
     console.log('[DEBUG] Processing variable named: "' + messageVariable.name + '"');
     let tempVar;
     const pointerRegex = /^\*[^\d]+[\w\d]*$/; //"*" symbol, 1 character and then any number of characters or numbers
-    const arrayRegex = /^\[(?:[1-9]\d*|0)]$/; //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
-    //If it's an expandable variable (array / struct / pointer)
+    const arrayRegex = /^\[?(?:[1-9]\d*|0)]$/; //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
+    const arrayEndRegex = /\s\[?(?:[1-9]\d*|0)]$/; //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
+    //If it's an expandable variable (array / struct / pointer) with children
     if (messageVariable.variablesReference != 0 && messageVariable.children != undefined) {
         let pointerRegexMatchCount = 0;
         let arrayRegexMatchCount = 0;
@@ -614,9 +615,9 @@ function createDataModelVariable(messageVariable) {
             tempVar.isCollapsed = true; //Setting the "isCollapsed" to "true" by default
             tempVar.variableName = messageVariable.name;
             //tempVar.dataTypeEnum = ;  //Not used
-            tempVar.dataTypeString = messageVariable.type;
+            tempVar.dataTypeString = messageVariable.type.replace(arrayEndRegex, ""); //Removing the size suffix (that will be added by the drawing library)
             //tempVar.value = ;         //Not used
-            tempVar.valueString = messageVariable.value; //TODO: Check how the array value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
+            tempVar.valueString = messageVariable.value; //Not neccessary
         //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
         //TODO: Continue
         } else if (pointerRegexMatchCount == 0 && arrayRegexMatchCount == 0) {
@@ -640,6 +641,45 @@ function createDataModelVariable(messageVariable) {
         } else {
             console.log("[DEBUG] Error - cannot decide ExpandableVariable type - inconsistent child variables");
             tempVar = undefined;
+        }
+    } else if (messageVariable.variablesReference != 0) {
+        if (pointerRegex.test(messageVariable.name)) {
+            console.log("[DEBUG] Variable " + messageVariable.name + " is of pointer type (without children)");
+            //Creating the variables DataModel representation
+            tempVar = new _dataModelStructures.Variable();
+            tempVar.isPointer = true;
+            tempVar.variableName = messageVariable.name;
+            //tempVar.dataTypeEnum = ;  //Not used
+            tempVar.dataTypeString = messageVariable.type;
+            //tempVar.value = ;         //Not used
+            tempVar.valueString = messageVariable.value; //TODO: Check how the pointer value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
+        //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+        } else if (arrayRegex.test(messageVariable.name)) {
+            console.log("[DEBUG] Variable " + messageVariable.name + " is of array (static) type (without children)");
+            //Creating the variables DataModel representation
+            tempVar = new _dataModelStructures.Array();
+            tempVar.size = 0; //Variable has no children - setting size to 0
+            tempVar.isCollapsed = true; //Setting the "isCollapsed" to "true" by default
+            tempVar.variableName = messageVariable.name;
+            //tempVar.dataTypeEnum = ;  //Not used
+            tempVar.dataTypeString = messageVariable.type.replace(arrayEndRegex, ""); //Removing the size suffix (that will be added by the drawing library)
+            //tempVar.value = ;         //Not used
+            tempVar.valueString = messageVariable.value; //Not neccessary
+        //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+        //TODO: Continue
+        } else {
+            console.log("[DEBUG] Variable " + messageVariable.name + " is of struct (static) type (without children)");
+            //Creating the variables DataModel representation
+            tempVar = new _dataModelStructures.Struct();
+            tempVar.elements = new Array();
+            tempVar.isCollapsed = true; //Setting the "isCollapsed" to "true" by default
+            tempVar.variableName = messageVariable.name;
+            //tempVar.dataTypeEnum = ;  //Not used
+            tempVar.dataTypeString = messageVariable.type;
+            //tempVar.value = ;         //Not used
+            tempVar.valueString = messageVariable.value; //TODO: Check how the struct value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
+        //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+        //TODO: Continue
         }
     } else {
         console.log("[DEBUG] Regular variable (atomic) found: " + messageVariable.name);
@@ -2373,7 +2413,7 @@ class FabricDrawingModule {
     }
 }
 
-},{"fabric":"jHiDH","@parcel/transformer-js/src/esmodule-helpers.js":"le3sx","./dataModelStructures":"gh9Dt"}],"jHiDH":[function(require,module,exports) {
+},{"fabric":"jHiDH","./dataModelStructures":"gh9Dt","@parcel/transformer-js/src/esmodule-helpers.js":"le3sx"}],"jHiDH":[function(require,module,exports) {
 /* build: `node build.js modules=ALL exclude=gestures,accessors,erasing requirejs minifier=uglifyjs` */ /*! Fabric.js Copyright 2008-2015, Printio (Juriy Zaytsev, Maxim Chernyak) */ var Buffer = require("d7af27f9e64f37fd").Buffer;
 var fabric = fabric || {
     version: "5.3.0"
@@ -26597,36 +26637,6 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
 },{}],"6RySt":[function(require,module,exports) {
 "use strict";
 
-},{}],"le3sx":[function(require,module,exports) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, "__esModule", {
-        value: true
-    });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
-        });
-    });
-    return dest;
-};
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
-
 },{}],"gh9Dt":[function(require,module,exports) {
 /*  ENUMS       */ //MemoryTypeEnum
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -26693,6 +26703,36 @@ class Memory {
     memoryElements = {};
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"le3sx"}]},["ebgtl","9lXWx"], "9lXWx", "parcelRequiredd7b")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"le3sx"}],"le3sx":[function(require,module,exports) {
+exports.interopDefault = function(a) {
+    return a && a.__esModule ? a : {
+        default: a
+    };
+};
+exports.defineInteropFlag = function(a) {
+    Object.defineProperty(a, "__esModule", {
+        value: true
+    });
+};
+exports.exportAll = function(source, dest) {
+    Object.keys(source).forEach(function(key) {
+        if (key === "default" || key === "__esModule" || dest.hasOwnProperty(key)) return;
+        Object.defineProperty(dest, key, {
+            enumerable: true,
+            get: function() {
+                return source[key];
+            }
+        });
+    });
+    return dest;
+};
+exports.export = function(dest, destName, get) {
+    Object.defineProperty(dest, destName, {
+        enumerable: true,
+        get: get
+    });
+};
+
+},{}]},["ebgtl","9lXWx"], "9lXWx", "parcelRequiredd7b")
 
 //# sourceMappingURL=myDrawlib.js.map

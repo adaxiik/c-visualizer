@@ -20,9 +20,10 @@ function createDataModelVariable(messageVariable: any) : DataModelStructures.Var
 
   let tempVar;
   const pointerRegex = /^\*[^\d]+[\w\d]*$/;   //"*" symbol, 1 character and then any number of characters or numbers
-  const arrayRegex = /^\[(?:[1-9]\d*|0)]$/;   //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
+  const arrayRegex = /^\[?(?:[1-9]\d*|0)]$/;   //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
+  const arrayEndRegex = /\s\[?(?:[1-9]\d*|0)]$/;   //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
 
-  //If it's an expandable variable (array / struct / pointer)
+  //If it's an expandable variable (array / struct / pointer) with children
   if(messageVariable.variablesReference != 0 && messageVariable.children != undefined)
   {
     let pointerRegexMatchCount = 0;
@@ -79,9 +80,9 @@ function createDataModelVariable(messageVariable: any) : DataModelStructures.Var
 
       tempVar.variableName = messageVariable.name;
       //tempVar.dataTypeEnum = ;  //Not used
-      tempVar.dataTypeString = messageVariable.type;
+      tempVar.dataTypeString = messageVariable.type.replace(arrayEndRegex, "");  //Removing the size suffix (that will be added by the drawing library)
       //tempVar.value = ;         //Not used
-      tempVar.valueString = messageVariable.value;  //TODO: Check how the array value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
+      tempVar.valueString = messageVariable.value;  //Not neccessary
       //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
       //TODO: Continue
     }
@@ -114,6 +115,57 @@ function createDataModelVariable(messageVariable: any) : DataModelStructures.Var
     {
       console.log("[DEBUG] Error - cannot decide ExpandableVariable type - inconsistent child variables");
       tempVar = undefined;
+    }
+  }
+  else if(messageVariable.variablesReference != 0)  //If it's an expandable value without children
+  {
+    if(pointerRegex.test(messageVariable.name))         //If the variable is of pointer type
+    {
+      console.log("[DEBUG] Variable " + messageVariable.name + " is of pointer type (without children)");
+      //Creating the variables DataModel representation
+      tempVar = new DataModelStructures.Variable();
+      tempVar.isPointer = true;
+
+      tempVar.variableName = messageVariable.name;
+      //tempVar.dataTypeEnum = ;  //Not used
+      tempVar.dataTypeString = messageVariable.type;
+      //tempVar.value = ;         //Not used
+      tempVar.valueString = messageVariable.value;  //TODO: Check how the pointer value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
+      //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+    }
+    else if(arrayRegex.test(messageVariable.name))      //If the variable is of array (static) type
+    {
+      console.log("[DEBUG] Variable " + messageVariable.name + " is of array (static) type (without children)");
+      //Creating the variables DataModel representation
+      tempVar = new DataModelStructures.Array();
+      tempVar.size = 0; //Variable has no children - setting size to 0
+
+      tempVar.isCollapsed = true;   //Setting the "isCollapsed" to "true" by default
+
+      tempVar.variableName = messageVariable.name;
+      //tempVar.dataTypeEnum = ;  //Not used
+      tempVar.dataTypeString = messageVariable.type.replace(arrayEndRegex, "");  //Removing the size suffix (that will be added by the drawing library)
+      //tempVar.value = ;         //Not used
+      tempVar.valueString = messageVariable.value;  //Not neccessary
+      //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+      //TODO: Continue
+    }
+    else                                              //If the variable is of struct (static) type
+    {
+      console.log("[DEBUG] Variable " + messageVariable.name + " is of struct (static) type (without children)");
+      //Creating the variables DataModel representation
+      tempVar = new DataModelStructures.Struct();
+      tempVar.elements = new Array<DataModelStructures.Variable>();
+
+      tempVar.isCollapsed = true;   //Setting the "isCollapsed" to "true" by default
+
+      tempVar.variableName = messageVariable.name;
+      //tempVar.dataTypeEnum = ;  //Not used
+      tempVar.dataTypeString = messageVariable.type;
+      //tempVar.value = ;         //Not used
+      tempVar.valueString = messageVariable.value;  //TODO: Check how the struct value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
+      //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+      //TODO: Continue
     }
   }
   else  //If it's not an expandable variable
