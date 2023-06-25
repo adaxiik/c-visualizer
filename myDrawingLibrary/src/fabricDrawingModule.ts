@@ -1260,11 +1260,11 @@ class ProgramStackWidget implements Widget {
         else
         {
             //Going through the heap (and it's variables' text)
-            for (let heapKey in this.dataModelObject.heap) {
-                let currentVariable = this.dataModelObject.heap[heapKey];
+            for (let heapKey in this.dataModelObject.heap.heapVariables) {
+                let currentVariable = this.dataModelObject.heap.heapVariables[heapKey];
                 
                 if (currentVariable != null) {
-                    checkVariableText(currentVariable, 0);
+                    checkVariableText(currentVariable.variable, 0);
                 }
             }
         }

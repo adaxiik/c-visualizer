@@ -573,8 +573,9 @@ function redrawCanvas() {
 function createDataModelVariable(messageVariable) {
     console.log('[DEBUG] Processing variable named: "' + messageVariable.name + '"');
     let tempVar;
-    const pointerRegex = /^\*[^\d]+[\w\d]*$/; //"*" symbol, 1 character and then any number of characters or numbers
-    const arrayRegex = /^\[?(?:[1-9]\d*|0)]$/; //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
+    const pointerFormatRegex = /^\*[^\d]+[\w\d]*$/; //"*" symbol, 1 character and then any number of characters or numbers
+    const pointerValueRegex = /(0x[0-9a-fA-F]+)\s?/i; //"0x" prefix, and then sequence of (at least one) hexadecimal characters / numbers
+    const arrayFormatRegex = /^\[?(?:[1-9]\d*|0)]$/; //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
     const arrayEndRegex = /\s\[?(?:[1-9]\d*|0)]$/; //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
     //If it's an expandable variable (array / struct / pointer) with children
     if (messageVariable.variablesReference != 0 && messageVariable.children != undefined) {
@@ -582,10 +583,10 @@ function createDataModelVariable(messageVariable) {
         let arrayRegexMatchCount = 0;
         //Checking the child values with regexes
         for(let i = 0; i < messageVariable.children.length; i++){
-            if (pointerRegex.test(messageVariable.children[i].name)) {
+            if (pointerFormatRegex.test(messageVariable.children[i].name)) {
                 console.log("[DEBUG] Pointer member found: " + messageVariable.children[i].name);
                 pointerRegexMatchCount++;
-            } else if (arrayRegex.test(messageVariable.children[i].name)) {
+            } else if (arrayFormatRegex.test(messageVariable.children[i].name)) {
                 console.log("[DEBUG] Array (static) member found: " + messageVariable.children[i].name);
                 arrayRegexMatchCount++;
             } else console.log("[DEBUG] Struct (static) member found: " + messageVariable.children[i].name);
@@ -593,15 +594,27 @@ function createDataModelVariable(messageVariable) {
         //Checking if the variable consists only of values of one type
         if (pointerRegexMatchCount == messageVariable.children.length) {
             console.log("[DEBUG] Variable " + messageVariable.name + " is of pointer type");
+            let addressPointedTo = messageVariable.value.match(pointerValueRegex)[0];
             //Creating the variables DataModel representation
-            tempVar = new _dataModelStructures.Variable();
-            tempVar.isPointer = true;
-            tempVar.variableName = messageVariable.name;
+            let stackVariable = new _dataModelStructures.Variable();
+            stackVariable.isPointer = true;
+            stackVariable.variableName = messageVariable.name;
             //tempVar.dataTypeEnum = ;  //Not used
-            tempVar.dataTypeString = messageVariable.type;
+            stackVariable.dataTypeString = messageVariable.type;
             //tempVar.value = ;         //Not used
-            tempVar.valueString = messageVariable.value; //TODO: Check how the pointer value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
-        //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+            stackVariable.valueString = addressPointedTo;
+            //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+            //Creating the heap variable
+            let tempHeapVariable = new _dataModelStructures.Variable();
+            tempHeapVariable.variableName = addressPointedTo;
+            tempHeapVariable.dataTypeString = messageVariable.type;
+            tempHeapVariable.valueString = messageVariable.value;
+            let tempHeapVar = new _dataModelStructures.HeapVariable();
+            tempHeapVar.variable = tempHeapVariable;
+            return {
+                heapVar: tempHeapVar,
+                stackVar: stackVariable
+            };
         } else if (arrayRegexMatchCount == messageVariable.children.length) {
             console.log("[DEBUG] Variable " + messageVariable.name + " is of array (static) type");
             //Creating the variables DataModel representation
@@ -643,18 +656,30 @@ function createDataModelVariable(messageVariable) {
             tempVar = undefined;
         }
     } else if (messageVariable.variablesReference != 0) {
-        if (pointerRegex.test(messageVariable.name)) {
+        if (pointerFormatRegex.test(messageVariable.name)) {
             console.log("[DEBUG] Variable " + messageVariable.name + " is of pointer type (without children)");
+            let addressPointedTo = messageVariable.value.match(pointerValueRegex)[0];
             //Creating the variables DataModel representation
-            tempVar = new _dataModelStructures.Variable();
-            tempVar.isPointer = true;
-            tempVar.variableName = messageVariable.name;
+            let stackVariable = new _dataModelStructures.Variable();
+            stackVariable.isPointer = true;
+            stackVariable.variableName = messageVariable.name;
             //tempVar.dataTypeEnum = ;  //Not used
-            tempVar.dataTypeString = messageVariable.type;
+            stackVariable.dataTypeString = messageVariable.type;
             //tempVar.value = ;         //Not used
-            tempVar.valueString = messageVariable.value; //TODO: Check how the pointer value if formatted (and adjust accordingly - for it to be correctly picked up by the FabricDrawingModule)
-        //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
-        } else if (arrayRegex.test(messageVariable.name)) {
+            stackVariable.valueString = addressPointedTo;
+            //tempVar.valueChanged = ;  //TODO: Find a way to find that information out
+            //Creating the heap variable
+            let tempHeapVariable = new _dataModelStructures.Variable();
+            tempHeapVariable.variableName = addressPointedTo;
+            tempHeapVariable.dataTypeString = messageVariable.type;
+            tempHeapVariable.valueString = messageVariable.value;
+            let tempHeapVar = new _dataModelStructures.HeapVariable();
+            tempHeapVar.variable = tempHeapVariable;
+            return {
+                heapVar: tempHeapVar,
+                stackVar: stackVariable
+            };
+        } else if (arrayFormatRegex.test(messageVariable.name)) {
             console.log("[DEBUG] Variable " + messageVariable.name + " is of array (static) type (without children)");
             //Creating the variables DataModel representation
             tempVar = new _dataModelStructures.Array();
@@ -685,7 +710,7 @@ function createDataModelVariable(messageVariable) {
         console.log("[DEBUG] Regular variable (atomic) found: " + messageVariable.name);
         tempVar = new _dataModelStructures.Variable();
         //Checking if the variable is not an array member
-        if (!arrayRegex.test(messageVariable.name)) {
+        if (!arrayFormatRegex.test(messageVariable.name)) {
             tempVar.variableName = messageVariable.name;
             //tempVar.dataTypeEnum = ;  //Not used
             tempVar.dataTypeString = messageVariable.type;
@@ -699,7 +724,13 @@ function drawVariablesJSON(message) {
     message.variables.forEach((messageVariable)=>{
         let dataModelVariable = createDataModelVariable(messageVariable); //Getting the variable's datamodel representation
         //Adding the variable to the correct stackframe (if it was in a valid format)
-        if (dataModelVariable != undefined) currentProgramStack.stackFrames[message.id].functionVariables[dataModelVariable.variableName] = dataModelVariable;
+        if (dataModelVariable != undefined) {
+            if (dataModelVariable instanceof _dataModelStructures.Variable) currentProgramStack.stackFrames[message.id].functionVariables[dataModelVariable.variableName] = dataModelVariable; //Adding the variable to the stack
+            else {
+                currentProgramStack.stackFrames[message.id].functionVariables[dataModelVariable.stackVar.variableName] = dataModelVariable.stackVar; //Adding the variable to the stack
+                currentProgramStack.heap.heapVariables[dataModelVariable.heapVar.variable.variableName] = dataModelVariable.heapVar; //Adding the variable to the heap
+            }
+        }
     });
     //Redrawing the canvas
     redrawCanvas();
@@ -1707,9 +1738,9 @@ class ProgramStackWidget {
             }
         }
         else //Going through the heap (and it's variables' text)
-        for(let heapKey in this.dataModelObject.heap){
-            let currentVariable = this.dataModelObject.heap[heapKey];
-            if (currentVariable != null) checkVariableText(currentVariable, 0);
+        for(let heapKey in this.dataModelObject.heap.heapVariables){
+            let currentVariable = this.dataModelObject.heap.heapVariables[heapKey];
+            if (currentVariable != null) checkVariableText(currentVariable.variable, 0);
         }
         //For all variables found
         for(let i = 0; i < allVariableTexts.length; i++){
