@@ -97,7 +97,7 @@ function createDataModelVariable(messageVariable: any) : DataModelStructures.Var
         let currentArrayChild = createDataModelVariable(messageVariable.children[j]);
 
         if(currentArrayChild != undefined)
-          tempVar.elements[currentArrayChild.variableName] = currentArrayChild;
+          tempVar.elements.push(currentArrayChild);
       }
 
       tempVar.isCollapsed = true;   //Setting the "isCollapsed" to "true" by default

@@ -627,7 +627,7 @@ function createDataModelVariable(messageVariable) {
             //Adding the children to the elements (to the dictionary)
             for(let j = 0; j < messageVariable.children.length; j++){
                 let currentArrayChild = createDataModelVariable(messageVariable.children[j]);
-                if (currentArrayChild != undefined) tempVar.elements[currentArrayChild.variableName] = currentArrayChild;
+                if (currentArrayChild != undefined) tempVar.elements.push(currentArrayChild);
             }
             tempVar.isCollapsed = true; //Setting the "isCollapsed" to "true" by default
             tempVar.variableName = messageVariable.name;
