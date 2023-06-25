@@ -65,14 +65,14 @@ function createDataModelVariable(messageVariable: any) : DataModelStructures.Var
       console.log("[DEBUG] Variable " + messageVariable.name + " is of array (static) type");
       //Creating the variables DataModel representation
       tempVar = new DataModelStructures.Array();
-      tempVar.size = messageVariable.children.length; //TODO: Check if it returns the correct value
+      tempVar.size = messageVariable.children.length;
       //Adding the children to the elements (to the dictionary)
       for(let j = 0; j < messageVariable.children.length; j++)
       {
         let currentArrayChild = createDataModelVariable(messageVariable.children[j]);
 
         if(currentArrayChild != undefined)
-          tempVar.elements[currentArrayChild.variableName] = currentArrayChild;
+          tempVar.elements[j] = currentArrayChild;
       }
 
       tempVar.isCollapsed = true;   //Setting the "isCollapsed" to "true" by default
@@ -91,13 +91,13 @@ function createDataModelVariable(messageVariable: any) : DataModelStructures.Var
       //Creating the variables DataModel representation
       tempVar = new DataModelStructures.Struct();
       tempVar.elements = new Array<DataModelStructures.Variable>();
-      //Adding the children to the elements (to the array)
+      //Adding the children to the elements (to the dictionary)
       for(let j = 0; j < messageVariable.children.length; j++)
       {
         let currentArrayChild = createDataModelVariable(messageVariable.children[j]);
 
         if(currentArrayChild != undefined)
-          tempVar.elements.push(currentArrayChild);
+          tempVar.elements[currentArrayChild.variableName] = currentArrayChild;
       }
 
       tempVar.isCollapsed = true;   //Setting the "isCollapsed" to "true" by default
@@ -121,10 +121,16 @@ function createDataModelVariable(messageVariable: any) : DataModelStructures.Var
     console.log("[DEBUG] Regular variable (atomic) found: " + messageVariable.name);
 
     tempVar = new DataModelStructures.Variable();
-    tempVar.variableName = messageVariable.name;
-    //tempVar.dataTypeEnum = ;  //Not used
-    tempVar.dataTypeString = messageVariable.type;
-    //tempVar.value = ;         //Not used
+
+    //Checking if the variable is not an array member
+    if(!arrayRegex.test(messageVariable.name))   //If the variable's name format doesn't match that of an array member (static)
+    {
+      tempVar.variableName = messageVariable.name;
+      //tempVar.dataTypeEnum = ;  //Not used
+      tempVar.dataTypeString = messageVariable.type;
+      //tempVar.value = ;         //Not used
+    }
+    
     tempVar.valueString = messageVariable.value;
   }
 

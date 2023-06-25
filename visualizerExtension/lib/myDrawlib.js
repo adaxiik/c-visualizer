@@ -605,11 +605,11 @@ function createDataModelVariable(messageVariable) {
             console.log("[DEBUG] Variable " + messageVariable.name + " is of array (static) type");
             //Creating the variables DataModel representation
             tempVar = new _dataModelStructures.Array();
-            tempVar.size = messageVariable.children.length; //TODO: Check if it returns the correct value
+            tempVar.size = messageVariable.children.length;
             //Adding the children to the elements (to the dictionary)
             for(let j = 0; j < messageVariable.children.length; j++){
                 let currentArrayChild = createDataModelVariable(messageVariable.children[j]);
-                if (currentArrayChild != undefined) tempVar.elements[currentArrayChild.variableName] = currentArrayChild;
+                if (currentArrayChild != undefined) tempVar.elements[j] = currentArrayChild;
             }
             tempVar.isCollapsed = true; //Setting the "isCollapsed" to "true" by default
             tempVar.variableName = messageVariable.name;
@@ -624,10 +624,10 @@ function createDataModelVariable(messageVariable) {
             //Creating the variables DataModel representation
             tempVar = new _dataModelStructures.Struct();
             tempVar.elements = new Array();
-            //Adding the children to the elements (to the array)
+            //Adding the children to the elements (to the dictionary)
             for(let j = 0; j < messageVariable.children.length; j++){
                 let currentArrayChild = createDataModelVariable(messageVariable.children[j]);
-                if (currentArrayChild != undefined) tempVar.elements.push(currentArrayChild);
+                if (currentArrayChild != undefined) tempVar.elements[currentArrayChild.variableName] = currentArrayChild;
             }
             tempVar.isCollapsed = true; //Setting the "isCollapsed" to "true" by default
             tempVar.variableName = messageVariable.name;
@@ -644,10 +644,13 @@ function createDataModelVariable(messageVariable) {
     } else {
         console.log("[DEBUG] Regular variable (atomic) found: " + messageVariable.name);
         tempVar = new _dataModelStructures.Variable();
-        tempVar.variableName = messageVariable.name;
-        //tempVar.dataTypeEnum = ;  //Not used
-        tempVar.dataTypeString = messageVariable.type;
+        //Checking if the variable is not an array member
+        if (!arrayRegex.test(messageVariable.name)) {
+            tempVar.variableName = messageVariable.name;
+            //tempVar.dataTypeEnum = ;  //Not used
+            tempVar.dataTypeString = messageVariable.type;
         //tempVar.value = ;         //Not used
+        }
         tempVar.valueString = messageVariable.value;
     }
     return tempVar;
