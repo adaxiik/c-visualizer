@@ -127,7 +127,7 @@ async function callStackTrace(callThreadId: number): Promise<any> {
 		return null
 	}
 
-	return await session.customRequest('stackTrace', { threadId: callThreadId, format: {includeAll : true} });
+	return await session.customRequest('stackTrace', { threadId: callThreadId, format: {includeAll : true, parameters: true, parameterTypes: true, parameterNames: true} });
 }
 
 //DAP call function
@@ -176,12 +176,24 @@ async function getChildVariablesRecursive(checkedVariable: any) {
 }
 
 async function getProgramState(stoppedThreadId: number) {
+	const functionParameterRegex = /(\w+)\((.*)\)/;
+	const varTypeAndNameRegex = /\s+(?=[^*])/;
 	//Getting stackframes of the current thread
 	let mainStackTraceMessageBody = await callStackTrace(stoppedThreadId);
 	let customizedStackTraceMessageBody = {...mainStackTraceMessageBody};	//Copying the main message (this version will be edited and passed to the glue code - after adding variable data)
+
 	//For each stackFrame call scope request
 	for (let i = 0; i < mainStackTraceMessageBody.totalFrames; i++) {
 		const elementStackFrame = mainStackTraceMessageBody.stackFrames[i];
+		//Parsing the stackframe's name for data about parameters
+		let currentParametersStrings = elementStackFrame.name.match(functionParameterRegex)[2].split(", ");	//Returning an array of function's parameters in a "(dataType)(space)(variableName)" format - (not split by datatype and name)
+		let currentParametersMap = currentParametersStrings.map(
+			(param: string) => {
+				const [type, name] = param.split(varTypeAndNameRegex);
+				return {type, name};
+		});	//Returning an array of parameters in a {type: string, name: string} format
+		elementStackFrame.parameters = currentParametersMap;	//Adding this data to the stackframe in the custom message
+		//Getting the stackframe's scopes
 		let currentStackFrameScopes = await callScopes(elementStackFrame.id);
 		
 		//For each scope call variable request

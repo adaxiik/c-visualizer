@@ -574,7 +574,7 @@ function createDataModelVariable(messageVariable) {
     console.log('[DEBUG] Processing variable named: "' + messageVariable.name + '"');
     let tempVar;
     const pointerFormatRegex = /^\*[^\d]+[\w\d]*$/; //"*" symbol, 1 character and then any number of characters or numbers
-    const pointerValueRegex = /(0x[0-9a-fA-F]+)\s?/i; //"0x" prefix, and then sequence of (at least one) hexadecimal characters / numbers
+    const pointerValueRegex = /(0x[0-9a-fA-F]+)\s?/i; //"0x" prefix, and then sequence of (at least one) hexadecimal characters / numbers ended with a space
     const arrayFormatRegex = /^\[?(?:[1-9]\d*|0)]$/; //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
     const arrayEndRegex = /\s\[?(?:[1-9]\d*|0)]$/; //"[" symbol, numbers starting 0 (but not in format like "01") and then "]" symbol
     //If it's an expandable variable (array / struct / pointer) with children
@@ -720,14 +720,31 @@ function createDataModelVariable(messageVariable) {
     }
     return tempVar;
 }
+function variableInParameters(variableToCheck, parameters) {
+    //Going through all the parameters
+    console.log({
+        message: "[TESTING]",
+        params: parameters,
+        var: variableToCheck
+    });
+    for(let i = 0; i < parameters.length; i++)//Checking for a match
+    if (parameters[i].type == variableToCheck.dataTypeString && parameters[i].name == variableToCheck.variableName) {
+        console.log('[DEBUG] Variable "' + variableToCheck.variableName + '" is a parameter');
+        return true;
+    }
+    return false;
+}
 function drawVariablesJSON(message) {
     message.variables.forEach((messageVariable)=>{
         let dataModelVariable = createDataModelVariable(messageVariable); //Getting the variable's datamodel representation
         //Adding the variable to the correct stackframe (if it was in a valid format)
         if (dataModelVariable != undefined) {
-            if (dataModelVariable instanceof _dataModelStructures.Variable) currentProgramStack.stackFrames[message.id].functionVariables[dataModelVariable.variableName] = dataModelVariable; //Adding the variable to the stack
-            else {
-                currentProgramStack.stackFrames[message.id].functionVariables[dataModelVariable.stackVar.variableName] = dataModelVariable.stackVar; //Adding the variable to the stack
+            if (dataModelVariable instanceof _dataModelStructures.Variable) {
+                if (variableInParameters(dataModelVariable, message.parameters)) currentProgramStack.stackFrames[message.id].functionParameters[dataModelVariable.variableName] = dataModelVariable; //Adding the variable to the stack (as a function parameter)
+                else currentProgramStack.stackFrames[message.id].functionVariables[dataModelVariable.variableName] = dataModelVariable; //Adding the variable to the stack (as a function variable)
+            } else {
+                if (variableInParameters(dataModelVariable.stackVar, message.parameters)) currentProgramStack.stackFrames[message.id].functionParameters[dataModelVariable.stackVar.variableName] = dataModelVariable.stackVar; //Adding the variable to the stack (as a function parameter)
+                else currentProgramStack.stackFrames[message.id].functionVariables[dataModelVariable.stackVar.variableName] = dataModelVariable.stackVar; //Adding the variable to the stack (as a function variable)
                 currentProgramStack.heap.heapVariables[dataModelVariable.heapVar.variable.variableName] = dataModelVariable.heapVar; //Adding the variable to the heap
             }
         }
@@ -761,7 +778,8 @@ function drawProgramStackJSON(messageBody) {
         //Adding its variables
         drawVariablesJSON({
             id: tempStackFrameVar.frameId,
-            variables: currentStackFrame.variables
+            variables: currentStackFrame.variables,
+            parameters: currentStackFrame.parameters
         });
     }
     //Drawing the full program stack
