@@ -784,6 +784,7 @@ function drawProgramStackJSON(messageBody) {
     }
     //Drawing the full program stack
     myDrawingModule.drawProgramStack(currentProgramStack);
+    myDrawingModule.redrawCanvas(); //Shouldn't be neccesary, but fixes weird behavior of pointer variables (that wouldn't work correctly until the first redrawing of the canvas)
 }
 var myDrawingModule = new (0, _fabricDrawingModule.FabricDrawingModule)("drawLibCanvas");
 const vscode = acquireVsCodeApi(); //Getting the VS Code Api (to communicate with the extension)
@@ -2028,10 +2029,7 @@ class FabricDrawingModule {
                     if (hoveredOverWidget != undefined && (hoveredOverWidget.dataModelObject instanceof _dataModelStructures.StackFrame || hoveredOverWidget.dataModelObject instanceof _dataModelStructures.ExpandableVariable)) {
                         hoveredOverWidget.dataModelObject.isCollapsed = !hoveredOverWidget.dataModelObject.isCollapsed;
                         //Redraw the canvas
-                        if (drawingModuleThis.cache.drawProgramStackArguments != undefined && drawingModuleThis.cache.drawProgramStackArguments != null) {
-                            drawingModuleThis.canvas.clearCanvas();
-                            drawingModuleThis.drawProgramStack(...drawingModuleThis.cache.drawProgramStackArguments);
-                        }
+                        drawingModuleThis.redrawCanvas();
                         //Preventing the mouse going to selection mode and returning (to skip the dragging logic)
                         this.selection = false;
                         return;
@@ -2089,9 +2087,7 @@ class FabricDrawingModule {
     //Citation end
     }
     initHoverOver() {
-        const requestRenderAll = this.canvas.requestRenderAll.bind(this.canvas);
         const calculateNewHex = FabricDrawingModule.calculateLighterDarkerHex;
-        const markPointee = this.markPointee.bind(this);
         let drawingModuleThis = this;
         this.canvas.on("mouse:over", function(opt) {
             console.log({
@@ -2124,21 +2120,18 @@ class FabricDrawingModule {
                             //Checking if the hovered over variable is a pointer
                             if (drawingModuleThis.cache.pointers != undefined) {
                                 if (hoveredOverWidget.dataModelObject instanceof _dataModelStructures.Variable && hoveredOverWidget.dataModelObject.isPointer) {
-                                    markPointee(hoveredOverWidget.dataModelObject.valueString); //Mark the variable that is being pointed to
+                                    drawingModuleThis.markPointee(hoveredOverWidget.dataModelObject.valueString); //Mark the variable that is being pointed to
                                     let fromVariableObject = hoveredOverWidget.fabricObject;
                                     let toVariableObject = drawingModuleThis.findFabricObjectByText(hoveredOverWidget.dataModelObject.valueString + ":");
                                     if (fromVariableObject == undefined || toVariableObject == undefined) console.log("[DEBUG] Error - FROM variable or TO variable are undefined");
-                                    else {
-                                        let programStackWidget = drawingModuleThis.cache.programStackWidget;
-                                        if (toVariableObject instanceof (0, _fabric.fabric).Group && programStackWidget != undefined) {
-                                            let toVariableWidget = drawingModuleThis.findWidgetByFabricObject(toVariableObject, programStackWidget);
-                                            let toVariableWidgetOnHeap = toVariableWidget != undefined ? drawingModuleThis.isWidgetOnHeap(toVariableWidget) : undefined;
-                                            if (!toVariableWidgetOnHeap) drawingModuleThis.drawArrowBetweenVariables(fromVariableObject, toVariableObject);
-                                        }
+                                    else if (toVariableObject instanceof (0, _fabric.fabric).Group && drawingModuleThis.cache.programStackWidget != undefined) {
+                                        let toVariableWidget = drawingModuleThis.findWidgetByFabricObject(toVariableObject, drawingModuleThis.cache.programStackWidget);
+                                        let toVariableWidgetOnHeap = toVariableWidget != undefined ? drawingModuleThis.isWidgetOnHeap(toVariableWidget) : undefined;
+                                        if (!toVariableWidgetOnHeap) drawingModuleThis.drawArrowBetweenVariables(fromVariableObject, toVariableObject);
                                     }
                                 }
                             }
-                            requestRenderAll();
+                            drawingModuleThis.canvas.requestRenderAll();
                         }
                     }
                 }
@@ -2152,10 +2145,13 @@ class FabricDrawingModule {
             if (!this.isDragging) {
                 if (opt.target !== undefined && opt.target !== null) {
                     if (opt.target instanceof (0, _fabric.fabric).Group) {
-                        //Changing the color of the text's background color (if present) - before setObjectColor, that clears the cached color
-                        if (opt.target._objects[1].backgroundColor != undefined) opt.target._objects[1].backgroundColor = calculateNewHex(drawingModuleThis.cache.objectColor, 15);
-                        //Changing the slot's background color
-                        if (drawingModuleThis.cache.objectColor != "") drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cache.objectColor, false, true);
+                        //If we're still hovering over the same object (if the canvas hasn't changed causing us to skip from one object to another)
+                        if (drawingModuleThis.cache.hoveredOverWidget != undefined && opt.target == drawingModuleThis.cache.hoveredOverWidget.fabricObject) {
+                            //Changing the color of the text's background color (if present) - before setObjectColor, that clears the cached color
+                            if (opt.target._objects[1].backgroundColor != undefined) opt.target._objects[1].backgroundColor = calculateNewHex(drawingModuleThis.cache.objectColor, 15);
+                            //Changing the slot's background color
+                            if (drawingModuleThis.cache.objectColor != "") drawingModuleThis.setObjectColor(opt.target, drawingModuleThis.cache.objectColor, false, true);
+                        }
                         //Resetting the state of the pointee variable (if changed)
                         if (drawingModuleThis.cache.pointeeObject.previousColor !== "") {
                             //Resetting the pointee's previous color
@@ -2174,11 +2170,18 @@ class FabricDrawingModule {
                         }
                         //Resetting the "hoveredOverWidget" cache
                         drawingModuleThis.cache.hoveredOverWidget = undefined;
-                        requestRenderAll();
+                        drawingModuleThis.canvas.requestRenderAll();
                     }
                 }
             }
         });
+    }
+    //A function to fully redraw the canvas
+    redrawCanvas() {
+        if (this.cache.drawProgramStackArguments != undefined && this.cache.drawProgramStackArguments != null) {
+            this.canvas.clearCanvas();
+            this.drawProgramStack(...this.cache.drawProgramStackArguments);
+        }
     }
     //Helper function to return the parent widget of the Fabric object (group)
     findWidgetByFabricObject(searchedForFabricGroup, startSearchFrom) {
@@ -2205,9 +2208,11 @@ class FabricDrawingModule {
                 if (currentObject._objects[1] instanceof (0, _fabric.fabric).Text) {
                     console.log('[DEBUG] Testing if "' + currentObject._objects[1].text + '" matches "' + searchedForText + '"');
                     //If the text object's text matches the searched for value
-                    if (currentObject._objects[1].text != undefined && currentObject._objects[1].text.includes(searchedForText)) {
-                        console.log("[DEBUG] Text match found!");
-                        return currentObject;
+                    if (currentObject._objects[1].text != undefined) {
+                        if (currentObject._objects[1].text.includes(searchedForText)) {
+                            console.log("[DEBUG] Text match found!");
+                            return currentObject;
+                        } else console.log("[DEBUG] Text doesn't match.");
                     } else console.log("[DEBUG] Error - currentObject._objects[1].text was undefined");
                 } else console.log("[DEBUG] Error - currentObject doesn't contain text (not at the [1] position)");
             }

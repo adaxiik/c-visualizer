@@ -290,6 +290,7 @@ function drawProgramStackJSON(messageBody: any){
 
   //Drawing the full program stack
   myDrawingModule.drawProgramStack(currentProgramStack);
+  myDrawingModule.redrawCanvas(); //Shouldn't be neccesary, but fixes weird behavior of pointer variables (that wouldn't work correctly until the first redrawing of the canvas)
 }
 
 
