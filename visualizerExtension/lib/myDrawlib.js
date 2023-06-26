@@ -594,7 +594,7 @@ function createDataModelVariable(messageVariable) {
         //Checking if the variable consists only of values of one type
         if (pointerRegexMatchCount == messageVariable.children.length) {
             console.log("[DEBUG] Variable " + messageVariable.name + " is of pointer type");
-            let addressPointedTo = messageVariable.value.match(pointerValueRegex)[0];
+            let addressPointedTo = messageVariable.value.match(pointerValueRegex)[1];
             //Creating the variables DataModel representation
             let stackVariable = new _dataModelStructures.Variable();
             stackVariable.isPointer = true;
@@ -658,7 +658,7 @@ function createDataModelVariable(messageVariable) {
     } else if (messageVariable.variablesReference != 0) {
         if (pointerFormatRegex.test(messageVariable.name)) {
             console.log("[DEBUG] Variable " + messageVariable.name + " is of pointer type (without children)");
-            let addressPointedTo = messageVariable.value.match(pointerValueRegex)[0];
+            let addressPointedTo = messageVariable.value.match(pointerValueRegex)[1];
             //Creating the variables DataModel representation
             let stackVariable = new _dataModelStructures.Variable();
             stackVariable.isPointer = true;
