@@ -2,21 +2,9 @@ import { fabric } from "fabric";
 import * as DataModelStructures from "./dataModelStructures";
 import * as FabricDrawingModule from "./fabricDrawingModule";
 
-//Type containing all DataModel object types
-type DataModelObject = DataModelStructures.Array
-                    | DataModelStructures.DataType
-                    | DataModelStructures.Memory
-                    | DataModelStructures.ProgramStack 
-                    | DataModelStructures.StackFrame 
-                    | DataModelStructures.Struct 
-                    | DataModelStructures.Variable
-                    | DataModelStructures.ExpandableVariable
-                    | DataModelStructures.HeapVariable
-                    | DataModelStructures.Heap;
-
 export interface Widget {
     canvas: FabricDrawingModule.CustomCanvas;
-    dataModelObject: DataModelObject;
+    dataModelObject: DataModelStructures.DataModelObject;
     fabricObject: fabric.Group; //Maybe "| fabric.Object" can be added - depending on usage
     startPos: {x: number, y: number};
     children: Array<Widget>;

@@ -2,18 +2,6 @@ import { fabric } from "fabric";
 import * as DataModelStructures from "./dataModelStructures";
 import * as DrawingWidgets from "./drawingWidgets";
 
-//Type containing all DataModel object types
-type DataModelObject = DataModelStructures.Array
-                    | DataModelStructures.DataType
-                    | DataModelStructures.Memory
-                    | DataModelStructures.ProgramStack 
-                    | DataModelStructures.StackFrame 
-                    | DataModelStructures.Struct 
-                    | DataModelStructures.Variable
-                    | DataModelStructures.ExpandableVariable
-                    | DataModelStructures.HeapVariable
-                    | DataModelStructures.Heap;
-
 export class CustomCanvas extends fabric.Canvas {
     lockAllItems()
     {
@@ -351,7 +339,7 @@ export class FabricDrawingModule {
     }
 
     //Helper function to return the object with the searched for text
-    findDataModelObjectByText(searchedForText: string) : DataModelObject | undefined {
+    findDataModelObjectByText(searchedForText: string) : DataModelStructures.DataModelObject | undefined {
         let mainProgramStack;
         let shortenedText = searchedForText.endsWith("...");
         if(shortenedText)

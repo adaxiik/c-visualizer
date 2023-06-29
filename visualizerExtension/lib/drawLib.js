@@ -25564,7 +25564,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
 "use strict";
 
 },{}],"gh9Dt":[function(require,module,exports) {
-/*  ENUMS       */ //MemoryTypeEnum
+/*  TYPES       */ //Type containing all DataModel object types
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "MemoryTypeEnum", ()=>MemoryTypeEnum);

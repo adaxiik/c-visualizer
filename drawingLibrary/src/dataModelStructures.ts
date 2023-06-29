@@ -1,3 +1,16 @@
+/*  TYPES       */
+//Type containing all DataModel object types
+export type DataModelObject = Array
+                    | DataType
+                    | Memory
+                    | ProgramStack 
+                    | StackFrame 
+                    | Struct 
+                    | Variable
+                    | ExpandableVariable
+                    | HeapVariable
+                    | Heap;
+
 /*  ENUMS       */
 //MemoryTypeEnum
 export enum MemoryTypeEnum {
