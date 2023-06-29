@@ -1,4 +1,3 @@
-import { fabric } from "fabric";
 import { FabricDrawingModule } from "./fabricDrawingModule";
 import * as DataModelStructures from "./dataModelStructures";
 
