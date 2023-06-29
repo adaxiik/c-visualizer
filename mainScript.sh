@@ -2,7 +2,7 @@
 
 APP_TAG="parcel-visualizer-bp"
 SCRIPT_HEADER="$(tput setaf 3)[SCRIPT]$(tput init)"
-PARCEL_DIRECTORY_NAME="myDrawingLibrary"
+PARCEL_DIRECTORY_NAME="drawingLibrary"
 EXTENSION_DIRECTORY_NAME="visualizerExtension"
 PARCEL_BUILD_SLEEP_TIME=4
 
@@ -18,7 +18,7 @@ packageExtension() {
 
 buildLibrary() {
     echo "$SCRIPT_HEADER Building the drawing library"
-    npx parcel $PARCEL_DIRECTORY_NAME/src/myDrawlib.ts --dist-dir $PARCEL_DIRECTORY_NAME/dist & sleep $PARCEL_BUILD_SLEEP_TIME && pkill -f "node"
+    npx parcel $PARCEL_DIRECTORY_NAME/src/drawLib.ts --dist-dir $PARCEL_DIRECTORY_NAME/dist & sleep $PARCEL_BUILD_SLEEP_TIME && pkill -f "node"
    # using just "npx parcel ..." because "npx parcel build ..." option doesn't provide the neccessary output (output with everything neccesary compiled into a single file)
     # "... & sleep ..." used to wait for Parcel to finish building (variable can be edited)
     # "... && pkill ..." used to kill the NodeJs process (to kill Parcel)
@@ -27,8 +27,8 @@ buildLibrary() {
 
 copyLibraryFiles() {
     echo "$SCRIPT_HEADER Copying the built library files."
-    cp -fr $PARCEL_DIRECTORY_NAME/dist/myDrawlib.js $EXTENSION_DIRECTORY_NAME/lib
-    cp -fr $PARCEL_DIRECTORY_NAME/dist/myDrawlib.js.map $EXTENSION_DIRECTORY_NAME/lib
+    cp -fr $PARCEL_DIRECTORY_NAME/dist/drawLib.js $EXTENSION_DIRECTORY_NAME/lib
+    cp -fr $PARCEL_DIRECTORY_NAME/dist/drawLib.js.map $EXTENSION_DIRECTORY_NAME/lib
     echo "$SCRIPT_HEADER Library files copied. Exiting..."
 }
 

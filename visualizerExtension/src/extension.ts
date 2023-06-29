@@ -107,7 +107,7 @@ function getWebviewContent(webview: vscode.Webview, context: any) {
 	let retHtml: string = ``;
 
 	//Preparing the paths
-	const drawLibScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'lib', 'myDrawlib.js'));
+	const drawLibScript = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'lib', 'drawLib.js'));
 	const rawHtml = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'lib', 'sourceHtmlFile.html'));
 
 	//Loading the resources

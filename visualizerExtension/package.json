@@ -32,8 +32,8 @@
     ]
   },
   "scripts": {
-    "copy-drawlib": "ncp ../myDrawingLibrary/dist/myDrawlib.js ./lib/myDrawlib.js",
-    "copy-drawlib-map": "ncp ../myDrawingLibrary/dist/myDrawlib.js.map ./lib/myDrawlib.js.map",
+    "copy-drawlib": "ncp ../drawingLibrary/dist/drawLib.js ./lib/drawLib.js",
+    "copy-drawlib-map": "ncp ../drawingLibrary/dist/drawLib.js.map ./lib/drawLib.js.map",
     "copy-all-files": "npm run copy-drawlib && npm run copy-drawlib-map",
     "vscode:prepublish": "npm run copy-all-files && npm run compile",
     "compile": "tsc -p ./",
@@ -62,7 +62,7 @@
     "fabric": "^5.2.4"
   },
   "files": [
-    "../myDrawingLibrary/dist/myDrawlib.js",
+    "../drawingLibrary/dist/drawLib.js",
     "lib/**"
   ],
   "repository": {
