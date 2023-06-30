@@ -72,7 +72,7 @@ https://github.com/bmorelli25/Become-A-Full-Stack-Web-Developer)
 ### 8. hovor
 
 - [x] Dostat to do stavu, kdy budu moct vykreslit nějaký základní zásobníkový rámec (třeba ve kterém budou dvě hodnoty s *Inty* + třeba *Bool*)
-- [ ] Dostat repo do stavu, kdy jej bude možno stáhnout a spustit (včetně doinstalování všech potřebných závislostí) na jakémkoliv jiném kompu
+- [x] Dostat repo do stavu, kdy jej bude možno stáhnout a spustit (včetně doinstalování všech potřebných závislostí) na jakémkoliv jiném kompu
 
 Poznámky do budoucna: 
 - U datového modelu se nejspíše proměnné budou řešit tak, že jejich samotná hodnota (ne ve formě stringu) bude uložena tím, že se daná třída rozšíří (např. tvorbou nové třídy *myInt*, která bude obsahovat i proměnnou *value* - ta bude rozšiřovat rodičovskou, spíše virtuální třídu *myVariable*)
@@ -89,7 +89,7 @@ Poznámky do budoucna:
 
 - Vykreslování velkých dat
   - [ ] Vypracovat vykreslování stringů (zkoušet si i nějaké edge cases - např. string o 1000 znacích)
-  - [ ] Hierarchické/rozklikávací zobrazení s odsazením (jako je např. u tříd ve Visual Studiu) 
+  - [x] Hierarchické/rozklikávací zobrazení s odsazením (jako je např. u tříd ve Visual Studiu) 
   - [ ] "Portál" - pohled na nějakou jinou část skrze nějaké speciální okno (třeba které bude zvýrazňovat nějaké prvky, atd. - obdoba toho, co např. vzniká u automatické tvorby funkcí ve Visual Studiu)
   - [ ] Vykreslování v nové stránce (+ tlačítko na vracení zpět, + breadcrumbs - cesta popisující to, "v čem je člověk zanořený a jak")
 
@@ -101,8 +101,8 @@ Poznámky do budoucna:
 
 - [x] Udělat nějaké základní vykreslování pro *Int*, *Bool*, *Float*, *String*,... 
   - Po tomhle už zase pomalu řešit napojení na VS Code
-- [ ] Časem přidat *pointery* a *pole*
-- [ ] Založit časem novou větev na gitu, kde bych stáhl [šablonu na BP](https://www.cs.vsb.cz/dvorsky/Download/LaTeX/Diploma.zip) (v LateXu), vyplnil jméno, atd.
+- [x] Časem přidat *pointery* a *pole*
+- [x] Založit časem novou větev na gitu, kde bych stáhl [šablonu na BP](https://www.cs.vsb.cz/dvorsky/Download/LaTeX/Diploma.zip) (v LateXu), vyplnil jméno, atd.
   - Nejdříve si ale udělat projekt v Overleafu (dokud bude hodně změn) a časem až přejít lokálně na git (až v době, kdy těch změn bude méně)
 
 - Poznámky do budoucna:
@@ -116,7 +116,7 @@ Poznámky do budoucna:
 
 - [x] Napojit moji vykreslovací část na tu extensionovou
   - [x] Přebírání nějákých základních dat o proměnných (alespoň třeba datové typy - u hodnot by mohl být problém)
-  - [ ] Přebírání dat o zásobníkových rámcích - více prozkoumat, co lze z VS Code dostat (snad do stavu tak, že by se už vykreslil momentální stav nějákého programu)
+  - [x] Přebírání dat o zásobníkových rámcích - více prozkoumat, co lze z VS Code dostat (snad do stavu tak, že by se už vykreslil momentální stav nějákého programu)
 
 - Poznámky do budoucna:
   - Zásobníkové rámce je možno vykreslovat postupně pod sebe (do jednoho velkého sloupce), kde pohyb mezi nimi by bylo možno řešit překlikáváním (část, kde by se už vykreslovaly jednotlivé proměnné, atd.)
