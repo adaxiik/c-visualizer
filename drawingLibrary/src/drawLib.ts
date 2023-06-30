@@ -213,7 +213,13 @@ function createDataModelVariable(messageVariable: any) : DataModelStructures.Var
 
 function variableInParameters(variableToCheck: DataModelStructures.Variable, parameters: Array<{type: string, name: string}>) : boolean {
   //Going through all the parameters
-  console.log({message: "[TESTING]", params: parameters, var: variableToCheck});
+  console.log({message: "[DEBUG] Checking if variable is is parameters", params: parameters, var: variableToCheck});
+  //Checking if the parameters property exists
+  if(parameters == undefined || parameters == null)
+  {
+    return false;
+  }
+  //Going through the parameters
   for(let i = 0; i < parameters.length; i++)
   {
     //Checking for a match

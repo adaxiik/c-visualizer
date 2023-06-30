@@ -185,14 +185,18 @@ async function getProgramState(stoppedThreadId: number) {
 	//For each stackFrame call scope request
 	for (let i = 0; i < mainStackTraceMessageBody.totalFrames; i++) {
 		const elementStackFrame = mainStackTraceMessageBody.stackFrames[i];
-		//Parsing the stackframe's name for data about parameters
-		let currentParametersStrings = elementStackFrame.name.match(functionParameterRegex)[2].split(", ");	//Returning an array of function's parameters in a "(dataType)(space)(variableName)" format - (not split by datatype and name)
-		let currentParametersMap = currentParametersStrings.map(
-			(param: string) => {
-				const [type, name] = param.split(varTypeAndNameRegex);
-				return {type, name};
-		});	//Returning an array of parameters in a {type: string, name: string} format
-		elementStackFrame.parameters = currentParametersMap;	//Adding this data to the stackframe in the custom message
+		//If the function has parameters in the name
+		if(elementStackFrame.name.match(functionParameterRegex))
+		{
+			//Parsing the stackframe's name for data about parameters
+			let currentParametersStrings = elementStackFrame.name.match(functionParameterRegex)[2].split(", ");	//Returning an array of function's parameters in a "(dataType)(space)(variableName)" format - (not split by datatype and name)
+			let currentParametersMap = currentParametersStrings.map(
+				(param: string) => {
+					const [type, name] = param.split(varTypeAndNameRegex);
+					return {type, name};
+			});	//Returning an array of parameters in a {type: string, name: string} format
+			elementStackFrame.parameters = currentParametersMap;	//Adding this data to the stackframe in the custom message
+		}
 		//Getting the stackframe's scopes
 		let currentStackFrameScopes = await callScopes(elementStackFrame.id);
 		

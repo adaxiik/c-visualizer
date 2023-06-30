@@ -723,10 +723,13 @@ function createDataModelVariable(messageVariable) {
 function variableInParameters(variableToCheck, parameters) {
     //Going through all the parameters
     console.log({
-        message: "[TESTING]",
+        message: "[DEBUG] Checking if variable is is parameters",
         params: parameters,
         var: variableToCheck
     });
+    //Checking if the parameters property exists
+    if (parameters == undefined || parameters == null) return false;
+    //Going through the parameters
     for(let i = 0; i < parameters.length; i++)//Checking for a match
     if (parameters[i].type == variableToCheck.dataTypeString && parameters[i].name == variableToCheck.variableName) {
         console.log('[DEBUG] Variable "' + variableToCheck.variableName + '" is a parameter');
