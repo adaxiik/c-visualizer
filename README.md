@@ -19,8 +19,9 @@ Optional:
   - [Docker installation guide](https://docs.docker.com/engine/install/ubuntu/)
 
 ## Usage
-1. Set `mainScript.sh` to be executable with: `chmod +x ./mainScript.sh`
-2. Run `mainScript.sh` (and choose the desired option)
+1. Install [npm](https://www.npmjs.com/) dependencies by running `npm install` in the `drawingLibrary` and `visualizerExtension` directories
+2. Set `mainScript.sh` to be executable with: `chmod +x ./mainScript.sh`
+3. Run `mainScript.sh` (and choose the desired option)
 
 ___
 ### Note
