@@ -11,7 +11,7 @@
     "@types/fabric": "^4.5.12",
     "fabric": "^5.2.4"
   },
-  "source": "src/myDrawlib.ts",
-  "module": "dist/myDrawlib.js",
-  "types": "dist/myDrawlib.d.ts"
+  "source": "src/drawLib.ts",
+  "module": "dist/drawLib.js",
+  "types": "dist/drawLib.d.ts"
 }
