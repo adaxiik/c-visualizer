@@ -300,7 +300,7 @@ function drawProgramStackJSON(messageBody: any){
 
 
 var myDrawingModule = new FabricDrawingModule('drawLibCanvas');
-const vscode = acquireVsCodeApi();  //Getting the VS Code Api (to communicate with the extension)
+// const vscode = acquireVsCodeApi();  //Getting the VS Code Api (to communicate with the extension)
 
 var currentProgramStack = new DataModelStructures.ProgramStack();
 //currentProgramStack.stackFrames = new Array<DataModelStructures.StackFrame>();
