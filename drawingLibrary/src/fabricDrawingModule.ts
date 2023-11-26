@@ -2,6 +2,8 @@ import { fabric } from "fabric";
 import * as DataModelStructures from "./dataModelStructures";
 import * as DrawingWidgets from "./drawingWidgets";
 
+export { DataModelStructures, DrawingWidgets };
+
 export class CustomCanvas extends fabric.Canvas {
     lockAllItems()
     {
