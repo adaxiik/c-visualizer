@@ -1292,7 +1292,7 @@ export class ProgramStackWidget implements Widget {
         //Helper function to draw an arrow between two slots (used for pointers) - specialized version of a FabricDrawingModule function (to draw arrows to heap)
         function drawArrowBetweenVariables(canvasToDrawTo: FabricDrawingModule.CustomCanvas, fromVariableObject : fabric.Object, toVariableObject : fabric.Object)
         {
-            let arrowColor = "black";
+            let arrowColor = "white";
             let arrowEndTriangleWidth = 10;
             let arrowEndTriangleHeight = 15;
 
@@ -1422,7 +1422,7 @@ export class ProgramStackWidget implements Widget {
         let fabricProgramStackText = new fabric.Text("Program stack", {
             left: this.startPos.x,
             top: this.startPos.y,
-            fill: textColor,
+            fill: "white", // idc, i need white
             fontSize: textFontSize * 1.2
         });
         this.canvas.add(fabricProgramStackText);
@@ -1489,7 +1489,7 @@ export class ProgramStackWidget implements Widget {
             let fabricHeapText = new fabric.Text("Heap", {
                 left: heapStartPosX,
                 top: heapStartPosY,
-                fill: textColor,
+                fill: "white", // idc, i need white here as well
                 fontSize: textFontSize * 1.2
             });
             this.canvas.add(fabricHeapText);

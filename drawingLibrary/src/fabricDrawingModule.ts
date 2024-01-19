@@ -568,9 +568,9 @@ export class FabricDrawingModule {
             else
                 console.log("[DEBUG] Error - previous pointee color is undefined");
             //Changing the pointee's color
-            searchedForVariableObject._objects[0].set("fill", "red");                   //Changing the color of the slot
+            searchedForVariableObject._objects[0].set("fill", "#F86662");                   //Changing the color of the slot
             if(searchedForVariableObject._objects[1].backgroundColor != undefined)      //Changing the color of the text's background color (if present)
-                searchedForVariableObject._objects[1].backgroundColor = "red";
+                searchedForVariableObject._objects[1].backgroundColor = "#F86662";
         }
     }
 
@@ -628,7 +628,7 @@ export class FabricDrawingModule {
 
     //Helper function to draw an arrow between two slots (used for pointers) - arrowOffset changes how far the arrow stretches sideways
     drawArrowBetweenVariables(fromVariableObject : fabric.Object, toVariableObject : fabric.Object, arrowOffset = 1) {
-        let arrowColor = "black";
+        let arrowColor = "white";
         let arrowEndTriangleWidth = 10;
         let arrowEndTriangleHeight = 15;
 
